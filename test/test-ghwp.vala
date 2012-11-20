@@ -21,7 +21,7 @@ void main(string[] args)
 {
     if(args.length < 2) {
         print("Usage: test-ghwp filename\n");
-        return 0;
+        return;
     }
 
     GHWPFile ghwp_file;
@@ -49,5 +49,11 @@ void main(string[] args)
     print("certificate_drm     %s\n", ghwp_file.header.is_certificate_drm.to_string());
     print("ccl                 %s\n", ghwp_file.header.is_ccl.to_string());
 
-    var doc = ghwp_file.get_document();
+    try {
+        var doc = ghwp_file.get_document();
+        print("%s\n", doc.prv_text);
+    }
+    catch (Error e) {
+        error ("%s", e.message);
+    }
 }
