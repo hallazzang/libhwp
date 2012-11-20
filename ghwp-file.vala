@@ -23,6 +23,7 @@
 
 public class GHWPFile : GLib.Object {
     private Gsf.InfileMSOle olefile;
+    private GHWPDocument doc;
     public struct Header {
         string signature;
         uint32 version;
@@ -56,6 +57,29 @@ public class GHWPFile : GLib.Object {
         }
 
         parse_file_header();
+
+        // prv_text 가져오기
+        Gsf.Input prv_text = olefile.child_by_name("PrvText");
+        Gsf.off_t _size    = prv_text.size();
+        // TODO free _buf_in ?
+        uchar [] _buf_in   = new uchar[_size];
+        prv_text.read((size_t) _size, _buf_in);
+        string result = GLib.convert( (string)  _buf_in,
+                                      (ssize_t) _size,
+                                      "UTF-8",  "UTF-16LE");
+
+        // doc 생성
+        doc = new GHWPDocument();
+        doc.prv_text = result;
+    }
+
+    /**
+     * This method is converted to
+     * GHWPDocument *ghwp_file_get_document (GHWPFile *hwp,
+     *                                       GError  **error);
+     */
+    public GHWPDocument get_document () throws Error {
+        return doc;
     }
 
     void parse_file_header() {
