@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-int main(string[] args)
+void main(string[] args)
 {
     if(args.length < 2) {
         print("Usage: test-ghwp filename\n");
@@ -49,5 +49,5 @@ int main(string[] args)
     print("certificate_drm     %s\n", ghwp_file.header.is_certificate_drm.to_string());
     print("ccl                 %s\n", ghwp_file.header.is_ccl.to_string());
 
-    return 1;
+    var doc = ghwp_file.get_document();
 }

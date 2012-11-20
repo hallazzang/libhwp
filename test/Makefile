@@ -1,7 +1,9 @@
-PKG = --pkg libgsf-1
+PKG = --pkg libgsf-1 --pkg cairo
+LIB = -X -lghwp
+INC = -X -I..
 
 all:
-	valac test-ghwp.vala ../*.vala $(PKG)
+	valac -o test-ghwp test-ghwp.vala ../ghwp.vapi $(INC) $(PKG) $(LIB)
 
 clean:
 	rm -f test-ghwp
