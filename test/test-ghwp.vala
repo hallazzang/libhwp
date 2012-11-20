@@ -51,7 +51,7 @@ void main(string[] args)
 
     try {
         var doc = ghwp_file.get_document();
-        print("%s\n", doc.prv_text);
+        stdout.printf("%s\n", doc.prv_text);
     }
     catch (Error e) {
         error ("%s", e.message);
