@@ -1,3 +1,27 @@
-libghwp is a GObject based library for handling HWP documents.
+libghwp HWP v5 문서를 다루는 라이브러리입니다. GObject에 기반합니다.
 
-한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+현재 작업 중입니다.
+
+
+컴파일
+------
+
+Vala 0.18.1 버전으로 컴파일할 것을 권장합니다.
+
+소스리스트:
+deb http://ppa.launchpad.net/vala-team/ppa/ubuntu oneiric main
+
+
+libgsf-1.vapi 버그 패치
+-----------------------
+
+아래와 같은 버그 때문에 libgsf-1.vapi 파일을 업그레이드해야 합니다.
+https://bugzilla.gnome.org/show_bug.cgi?id=688556
+https://bugzilla.gnome.org/show_bug.cgi?id=688851
+Tarnyko님, Luca Bruno님 감사합니다.
+Thanks to Tarnyko, Luca Bruno
+
+파일을 다운받아
+wget http://git.gnome.org/browse/vala/plain/vapi/libgsf-1.vapi
+기존 파일을 교체해주세요.
+sudo mv libgsf-1.vapi /usr/share/vala-0.18/vapi
