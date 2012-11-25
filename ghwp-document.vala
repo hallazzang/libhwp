@@ -17,6 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class GHWPDocument : Object {
+public class GHWP.Document : Object {
     public string prv_text;
 }

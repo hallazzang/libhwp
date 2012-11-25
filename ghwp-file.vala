@@ -23,7 +23,7 @@
 
 public class GHWP.GHWPFile : GLib.Object {
     private Gsf.InfileMSOle olefile;
-    private GHWPDocument doc;
+    private GHWP.Document doc;
     public struct Header {
         string signature;
         uint32 version;
@@ -56,21 +56,10 @@ public class GHWP.GHWPFile : GLib.Object {
             error ("%s", e.message);
         }
 
+        doc = new GHWP.Document();
+
         parse_file_header();
-
-        // prv_text 가져오기
-        Gsf.Input prv_text = olefile.child_by_name("PrvText");
-        Gsf.off_t _size    = prv_text.size();
-        // TODO free _buf_in ?
-        uchar [] _buf_in   = new uchar[_size];
-        prv_text.read((size_t) _size, _buf_in);
-        string result = GLib.convert( (string)  _buf_in,
-                                      (ssize_t) _size,
-                                      "UTF-8",  "UTF-16LE");
-
-        // doc 생성
-        doc = new GHWPDocument();
-        doc.prv_text = result;
+        parse_prv_text();
     }
 
     /**
@@ -78,40 +67,55 @@ public class GHWP.GHWPFile : GLib.Object {
      * GHWPDocument *ghwp_file_get_document (GHWPFile *hwp,
      *                                       GError  **error);
      */
-    public GHWPDocument get_document () throws Error {
+    public GHWP.Document get_document () throws Error {
         return doc;
     }
 
     void parse_file_header() {
-        Gsf.Input _header = olefile.child_by_name("FileHeader");
-        Gsf.off_t size = _header.size();
-        uchar[] buf  = new uchar[size];
-        _header.read((size_t) size, buf);
+        var _input =  olefile.child_by_name("FileHeader");
+        var _size  = _input.size();
+        var _buf   =  new uchar[_size];
+        _input.read((size_t) _size, _buf);
 
-        header.signature = (string) buf[0:31]; // 32 bytes
+        header.signature = (string) _buf[0:31]; // 32 bytes
         // 5 << 24 | 0 << 16 | 0 << 0 | 6 => 83886086
         // 83886086.to_s(16) => "5000006"
-        header.version   = (buf[35] << 24) |
-                           (buf[34] << 16) |
-                           (buf[33] <<  8) |
-                            buf[32];
+        header.version = (_buf[35] << 24) |
+                         (_buf[34] << 16) |
+                         (_buf[33] <<  8) |
+                          _buf[32];
         // type conversion
-        uint32 _property = (buf[39] << 24) |
-                           (buf[38] << 16) |
-                           (buf[37] <<  8) |
-                            buf[36];
+        uint32 _prop   = (_buf[39] << 24) |
+                         (_buf[38] << 16) |
+                         (_buf[37] <<  8) |
+                          _buf[36];
 
-        if((_property & (1 <<  0)) ==  1) header.is_compress            = true;
-        if((_property & (1 <<  1)) ==  1) header.is_encrypt             = true;
-        if((_property & (1 <<  2)) ==  1) header.is_distribute          = true;
-        if((_property & (1 <<  3)) ==  1) header.is_script              = true;
-        if((_property & (1 <<  4)) ==  1) header.is_drm                 = true;
-        if((_property & (1 <<  5)) ==  1) header.is_xml_template        = true;
-        if((_property & (1 <<  6)) ==  1) header.is_history             = true;
-        if((_property & (1 <<  7)) ==  1) header.is_sign                = true;
-        if((_property & (1 <<  8)) ==  1) header.is_certificate_encrypt = true;
-        if((_property & (1 <<  9)) ==  1) header.is_sign_spare          = true;
-        if((_property & (1 << 10)) ==  1) header.is_certificate_drm     = true;
-        if((_property & (1 << 11)) ==  1) header.is_ccl                 = true;
+        if((_prop & (1 <<  0)) ==  1) header.is_compress            = true;
+        if((_prop & (1 <<  1)) ==  1) header.is_encrypt             = true;
+        if((_prop & (1 <<  2)) ==  1) header.is_distribute          = true;
+        if((_prop & (1 <<  3)) ==  1) header.is_script              = true;
+        if((_prop & (1 <<  4)) ==  1) header.is_drm                 = true;
+        if((_prop & (1 <<  5)) ==  1) header.is_xml_template        = true;
+        if((_prop & (1 <<  6)) ==  1) header.is_history             = true;
+        if((_prop & (1 <<  7)) ==  1) header.is_sign                = true;
+        if((_prop & (1 <<  8)) ==  1) header.is_certificate_encrypt = true;
+        if((_prop & (1 <<  9)) ==  1) header.is_sign_spare          = true;
+        if((_prop & (1 << 10)) ==  1) header.is_certificate_drm     = true;
+        if((_prop & (1 << 11)) ==  1) header.is_ccl                 = true;
+    }
+
+    void parse_prv_text()
+    {
+        var input   = olefile.child_by_name("PrvText");
+        var size    = input.size();
+        var buf     = new uchar[size];
+        input.read((size_t) size, buf);
+        try {
+            doc.prv_text = GLib.convert( (string) buf, (ssize_t) size,
+                                         "UTF-8",      "UTF-16LE");
+        }
+        catch (Error e) {
+            error("%s", e.message);
+        }
     }
 }
