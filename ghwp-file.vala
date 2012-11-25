@@ -21,7 +21,7 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-public class GHWPFile : GLib.Object {
+public class GHWP.GHWPFile : GLib.Object {
     private Gsf.InfileMSOle olefile;
     private GHWPDocument doc;
     public struct Header {

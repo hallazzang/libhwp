@@ -24,11 +24,11 @@ void main(string[] args)
         return;
     }
 
-    GHWPFile ghwp_file;
+    GHWP.GHWPFile ghwp_file;
     File file = File.new_for_path(args[1]);
 
     try {
-        ghwp_file = new GHWPFile(file);
+        ghwp_file = new GHWP.GHWPFile(file);
     }
     catch (Error e) {
         error("%s", e.message);
