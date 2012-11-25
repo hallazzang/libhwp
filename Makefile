@@ -7,5 +7,5 @@ all:
 	(cd test; make)
 
 clean:
-	rm -f *.h *.vapi *.o *.so
+	rm -f *.c *.h *.vapi *.o *.so
 	(cd test; make clean)
