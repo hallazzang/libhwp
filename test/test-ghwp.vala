@@ -52,6 +52,8 @@ void main(string[] args)
     try {
         var doc = ghwp_file.get_document();
         stdout.printf("%s\n", doc.prv_text);
+        // FIXME
+        Gsf.doc_meta_dump(doc.summary_info);
     }
     catch (Error e) {
         error ("%s", e.message);

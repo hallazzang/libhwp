@@ -18,5 +18,6 @@
  */
 
 public class GHWP.Document : Object {
-    public string prv_text;
+    public string          prv_text;
+    public Gsf.DocMetaData summary_info;
 }

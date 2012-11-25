@@ -60,6 +60,7 @@ public class GHWP.GHWPFile : GLib.Object {
 
         parse_file_header();
         parse_prv_text();
+        parse_summary_info();
     }
 
     /**
@@ -117,5 +118,28 @@ public class GHWP.GHWPFile : GLib.Object {
         catch (Error e) {
             error("%s", e.message);
         }
+    }
+
+    void parse_summary_info()
+    {
+        var input = olefile.child_by_name("\005HwpSummaryInformation");
+        var size  = input.size();
+        var buf   = new uchar[size];
+        input.read((size_t) size, buf);
+
+        uint8[] component_guid = {
+            0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
+            0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
+        };
+
+        // changwoo's solution, thanks to changwoo.
+        // https://groups.google.com/forum/#!topic/libhwp/gFDD7UMCXBc
+        // https://github.com/changwoo/gnome-hwp-support/blob/master/properties/props-data.c
+        Memory.copy(buf + 28, component_guid, component_guid.length);
+        var summary = new Gsf.InputMemory(buf, size, false);
+        var meta = new Gsf.DocMetaData();
+        Gsf.msole_metadata_read(summary, meta);
+        // FIXME
+        doc.summary_info = meta;
     }
 }
