@@ -136,7 +136,7 @@ public class GHWP.GHWPFile : GLib.Object {
         // https://groups.google.com/forum/#!topic/libhwp/gFDD7UMCXBc
         // https://github.com/changwoo/gnome-hwp-support/blob/master/properties/props-data.c
         Memory.copy(buf + 28, component_guid, component_guid.length);
-        var summary = new Gsf.InputMemory(buf, size, false);
+        var summary = new Gsf.InputMemory(buf, false);
         var meta = new Gsf.DocMetaData();
         Gsf.msole_metadata_read(summary, meta);
         // FIXME
