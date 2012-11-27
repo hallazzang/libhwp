@@ -74,7 +74,7 @@ namespace GHWP.Tag
     const uint16 MEMO_SHAPE                =  92;
     const uint16 MEMO_LIST                 =  93;
     const uint16 CHART_DATA                =  95;
-    const uint16 SHAPE_COMPONENT_DUMMY     = 115;
+    const uint16 SHAPE_COMPONENT_UNKNOWN   = 115;
 
     const string[] NAMES = {
         "0", "1",  "2",  "3",  "4",  "5",  "6",  "7",
@@ -130,6 +130,6 @@ namespace GHWP.Tag
         "FORBIDDEN_CHAR",            //  94
          "95",  "96",  "97",  "98",  "99", "100", "101", "102", "103", "104",
         "105", "106", "107", "108", "109", "110", "111", "112", "113", "114",
-        "SHAPE_COMPONENT_DUMMY"      // 115
+        "SHAPE_COMPONENT_UNKNOWN"    // 115
     };
 }
