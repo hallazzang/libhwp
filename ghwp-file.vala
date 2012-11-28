@@ -21,6 +21,38 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
+public class GsfInputStream : InputStream
+{
+    private Gsf.Input input;
+
+    public GsfInputStream(Gsf.Input input)
+    {
+        this.input = input;
+    }
+
+    public override ssize_t
+    read (uint8[] buffer, Cancellable? cancellable = null) throws IOError
+    {
+        var stamp = input.remaining();
+
+        if (input.remaining() < buffer.length) {
+            input.read ((size_t)input.remaining(), buffer);
+        }
+        else {
+            input.read (buffer.length, buffer);
+        }
+
+        return (ssize_t) (stamp - input.remaining());
+    }
+
+    public override bool
+    close (Cancellable? cancellable = null) throws IOError
+    {
+        // pseudo true
+        return true;
+    }
+}
+
 public class GHWP.GHWPFile : GLib.Object {
     private Gsf.InfileMSOle olefile;
     private GHWP.Document doc;
