@@ -30,16 +30,21 @@ public class GHWP.Document : Object {
     public Document.from_uri (string uri) throws Error
     {
         ghwp_file = new GHWPFile.from_uri (uri);
-
-        parse_doc_info();
-        parse_body_text();
-        parse_prv_text();
-        parse_summary_info();
+        init();
     }
 
     public Document.from_filename (string filename) throws Error
     {
-        new GHWPFile.from_filename (filename);
+        ghwp_file = new GHWPFile.from_filename (filename);
+        init();
+    }
+
+    private void init()
+    {
+        parse_doc_info();
+        parse_body_text();
+        parse_prv_text();
+        parse_summary_info();
     }
 
     public uint get_n_pages ()
@@ -74,7 +79,7 @@ public class GHWP.Document : Object {
         try {
             gis.read(buf);
             prv_text = GLib.convert( (string) buf, (ssize_t) size,
-                                          "UTF-8",      "UTF-16LE");
+                                     "UTF-8",      "UTF-16LE");
         }
         catch (Error e) {
             error("%s", e.message);
