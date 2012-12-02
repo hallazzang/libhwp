@@ -1,11 +1,28 @@
-PKG = --pkg libgsf-1 --pkg cairo
-LIB = `pkg-config --libs libgsf-1`
+ACLOCAL_AMFLAGS = -I m4
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-introspection=no
 
-all:
-	valac -H ghwp.h --library ghwp -c --Xcc=-fPIC *.vala $(PKG)
-	gcc --shared -fPIC -o libghwp.so *.o $(LIB)
-	(cd test; make)
+SUBDIRS = \
+	src \
+	tests \
+	$(NULL)
 
-clean:
-	rm -f *.c *.h *.vapi *.o *.so
-	(cd test; make clean)
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = ghwp-0.1.pc
+
+dist-hook: gen-ChangeLog
+
+gen_start_date = 2012-11-01
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	if test -d .git; then						\
+	  $(top_srcdir)/gitlog-to-changelog				\
+	    --since=$(gen_start_date) > $(distdir)/cl-t;		\
+	  rm -f $(distdir)/ChangeLog;					\
+	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
+	fi
+
+EXTRA_DIST = \
+	gitlog-to-changelog \
+	ghwp-0.1.pc.in \
+	$(NULL)
+

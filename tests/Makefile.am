@@ -1,9 +1,27 @@
-PKG = --pkg libgsf-1 --pkg cairo
-LIB = -X -lghwp
-INC = -X -I..
+noinst_PROGRAMS = $(TEST_PROGS)
 
-all:
-	valac -o test-ghwp test-ghwp.vala ../ghwp.vapi $(INC) $(PKG) $(LIB)
+TEST_PROGS = tests
 
-clean:
-	rm -f test-ghwp
+tests_SOURCES = \
+       test-ghwp.vala \
+       $(NULL)
+
+tests_DEPENDENCIES = \
+	$(top_srcdir)/src/ghwp-0.1.vapi \
+	$(NULL)
+
+tests_VALAFLAGS = \
+	--basedir $(top_srcdir) \
+	--vapidir $(top_srcdir)/src \
+	--pkg ghwp-0.1 --pkg libgsf-1 --pkg gee-1.0 --pkg cairo \
+	$(VALAFLAGS) \
+	$(NULL)
+
+tests_CPPFLAGS = \
+	-I$(top_srcdir)/src \
+	$(GLIB_CFLAGS) \
+	$(NULL)
+
+tests_LDADD = \
+	$(GLIB_LIBS) ../src/libghwp-0.1.la \
+	$(NULL)
