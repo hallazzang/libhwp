@@ -24,16 +24,25 @@ void main(string[] args)
         return;
     }
 
-    GHWP.GHWPFile ghwp_file;
-    File file = File.new_for_path(args[1]);
+    GHWP.Document doc;
 
     try {
-        ghwp_file = new GHWP.GHWPFile(file);
+        doc = new GHWP.Document.from_filename(args[1]);
     }
     catch (Error e) {
         error("%s", e.message);
     }
 
+    // FIXME
+    // file_header_dump(ghwp_file);
+
+    stdout.printf("%s\n", doc.prv_text);
+    // FIXME
+    Gsf.doc_meta_dump(doc.summary_info);
+}
+
+void file_header_dump(GHWP.GHWPFile ghwp_file)
+{
     print("signature           %s\n", ghwp_file.header.signature);
     print("version             %s\n", ghwp_file.header.version.to_string("%x"));
     print("compress            %s\n", ghwp_file.header.is_compress.to_string());
@@ -48,14 +57,4 @@ void main(string[] args)
     print("sign_spare          %s\n", ghwp_file.header.is_sign_spare.to_string());
     print("certificate_drm     %s\n", ghwp_file.header.is_certificate_drm.to_string());
     print("ccl                 %s\n", ghwp_file.header.is_ccl.to_string());
-
-    try {
-        var doc = ghwp_file.get_document();
-        stdout.printf("%s\n", doc.prv_text);
-        // FIXME
-        Gsf.doc_meta_dump(doc.summary_info);
-    }
-    catch (Error e) {
-        error ("%s", e.message);
-    }
 }
