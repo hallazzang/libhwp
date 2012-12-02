@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+
+Name: libghwp
+Description: libghwp is a GObject based library for handling HWP v5 documents.
+Version: @VERSION@
+Requires: libgsf-1 gee-1.0 cairo
+Libs: -L${libdir} -lghwp-0.1
+Cflags: -I${includedir}/ghwp-0.1
