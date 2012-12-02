@@ -51,11 +51,16 @@ public class GsfInputStream : InputStream
         // pseudo true
         return true;
     }
+
+    public ssize_t size()
+    {
+        return (ssize_t) input.size();
+    }
 }
 
 public class GHWP.GHWPFile : GLib.Object {
     private Gsf.InfileMSOle olefile;
-    private GHWP.Document doc;
+
     public struct Header {
         string signature;
         uint32 version;
@@ -73,105 +78,161 @@ public class GHWP.GHWPFile : GLib.Object {
         bool   is_ccl;
     }
     public Header header = Header();
-    /**
-     * This method is converted to
-     * 
-     * GHWPFile *ghwp_file_new (GFile *filename, GError **error);
-     */
-    public GHWPFile (File filename) throws Error {
 
+    public InputStream prv_text_stream;
+    public InputStream prv_image_stream;
+    public InputStream file_header_stream;
+    public InputStream doc_info_stream;
+    public Gee.ArrayList<InputStream> section_streams;
+    private InputStream section_stream;
+    public InputStream summary_info_stream;
+
+    public GHWPFile.from_uri (string uri) throws Error
+    {
+        var filename = Filename.from_uri(uri);
         try {
-            var input   = new Gsf.InputStdio (filename.get_path());
-            olefile     = new Gsf.InfileMSOle (input);
+            var input = new Gsf.InputStdio (filename);
+            olefile   = new Gsf.InfileMSOle (input);
         }
         catch (Error e) {
             error ("%s", e.message);
         }
 
-        doc = new GHWP.Document();
-
-        parse_file_header();
-        parse_prv_text();
-        parse_summary_info();
+        init();
     }
 
-    /**
-     * This method is converted to
-     * GHWPDocument *ghwp_file_get_document (GHWPFile *hwp,
-     *                                       GError  **error);
-     */
-    public GHWP.Document get_document () throws Error {
-        return doc;
-    }
-
-    void parse_file_header() {
-        var _input =  olefile.child_by_name("FileHeader");
-        var _size  = _input.size();
-        var _buf   =  new uchar[_size];
-        _input.read((size_t) _size, _buf);
-
-        header.signature = (string) _buf[0:31]; // 32 bytes
-        // 5 << 24 | 0 << 16 | 0 << 0 | 6 => 83886086
-        // 83886086.to_s(16) => "5000006"
-        header.version = (_buf[35] << 24) |
-                         (_buf[34] << 16) |
-                         (_buf[33] <<  8) |
-                          _buf[32];
-        // type conversion
-        uint32 _prop   = (_buf[39] << 24) |
-                         (_buf[38] << 16) |
-                         (_buf[37] <<  8) |
-                          _buf[36];
-
-        if((_prop & (1 <<  0)) ==  1) header.is_compress            = true;
-        if((_prop & (1 <<  1)) ==  1) header.is_encrypt             = true;
-        if((_prop & (1 <<  2)) ==  1) header.is_distribute          = true;
-        if((_prop & (1 <<  3)) ==  1) header.is_script              = true;
-        if((_prop & (1 <<  4)) ==  1) header.is_drm                 = true;
-        if((_prop & (1 <<  5)) ==  1) header.is_xml_template        = true;
-        if((_prop & (1 <<  6)) ==  1) header.is_history             = true;
-        if((_prop & (1 <<  7)) ==  1) header.is_sign                = true;
-        if((_prop & (1 <<  8)) ==  1) header.is_certificate_encrypt = true;
-        if((_prop & (1 <<  9)) ==  1) header.is_sign_spare          = true;
-        if((_prop & (1 << 10)) ==  1) header.is_certificate_drm     = true;
-        if((_prop & (1 << 11)) ==  1) header.is_ccl                 = true;
-    }
-
-    void parse_prv_text()
+    public GHWPFile.from_filename (string filename) throws Error
     {
-        var input   = olefile.child_by_name("PrvText");
-        var size    = input.size();
-        var buf     = new uchar[size];
-        input.read((size_t) size, buf);
+        var file = File.new_for_path(filename);
         try {
-            doc.prv_text = GLib.convert( (string) buf, (ssize_t) size,
-                                         "UTF-8",      "UTF-16LE");
+            var input = new Gsf.InputStdio (file.get_path());
+            olefile   = new Gsf.InfileMSOle (input);
+        }
+        catch (Error e) {
+            error ("%s", e.message);
+        }
+
+        init();
+    }
+
+    // hwp 파일의 오류를 검사하고 stream을 만든다.
+    void init()
+    {
+        var n_children = olefile.num_children();
+
+        if (n_children < 1) {
+            stderr.printf("invalid hwp file\n");
+            return;
+        }
+
+        for(int i = 0; i < n_children; i++) {
+            string name = olefile.name_by_index(i);
+            switch (name) {
+            case "PrvText":
+                var input = olefile.child_by_name("PrvText");
+                if (((Gsf.Infile)input).num_children() > 0)
+                    stderr.printf("invalid\n");
+                prv_text_stream = new GsfInputStream(input);
+                break;
+            case "PrvImage":
+                var input = olefile.child_by_name("PrvImage");
+                if (((Gsf.Infile)input).num_children() > 0)
+                    stderr.printf("invalid\n");
+                prv_image_stream = new GsfInputStream(input);
+                break;
+            case "FileHeader":
+                var input = olefile.child_by_name("FileHeader");
+                if (((Gsf.Infile)input).num_children() > 0)
+                    stderr.printf("invalid\n");
+                file_header_stream = new GsfInputStream(input);
+                decode_file_header();
+                break;
+            case "DocInfo":
+                var input = olefile.child_by_name("DocInfo");
+                if (((Gsf.Infile)input).num_children() > 0)
+                    stderr.printf("invalid\n");
+                if (header.is_compress) {
+                    var gis = new GsfInputStream(input);
+                    var zd  = new ZlibDecompressor (ZlibCompressorFormat.RAW);
+                    doc_info_stream = new ConverterInputStream(gis, zd);
+                }
+                else {
+                    doc_info_stream = new GsfInputStream(input);
+                }
+                break;
+            case "BodyText":
+            case "VeiwText":
+                section_streams = new Gee.ArrayList<InputStream>();
+                var infile = (Gsf.Infile) olefile.child_by_index(i);
+                if (infile.num_children() == 0)
+                    stderr.printf("nothing in BodyText\n");
+
+                for (int j = 0; j < infile.num_children(); j++) {
+                    var section = (Gsf.Infile) infile.child_by_index(j);
+                    if (section.num_children() > 0)
+                        stderr.printf("invalid section\n");
+
+                    if (header.is_compress) {
+                        var gis = new GsfInputStream(section);
+                        var zd  = new ZlibDecompressor (ZlibCompressorFormat.RAW);
+                        section_stream = new ConverterInputStream(gis, zd);
+                    }
+                    else {
+                        section_stream = new GsfInputStream(section);
+                    }
+                    section_streams.add(section_stream);
+                    stdout.printf("%s\n", infile.name_by_index(j));
+                }
+                break;
+            case "\005HwpSummaryInformation":
+                var input = olefile.child_by_name("\005HwpSummaryInformation");
+                if (((Gsf.Infile)input).num_children() > 0)
+                    stderr.printf("invalid\n");
+                summary_info_stream = new GsfInputStream(input);
+                break;
+            default:
+                stderr.printf("not implemented error: %s\n", name);
+                break;
+            }
+        }
+    }
+
+    void decode_file_header()
+    {
+        var gis  = (GsfInputStream)file_header_stream;
+        var size = gis.size();
+        var buf  = new uchar[size];
+        try {
+            gis.read(buf);
         }
         catch (Error e) {
             error("%s", e.message);
         }
-    }
 
-    void parse_summary_info()
-    {
-        var input = olefile.child_by_name("\005HwpSummaryInformation");
-        var size  = input.size();
-        var buf   = new uchar[size];
-        input.read((size_t) size, buf);
+        header.signature = (string) buf[0:31]; // 32 bytes
+        // 5 << 24 | 0 << 16 | 0 << 0 | 6 => 83886086
+        // 83886086.to_s(16) => "5000006"
+        header.version = (buf[35] << 24) |
+                         (buf[34] << 16) |
+                         (buf[33] <<  8) |
+                          buf[32];
+        // type conversion
+        uint32 prop    = (buf[39] << 24) |
+                         (buf[38] << 16) |
+                         (buf[37] <<  8) |
+                          buf[36];
 
-        uint8[] component_guid = {
-            0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
-            0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
-        };
-
-        // changwoo's solution, thanks to changwoo.
-        // https://groups.google.com/forum/#!topic/libhwp/gFDD7UMCXBc
-        // https://github.com/changwoo/gnome-hwp-support/blob/master/properties/props-data.c
-        Memory.copy(buf + 28, component_guid, component_guid.length);
-        var summary = new Gsf.InputMemory(buf, false);
-        var meta = new Gsf.DocMetaData();
-        Gsf.msole_metadata_read(summary, meta);
-        // FIXME
-        doc.summary_info = meta;
+        if((prop & (1 <<  0)) ==  1) header.is_compress            = true;
+        if((prop & (1 <<  1)) ==  1) header.is_encrypt             = true;
+        if((prop & (1 <<  2)) ==  1) header.is_distribute          = true;
+        if((prop & (1 <<  3)) ==  1) header.is_script              = true;
+        if((prop & (1 <<  4)) ==  1) header.is_drm                 = true;
+        if((prop & (1 <<  5)) ==  1) header.is_xml_template        = true;
+        if((prop & (1 <<  6)) ==  1) header.is_history             = true;
+        if((prop & (1 <<  7)) ==  1) header.is_sign                = true;
+        if((prop & (1 <<  8)) ==  1) header.is_certificate_encrypt = true;
+        if((prop & (1 <<  9)) ==  1) header.is_sign_spare          = true;
+        if((prop & (1 << 10)) ==  1) header.is_certificate_drm     = true;
+        if((prop & (1 << 11)) ==  1) header.is_ccl                 = true;
     }
 }
