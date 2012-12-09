@@ -21,7 +21,28 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-public class GHWP.Document : Object {
+public class TextP : Object
+{
+    public Gee.ArrayList<TextSpan> textspans = new Gee.ArrayList<TextSpan>();
+
+    public void add_textspan(TextSpan textspan)
+    {
+        textspans.add(textspan);
+    }
+}
+
+public class TextSpan : Object
+{
+    public string text;
+
+    public TextSpan(string text)
+    {
+        this.text = text;
+    }
+}
+
+public class GHWP.Document : Object
+{
     public GHWP.GHWPFile ghwp_file;
     public string        prv_text;
     public Gee.ArrayList<GHWP.Page> pages = new Gee.ArrayList<GHWP.Page>();
@@ -60,16 +81,143 @@ public class GHWP.Document : Object {
     void parse_doc_info()
     {
         var context = new GHWP.Context(ghwp_file.doc_info_stream);
-        context.parse();
+        while ( context.pull() ) {
+            // TODO
+        }
+    }
+
+    string get_text_from_raw_data(uchar[] raw)
+    {
+        unichar ch;
+        string text = "";
+        for (int i = 0; i < raw.length; i = i + 2) {
+            ch = (raw[i+1] <<  8) | raw[i];
+            switch (ch) {
+            case 0:
+                break;
+            case 1:
+            case 2:
+            case 3:
+            case 4: // inline
+            case 5: // inline
+            case 6: // inline
+            case 7: // inline
+            case 8: // inline
+                i += 14;
+                break;
+            case 9: // tab // inline
+                i += 14;
+                text += ch.to_string();
+                break;
+            case 10:
+                break;
+            case 11:
+            case 12:
+                i += 14;
+                break;
+            case 13:
+                break;
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+            case 18:
+            case 19: // inline
+            case 20: // inline
+            case 21:
+            case 22:
+            case 23:
+                i += 14;
+                break;
+            case 24:
+            case 25:
+            case 26:
+            case 27:
+            case 28:
+            case 29:
+            case 30:
+            case 31:
+                break;
+            default:
+                text += ch.to_string();
+                break;
+            }
+        }
+        return text;
     }
 
     void parse_body_text()
     {
+        uint curr_lv = 0;
+        uint prev_lv = 0;
+        Gee.ArrayList<Object> office_text = new Gee.ArrayList<Object>();
+
         foreach (var section_stream in ghwp_file.section_streams) {
             var context = new GHWP.Context(section_stream);
-            context.parse();
-        }
-    }
+            while ( context.pull() ) {
+                for (int i = 0; i < context.level; i++) {
+                    stdout.printf("  ");
+                }
+                curr_lv = context.level;
+                stdout.printf("%s\n", GHWP.Tag.NAMES[context.tag_id]);
+                switch (context.tag_id) {
+                case GHWP.Tag.PARA_HEADER:
+                    if (curr_lv > prev_lv ) {
+                        // TODO
+                        office_text.add(new TextP());
+                    }
+                    else if (curr_lv < prev_lv) {
+                        office_text.add(new TextP());
+                    }
+                    else if (curr_lv == prev_lv) {
+                        office_text.add(new TextP());
+                    }
+                    break;
+                case GHWP.Tag.PARA_TEXT:
+                    if (curr_lv > prev_lv) {
+                        var textp = office_text.get(office_text.size - 1);
+                        var text = get_text_from_raw_data(context.data);
+                        ((TextP)textp).add_textspan(new TextSpan(text));
+                    }
+                    else if (curr_lv < prev_lv) {
+                    }
+                    else if (curr_lv == prev_lv) {
+                    }
+                    break;
+                case GHWP.Tag.PARA_CHAR_SHAPE:
+                    // TODO
+                    break;
+                case GHWP.Tag.PARA_LINE_SEG:
+                    // TODO
+                    break;
+                case GHWP.Tag.CTRL_HEADER:
+                    // TODO
+                    break;
+                case GHWP.Tag.PAGE_DEF:
+                    // TODO
+                    break;
+                case GHWP.Tag.FOOTNOTE_SHAPE:
+                    // TODO
+                    break;
+                case GHWP.Tag.PAGE_BORDER_FILL:
+                    // TODO
+                    break;
+                case GHWP.Tag.LIST_HEADER:
+                    // TODO
+                    break;
+                case GHWP.Tag.EQEDIT:
+                    // TODO
+                    break;
+                default:
+                    stderr.printf("%s: not implemented\n",
+                                   GHWP.Tag.NAMES[context.tag_id]);
+                    Process.exit(1);
+                    break;
+                } // switch
+                prev_lv = curr_lv;
+            } // while
+        } // foreach
+    } // parse_body_text()
 
     void parse_prv_text()
     {
