@@ -152,7 +152,7 @@ public class GHWP.GHWPFile : GLib.Object {
                 if (((Gsf.Infile)input).num_children() > 0)
                     stderr.printf("invalid\n");
                 if (header.is_compress) {
-                    var gis = new GsfInputStream(input);
+                    var gis = new GsfInputStream (input);
                     var zd  = new ZlibDecompressor (ZlibCompressorFormat.RAW);
                     doc_info_stream = new ConverterInputStream(gis, zd);
                 }
@@ -160,6 +160,8 @@ public class GHWP.GHWPFile : GLib.Object {
                     doc_info_stream = new GsfInputStream(input);
                 }
                 break;
+            // TODO 파일 헤더 디코딩을 하였는지 체크하고 하직 하지 않았다면
+            // 파일 헤더 디코딩을 먼저하도록 해야함.
             case "BodyText":
             case "VeiwText":
                 section_streams = new Gee.ArrayList<InputStream>();
@@ -181,7 +183,6 @@ public class GHWP.GHWPFile : GLib.Object {
                         section_stream = new GsfInputStream(section);
                     }
                     section_streams.add(section_stream);
-                    stdout.printf("%s\n", infile.name_by_index(j));
                 }
                 break;
             case "\005HwpSummaryInformation":
