@@ -64,11 +64,10 @@ GHWP-0.1.typelib: GHWP-0.1.gir
 	@INTROSPECTION_COMPILER@ $(INTROSPECTION_COMPILER_ARGS) -o $@ $^
 endif
 
-GHWP-0.1.gir ghwp-internals-0.1.vapi ghwp-0.1.vapi: libghwp-0.1.la
+GHWP-0.1.gir ghwp-0.1.vapi: libghwp-0.1.la
 
 CLEANFILES = \
 	ghwp-0.1.vapi \
-	ghwp-internals-0.1.vapi \
 	GHWP-0.1.typelib \
 	GHWP-0.1.gir \
 	$(NULL)
