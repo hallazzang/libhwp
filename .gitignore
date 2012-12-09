@@ -7,6 +7,7 @@ Makefile
 *.c
 *.h
 *.stamp
+*.stamp-t
 *.gir
 *.typelib
 .deps
@@ -26,4 +27,3 @@ missing
 src/ghwp-0.1.vapi
 stamp-h1
 tests/tests
-
