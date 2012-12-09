@@ -172,6 +172,9 @@ public class GHWP.Document : Object
                     else if (curr_lv == prev_lv) {
                         office_text.add(new TextP());
                     }
+                    var page = new GHWP.Page();
+                    page.elements.add( office_text.get(office_text.size - 1) );
+                    pages.add(page);
                     break;
                 case GHWP.Tag.PARA_TEXT:
                     if (curr_lv > prev_lv) {
@@ -221,7 +224,7 @@ public class GHWP.Document : Object
 
     void parse_prv_text()
     {
-        var gis  = (GsfInputStream)ghwp_file.prv_text_stream;
+        var gis  = (GsfInputStream) ghwp_file.prv_text_stream;
         var size = gis.size();
         var buf  = new uchar[size];
         try {
@@ -265,6 +268,8 @@ public class GHWP.Document : Object
 
 public class GHWP.Page : Object
 {
+    public Gee.ArrayList<Object> elements = new Gee.ArrayList<Object>();
+
     public void get_size (double *width, double *height)
     {
         // TODO
@@ -274,17 +279,19 @@ public class GHWP.Page : Object
 
     public bool render (Cairo.Context cr)
     {
-        return render_static (cr);
-    }
-    
-    static bool render_static (Cairo.Context cr)
-    {
-//        cr.select_font_face("Sans", Cairo.FontSlant.NORMAL,
-//                                    Cairo.FontWeight.NORMAL);
-//        cr.set_font_size(10.0);
-//        cr.set_source_rgba(0.0, 0.0, 0.0, 1.0); // black
-//        cr.move_to(100, 100);
-//        cr.show_text("This is test string.");
+        // FIXME
+        foreach (var element in elements) {
+            var textp = element as TextP;
+            string text = "";
+            if (textp.textspans.size > 0)
+                text = textp.textspans[0].text;
+            cr.select_font_face("Sans", Cairo.FontSlant.NORMAL,
+            Cairo.FontWeight.NORMAL);
+            cr.set_font_size(10.0);
+            cr.set_source_rgba(0.0, 0.0, 0.0, 1.0); // black
+            cr.move_to(100, 100);
+            cr.show_text(text);
+        }
         return true;
     }
 }
