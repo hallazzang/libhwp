@@ -5,8 +5,8 @@ lib_LTLIBRARIES = \
 libghwp_0_1_la_SOURCES = \
 	tags.vala \
 	ghwp-file.vala \
-	ghwp-document.vala \
-	ghwp-parse.vala \
+	document.vala \
+	parse.vala \
 	$(NULL)
 
 libghwp_0_1_la_VALAFLAGS = \
