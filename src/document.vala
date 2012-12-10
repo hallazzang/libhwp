@@ -211,7 +211,7 @@ public class GHWP.Document : Object
                 default:
                     stderr.printf("%s: not implemented\n",
                                    GHWP.Tag.NAMES[context.tag_id]);
-                    Process.exit(1);
+                    // Process.exit(1);
                     break;
                 } // switch
                 prev_lv = curr_lv;
