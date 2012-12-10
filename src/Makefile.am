@@ -12,7 +12,7 @@ libghwp_0_1_la_SOURCES = \
 libghwp_0_1_la_VALAFLAGS = \
 	-H ghwp.h --vapi ghwp-0.1.vapi \
 	--library ghwp-0.1 --gir GHWP-0.1.gir \
-	--pkg libgsf-1 --pkg gee-1.0 --pkg cairo \
+	--pkg libgsf-1 --pkg gee-1.0 --pkg pangocairo\
 	$(VALAFLAGS) \
 	$(NULL)
 

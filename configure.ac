@@ -22,7 +22,7 @@ AC_SUBST(VALAFLAGS)
 GLIB_REQUIRED=2.12.0
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED
-                  libgsf-1 cairo gee-1.0)
+                  libgsf-1 gee-1.0 pangocairo)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
