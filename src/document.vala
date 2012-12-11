@@ -156,10 +156,10 @@ public class GHWP.Document : Object
             var context = new GHWP.Context(section_stream);
             while ( context.pull() ) {
                 for (int i = 0; i < context.level; i++) {
-                    stdout.printf("  ");
+                    //stdout.printf("  ");
                 }
                 curr_lv = context.level;
-                stdout.printf("%s\n", GHWP.Tag.NAMES[context.tag_id]);
+                //stdout.printf("%s\n", GHWP.Tag.NAMES[context.tag_id]);
                 switch (context.tag_id) {
                 case GHWP.Tag.PARA_HEADER:
                     if (curr_lv > prev_lv ) {
@@ -225,7 +225,7 @@ public class GHWP.Document : Object
     {
         var desc = Pango.FontDescription.from_string("Sans 12");
         var width  = 595 * Pango.SCALE;
-        var height = 842 * Pango.SCALE;
+        //var height = 842 * Pango.SCALE;
         var fm = Pango.CairoFontMap.new();
         var pc = new Pango.Context();
         pc.set_font_map(fm);
@@ -248,10 +248,10 @@ public class GHWP.Document : Object
                     pages.add(page);
                     page = new GHWP.Page();
                     y_pos = logical_rect.height;
-                    stdout.printf("n_page = %d\n", pages.size);
+                    //stdout.printf("n_page = %d\n", pages.size);
                 }
                 page.elements.add (textspan);
-                stdout.printf("%s\n", textspan.text);
+                //stdout.printf("%s\n", textspan.text);
             }
         }
     }
@@ -313,18 +313,22 @@ public class GHWP.Page : Object
 
     public bool render (Cairo.Context cr)
     {
-        var desc = Pango.FontDescription.from_string("Sans 12");
-        var width = 595;
+        var desc = Pango.FontDescription.from_string("NanumGothic 12");
+        int width = 595;
         Pango.Rectangle ink_rect, logical_rect;
         double dy = 0;
+        Pango.Layout layout;
+        layout = Pango.cairo_create_layout (cr);
+        layout.set_font_description(desc);
+        layout.set_width (width * Pango.SCALE);
+        layout.set_wrap (Pango.WrapMode.WORD_CHAR);
 
         foreach (var element in elements) {
             var textspan = element as TextSpan;
-            var layout = Pango.cairo_create_layout (cr);
-            layout.set_font_description(desc);
-            layout.set_width (width * Pango.SCALE);
-            layout.set_wrap (Pango.WrapMode.WORD_CHAR);
-            layout.set_text(textspan.text, -1);
+
+            layout.set_text(textspan.text, textspan.text.length);
+            Pango.cairo_update_layout(cr, layout);
+            //stdout.printf("%s\n", textspan.text);
             layout.get_extents(out ink_rect, out logical_rect);
             dy += (logical_rect.height / Pango.SCALE);
             cr.move_to (0, dy);
