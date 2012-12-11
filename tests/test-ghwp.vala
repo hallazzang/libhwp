@@ -36,9 +36,21 @@ void main(string[] args)
     // FIXME
     // file_header_dump(ghwp_file);
 
-    stdout.printf("%s\n", doc.prv_text);
+    //stdout.printf("%s\n", doc.prv_text);
     // FIXME
-    Gsf.doc_meta_dump(doc.summary_info);
+    //Gsf.doc_meta_dump(doc.summary_info);
+
+    var surface = new Cairo.PdfSurface ("/tmp/out.pdf", 595.0, 842.0);
+    var cr = new Cairo.Context (surface);
+    cr.set_source_rgb (1.0, 1.0, 1.0);
+    cr.paint ();
+
+    var n_page = doc.get_n_pages();
+
+    for (int i = 0; i < n_page; i++) {
+        doc.pages[i].render(cr);
+        cr.show_page();
+    }
 }
 
 void file_header_dump(GHWP.GHWPFile ghwp_file)
