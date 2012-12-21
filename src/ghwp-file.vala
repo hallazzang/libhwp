@@ -83,7 +83,7 @@ public class GHWP.GHWPFile : GLib.Object {
     public InputStream prv_image_stream;
     public InputStream file_header_stream;
     public InputStream doc_info_stream;
-    public Gee.ArrayList<InputStream> section_streams;
+    public Array<InputStream> section_streams;
     private InputStream section_stream;
     public InputStream summary_info_stream;
 
@@ -164,7 +164,7 @@ public class GHWP.GHWPFile : GLib.Object {
             // 파일 헤더 디코딩을 먼저하도록 해야함.
             case "BodyText":
             case "VeiwText":
-                section_streams = new Gee.ArrayList<InputStream>();
+                section_streams = new Array<InputStream>();
                 var infile = (Gsf.Infile) olefile.child_by_index(i);
                 if (infile.num_children() == 0)
                     stderr.printf("nothing in BodyText\n");
@@ -182,7 +182,7 @@ public class GHWP.GHWPFile : GLib.Object {
                     else {
                         section_stream = new GsfInputStream(section);
                     }
-                    section_streams.add(section_stream);
+                    section_streams.append_val(section_stream);
                 }
                 break;
             case "\005HwpSummaryInformation":

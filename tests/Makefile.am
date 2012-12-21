@@ -13,7 +13,7 @@ tests_DEPENDENCIES = \
 tests_VALAFLAGS = \
 	--basedir $(top_srcdir) \
 	--vapidir $(top_srcdir)/src \
-	--pkg ghwp-0.1 --pkg libgsf-1 --pkg gee-1.0 --pkg cairo \
+	--pkg ghwp-0.1 --pkg libgsf-1 --pkg cairo --pkg pango --pkg pangocairo \
 	$(VALAFLAGS) \
 	$(NULL)
 
@@ -23,5 +23,5 @@ tests_CPPFLAGS = \
 	$(NULL)
 
 tests_LDADD = \
-	$(GLIB_LIBS) ../src/libghwp-0.1.la \
+	$(GLIB_LIBS) ../src/libghwp.la \
 	$(NULL)

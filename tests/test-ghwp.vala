@@ -48,7 +48,7 @@ void main(string[] args)
     var n_page = doc.get_n_pages();
 
     for (int i = 0; i < n_page; i++) {
-        doc.pages[i].render(cr);
+        doc.pages.index(i).render(cr);
         cr.show_page();
     }
 }

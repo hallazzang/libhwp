@@ -23,11 +23,11 @@
 
 public class TextP : Object
 {
-    public Gee.ArrayList<TextSpan> textspans = new Gee.ArrayList<TextSpan>();
+    public Array<TextSpan> textspans = new Array<TextSpan>();
 
     public void add_textspan(TextSpan textspan)
     {
-        textspans.add(textspan);
+        textspans.append_val(textspan);
     }
 }
 
@@ -45,8 +45,8 @@ public class GHWP.Document : Object
 {
     public GHWP.GHWPFile ghwp_file;
     public string        prv_text;
-    public Gee.ArrayList<TextP> office_text = new Gee.ArrayList<TextP>();
-    public Gee.ArrayList<GHWP.Page> pages = new Gee.ArrayList<GHWP.Page>();
+    public Array<TextP> office_text = new Array<TextP>();
+    public Array<GHWP.Page> pages = new Array<GHWP.Page>();
     public Gsf.DocMetaData summary_info;
 
     public Document.from_uri (string uri) throws Error
@@ -71,12 +71,12 @@ public class GHWP.Document : Object
 
     public uint get_n_pages ()
     {
-        return pages.size;
+        return pages.length;
     }
 
     public GHWP.Page get_page (int n_page)
     {
-        return pages[(int)n_page];
+        return pages.index((uint)n_page);
     }
 
     void parse_doc_info()
@@ -152,7 +152,8 @@ public class GHWP.Document : Object
         uint curr_lv = 0;
         uint prev_lv = 0;
 
-        foreach (var section_stream in ghwp_file.section_streams) {
+        for (uint index = 0; index < ghwp_file.section_streams.length; index++) {
+			var section_stream = ghwp_file.section_streams.index(index);
             var context = new GHWP.Context(section_stream);
             while ( context.pull() ) {
                 for (int i = 0; i < context.level; i++) {
@@ -164,18 +165,18 @@ public class GHWP.Document : Object
                 case GHWP.Tag.PARA_HEADER:
                     if (curr_lv > prev_lv ) {
                         // TODO
-                        office_text.add(new TextP());
+                        office_text.append_val(new TextP());
                     }
                     else if (curr_lv < prev_lv) {
-                        office_text.add(new TextP());
+                        office_text.append_val(new TextP());
                     }
                     else if (curr_lv == prev_lv) {
-                        office_text.add(new TextP());
+                        office_text.append_val(new TextP());
                     }
                     break;
                 case GHWP.Tag.PARA_TEXT:
                     if (curr_lv > prev_lv) {
-                        var textp = office_text.get(office_text.size - 1);
+                        var textp = office_text.index(office_text.length - 1);
                         var text = get_text_from_raw_data(context.data);
                         ((TextP)textp).add_textspan(new TextSpan(text));
                     }
@@ -223,37 +224,32 @@ public class GHWP.Document : Object
 
     void make_pages()
     {
-        var desc = Pango.FontDescription.from_string("Sans 12");
-        var width  = 595 * Pango.SCALE;
-        //var height = 842 * Pango.SCALE;
-        var fm = Pango.CairoFontMap.new();
-        var pc = new Pango.Context();
-        pc.set_font_map(fm);
-        pc.load_font(desc);
+		double x = 0.0;
+		double y = 0.0;
+		uint len = 0;
+		var page = new GHWP.Page();
+		
+		
+        for (int i = 0; i < office_text.length; i++) {
+			var textp = office_text.index(i);
+            for (int j = 0; j < textp.textspans.length; j++) {
+				var textspan = textp.textspans.index(j);
+				len = textspan.text.length;
+				y = y + 18.0 * Math.ceil(len / 100.0); 
 
-        Pango.Rectangle ink_rect, logical_rect;
-        double y_pos = 0;
-        var page = new GHWP.Page();
-        foreach (var textp in office_text) {
-            foreach (var textspan in textp.textspans) {
-                var layout = new Pango.Layout(pc);
-                layout.set_font_description(desc);
-                layout.set_width (width * Pango.SCALE);
-                layout.set_wrap (Pango.WrapMode.WORD_CHAR);
-                layout.set_text(textspan.text, -1);
-                layout.get_extents(out ink_rect, out logical_rect);
-                y_pos += logical_rect.height;
-
-                if (y_pos >= width) {
-                    pages.add(page);
-                    page = new GHWP.Page();
-                    y_pos = logical_rect.height;
-                    //stdout.printf("n_page = %d\n", pages.size);
+                if (y > 842.0 - 80.0) {
+					pages.append_val (page);
+					page = new GHWP.Page();
+					page.elements.append_val (textspan);
+                    y = 0.0;
                 }
-                page.elements.add (textspan);
-                //stdout.printf("%s\n", textspan.text);
+				else {
+                	page.elements.append_val (textspan);
+				}
             }
         }
+		// last page
+		pages.append_val (page);
     }
 
     void parse_prv_text()
@@ -302,7 +298,7 @@ public class GHWP.Document : Object
 
 public class GHWP.Page : Object
 {
-    public Gee.ArrayList<Object> elements = new Gee.ArrayList<Object>();
+    public Array<Object> elements = new Array<Object>();
 
     public void get_size (out double width, out double height)
     {
@@ -313,28 +309,19 @@ public class GHWP.Page : Object
 
     public bool render (Cairo.Context cr)
     {
-        var desc = Pango.FontDescription.from_string("NanumGothic 12");
-        int width = 595;
-        Pango.Rectangle ink_rect, logical_rect;
-        double dy = 0;
-        Pango.Layout layout;
-        layout = Pango.cairo_create_layout (cr);
-        layout.set_font_description(desc);
-        layout.set_width (width * Pango.SCALE);
-        layout.set_wrap (Pango.WrapMode.WORD_CHAR);
+		cr.save();
 
-        foreach (var element in elements) {
-            var textspan = element as TextSpan;
+		draw_page(cr, elements);
 
-            layout.set_text(textspan.text, textspan.text.length);
-            Pango.cairo_update_layout(cr, layout);
-            //stdout.printf("%s\n", textspan.text);
-            layout.get_extents(out ink_rect, out logical_rect);
-            dy += (logical_rect.height / Pango.SCALE);
-            cr.move_to (0, dy);
-            cr.set_source_rgba(0.0, 0.0, 0.0, 1.0); // black
-            Pango.cairo_show_layout(cr, layout);
-        }
+		cr.restore();
         return true;
     }
+
+	static bool draw_page(Cairo.Context cr, Array<Object> elements)
+	{
+		for (int i = 0; i < elements.length; i++) {
+			var textspan = (TextSpan) elements.index(i);
+		}
+		return true;
+	}
 }
