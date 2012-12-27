@@ -34,6 +34,7 @@
 #include <gsf/gsf-input-impl.h>
 #include <cairo.h>
 
+#include "config.h"
 #include "ghwp-document.h"
 #include "gsf-input-stream.h"
 #include "ghwp-parse.h"
@@ -531,7 +532,14 @@ static void ghwp_document_parse_summary_info (GHWPDocument* self)
     summary = (GsfInputMemory*) gsf_input_memory_new (buf, size, FALSE);
 
     meta = gsf_doc_meta_data_new ();
+
+#if HAVE_GSF_DOC_META_DATA_READ_FROM_MSOLE == 1
+    /* Since libgsf 1.14.24 */
+    gsf_doc_meta_data_read_from_msole (meta, (GsfInput*) summary);
+#else
+    /* NOTE gsf_msole_metadata_read: deprecated since libgsf 1.14.24 */
     gsf_msole_metadata_read ((GsfInput*) summary, meta);
+#endif
 
     _g_object_unref0 (self->summary_info);
     self->summary_info = _g_object_ref0 (meta);
