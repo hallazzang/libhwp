@@ -1,3 +1,9 @@
+libghwp (0.1.2) UNRELEASED; urgency=low
+
+  * Non-maintainer upload.
+
+ -- Hodong Kim <cogniti@gmail.com>  Fri, 28 Dec 2012 11:42:25 +0900
+
 libghwp (0.1.1) unstable; urgency=low
 
   [ Hodong Kim ]
