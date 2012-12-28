@@ -4,12 +4,13 @@ SUBDIRS = src
 
 libghwpdocdir = ${prefix}/doc/libghwp
 libghwpdoc_DATA = \
-	README\
-	COPYING\
-	AUTHORS\
-	ChangeLog\
-	INSTALL\
-	NEWS
+	README    \
+	COPYING   \
+	AUTHORS   \
+	ChangeLog \
+	INSTALL   \
+	NEWS      \
+	THANKS
 
 
 EXTRA_DIST = $(libghwpdoc_DATA)
