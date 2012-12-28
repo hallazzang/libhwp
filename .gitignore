@@ -1,7 +1,6 @@
 # anjuta
-.anjuta
-.anjuta_sym_db.db
-libghwp.anjuta
+.anjuta*
+*.anjuta
 
 # backup file
 *~
@@ -21,32 +20,22 @@ libtool
 ltmain.sh
 missing
 stamp-h1
+m4/
 
 # output
+.deps/
+.libs/
 *.la
 *.lo
-.deps
-.libs
 *.pc
 *.o
 
 # output files of dpkg-buildpackage
-debian/autoreconf.after
-debian/autoreconf.before
+debian/autoreconf.*
 debian/files
-debian/libghwp-dev.debhelper.log
-debian/libghwp-dev.substvars
 debian/libghwp-dev/
-debian/libghwp.debhelper.log
-debian/libghwp.postinst.debhelper
-debian/libghwp.postrm.debhelper
-debian/libghwp.substvars
-debian/libghwp/
-debian/stamp-autotools
-debian/stamp-autotools-files
-debian/stamp-copyright-check
-debian/stamp-makefile-build
-debian/stamp-makefile-install
-debian/stamp-upstream-cruft
+debian/libghwp0/
+debian/*.log
+debian/*.substvars
+debian/stamp-*
 debian/tmp/
-
