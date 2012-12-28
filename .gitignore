@@ -29,6 +29,7 @@ m4/
 *.lo
 *.pc
 *.o
+ghwp-version.h
 
 # output files of dpkg-buildpackage
 debian/autoreconf.*
