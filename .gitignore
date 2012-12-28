@@ -35,6 +35,7 @@ debian/autoreconf.*
 debian/files
 debian/libghwp-dev/
 debian/libghwp0/
+debian/*.debhelper
 debian/*.log
 debian/*.substvars
 debian/stamp-*
