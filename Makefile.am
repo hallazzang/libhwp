@@ -2,7 +2,7 @@
 
 SUBDIRS = src 
 
-libghwpdocdir = ${prefix}/doc/libghwp
+libghwpdocdir = ${prefix}/share/doc/libghwp
 libghwpdoc_DATA = \
 	README    \
 	COPYING   \
