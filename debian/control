@@ -5,6 +5,7 @@
 
 Source: libghwp
 Priority: optional
+Section: libs
 Maintainer: Hodong Kim <cogniti@gmail.com>
 Build-Depends: cdbs (>= 0.4.93),
                debhelper (>= 9),
@@ -14,7 +15,6 @@ Build-Depends: cdbs (>= 0.4.93),
                libglib2.0-dev,
                pkg-config
 Standards-Version: 3.9.3
-Section: libs
 Homepage: https://github.com/cogniti/libghwp
 Vcs-Git: git://github.com/cogniti/libghwp.git
 Vcs-Browser: https://github.com/cogniti/libghwp
