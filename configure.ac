@@ -27,7 +27,8 @@ m4_define([ghwp_lt_current_minus_age],[m4_eval(ghwp_lt_current - ghwp_lt_age)])
 # *****************************************************************************
 
 AC_INIT([libghwp], [0.1.2],
-        [https://github.com/cogniti/libghwp/issues], [libghwp])
+        [https://github.com/cogniti/libghwp/issues], [libghwp],
+        [https://github.com/cogniti/libghwp])
 
 AC_CONFIG_HEADERS([config.h])
 
