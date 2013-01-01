@@ -16,7 +16,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /*
+ * This software have been developed with reference to
+ * the HWP file format specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
@@ -24,7 +28,6 @@
 #include <glib-object.h>
 #include <stdlib.h>
 #include <string.h>
-#include <gsf/gsf-doc-meta-data.h>
 #include <gio/gio.h>
 #include <stdio.h>
 #include <float.h>
@@ -38,16 +41,19 @@
 #include "ghwp-document.h"
 #include "gsf-input-stream.h"
 #include "ghwp-parse.h"
-#include "ghwp-tags.h"
+
+#include <gsf/gsf-meta-names.h>
+#include <gsf/gsf-timestamp.h>
+#include <gsf/gsf-docprop-vector.h>
 
 G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
-G_DEFINE_TYPE (TextSpan, text_span, G_TYPE_OBJECT);
-G_DEFINE_TYPE (TextP, text_p, G_TYPE_OBJECT);
+G_DEFINE_TYPE (TextSpan,     text_span,     G_TYPE_OBJECT);
+G_DEFINE_TYPE (TextP,        text_p,        G_TYPE_OBJECT);
 
-static void ghwp_document_parse (GHWPDocument* self);
-static void ghwp_document_parse_doc_info (GHWPDocument* self);
-static void ghwp_document_parse_body_text (GHWPDocument* self);
-static void ghwp_document_parse_prv_text (GHWPDocument* self);
+static void ghwp_document_parse              (GHWPDocument* self);
+static void ghwp_document_parse_doc_info     (GHWPDocument* self);
+static void ghwp_document_parse_body_text    (GHWPDocument* self);
+static void ghwp_document_parse_prv_text     (GHWPDocument* self);
 static void ghwp_document_parse_summary_info (GHWPDocument* self);
 
 static gchar*
@@ -55,10 +61,9 @@ ghwp_document_get_text_from_raw_data (GHWPDocument *self,
                                       guchar       *raw,
                                       int           raw_len);
 static void ghwp_document_make_pages (GHWPDocument* self);
-static void ghwp_document_finalize (GObject* obj);
+static void ghwp_document_finalize   (GObject* obj);
 
-static void text_p_finalize (GObject* obj);
-
+static void text_p_finalize    (GObject* obj);
 static void text_span_finalize (GObject* obj);
 
 #define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
@@ -233,66 +238,56 @@ ghwp_document_get_text_from_raw_data (GHWPDocument *self,
     {
         ch = (gunichar) ((raw[i+1] << 8) | raw[i]);
         switch (ch) {
-            case 0:
-                break;
-            case 1:
-            case 2:
-            case 3:
-            case 4: /* inline */
-            case 5: /* inline */
-            case 6: /* inline */
-            case 7: /* inline */
-            case 8: /* inline */
-            {
-                i = i + 14;
-                break;
-            }
-            case 9: /* inline */ /* tab */
-            {
-                i = i + 14;
-                g_string_append_unichar(text, ch);
-                break;
-            }
-            case 10:
-                break;
-            case 11:
-            case 12:
-            {
-                i = i + 14;
-                break;
-            }
-            case 13:
-                break;
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:
-            case 19: /* inline */
-            case 20: /* inline */
-            case 21:
-            case 22:
-            case 23:
-            {
-                i = i + 14;
-                break;
-            }
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-                break;
-            default:
-            {
-                g_string_append_unichar(text, ch);
-                break;
-            }
-        }
-    }
+        case 0:
+            break;
+        case 1:
+        case 2:
+        case 3:
+        case 4: /* inline */
+        case 5: /* inline */
+        case 6: /* inline */
+        case 7: /* inline */
+        case 8: /* inline */
+            i = i + 14;
+            break;
+        case 9: /* inline */ /* tab */
+            i = i + 14;
+            g_string_append_unichar(text, ch);
+            break;
+        case 10:
+            break;
+        case 11:
+        case 12:
+            i = i + 14;
+            break;
+        case 13:
+            break;
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19: /* inline */
+        case 20: /* inline */
+        case 21:
+        case 22:
+        case 23:
+            i = i + 14;
+            break;
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
+        case 30:
+        case 31:
+            break;
+        default:
+            g_string_append_unichar(text, ch);
+            break;
+        } /* switch */
+    } /* for */
 
     return g_string_free(text, FALSE);
 }
@@ -319,84 +314,84 @@ static void ghwp_document_parse_body_text (GHWPDocument* self)
             curr_lv = (guint) context->level;
 
             switch (context->tag_id) {
-                case GHWP_TAG_PARA_HEADER:
-                {
-                    TextP* _textp_ = text_p_new();
-                    g_array_append_val (self->office_text, _textp_);
-                    break;
+            case GHWP_TAG_PARA_HEADER:
+            {
+                TextP* _textp_ = text_p_new();
+                g_array_append_val (self->office_text, _textp_);
+                break;
+            }
+            case GHWP_TAG_PARA_TEXT:
+                if (curr_lv > prev_lv) {
+                    TextP *textp;
+                    textp = g_array_index (self->office_text,
+                                           TextP*,
+                                           self->office_text->len - 1);
+                    textp = _g_object_ref0 (textp);
+
+                    gchar *text;
+                    text = ghwp_document_get_text_from_raw_data (self,
+                                                        context->data,
+                                                        context->data_len);
+                    TextSpan *_textspan_ = text_span_new (text);
+                    text_p_add_textspan (textp, _textspan_);
+                    _g_object_unref0 (_textspan_);
+                    _g_free0 (text);
+                    _g_object_unref0 (textp);
                 }
-                case GHWP_TAG_PARA_TEXT:
-                    if (curr_lv > prev_lv) {
-                        TextP *textp;
-                        textp = g_array_index (self->office_text,
-                                               TextP*,
-                                               self->office_text->len - 1);
-                        textp = _g_object_ref0 (textp);
+                break;
+            case GHWP_TAG_PARA_CHAR_SHAPE:
+                break;
+            case GHWP_TAG_PARA_LINE_SEG:
+                break;
+            case GHWP_TAG_CTRL_HEADER:
+                /* TODO */
+                break;
+            case GHWP_TAG_PAGE_DEF:
+                break;
+            case GHWP_TAG_FOOTNOTE_SHAPE:
+                break;
+            case GHWP_TAG_PAGE_BORDER_FILL:
+                break;
+            case GHWP_TAG_LIST_HEADER:
+                break;
+            case GHWP_TAG_EQEDIT:
+                break;
+            case GHWP_TAG_TABLE:
+            /*
+                     col 0   col 1
+                   +-------+-------+
+            row 0  |  00   |   01  |
+                   +-------+-------+
+            row 1  |  10   |   11  |
+                   +-------+-------+
+            row 2  |  20   |   21  |
+                   +-------+-------+
 
-                        gchar *text;
-                        text = ghwp_document_get_text_from_raw_data (self,
-                                                            context->data,
-                                                            context->data_len);
-                        TextSpan *_textspan_ = text_span_new (text);
-                        text_p_add_textspan (textp, _textspan_);
-                        _g_object_unref0 (_textspan_);
-                        _g_free0 (text);
-                        _g_object_unref0 (textp);
-                    }
-                    break;
-                case GHWP_TAG_PARA_CHAR_SHAPE:
-                    break;
-                case GHWP_TAG_PARA_LINE_SEG:
-                    break;
-                case GHWP_TAG_CTRL_HEADER:
-                    /* TODO */
-                    break;
-                case GHWP_TAG_PAGE_DEF:
-                    break;
-                case GHWP_TAG_FOOTNOTE_SHAPE:
-                    break;
-                case GHWP_TAG_PAGE_BORDER_FILL:
-                    break;
-                case GHWP_TAG_LIST_HEADER:
-                    break;
-                case GHWP_TAG_EQEDIT:
-                    break;
-                case GHWP_TAG_TABLE:
-                /*
-                         col 0   col 1
-                       +-------+-------+
-                row 0  |  00   |   01  |
-                       +-------+-------+
-                row 1  |  10   |   11  |
-                       +-------+-------+
-                row 2  |  20   |   21  |
-                       +-------+-------+
+            <table> ::= { <list-header> <para-header>+ }+
 
-                <table> ::= { <list-header> <para-header>+ }+
-
-                para-header
+            para-header
+                ...
+                ctrl-header (id:tbl)
+                    table: row-span, col-span
+                    list-header (00)
                     ...
-                    ctrl-header (id:tbl)
-                        table: row-span, col-span
-                        list-header (00)
-                        ...
-                        list-header (01)
-                        ...
-                        list-header (10)
-                        ...
-                        list-header (11)
-                        ...
-                        list-header (20)
-                        ...
-                        list-header (21)
-                */
-                    break;
-                default:
-                {
-                    g_warning("%s:%d: %s not implemented\n",
-                        __FILE__, __LINE__, GHWP_TAG_NAMES[context->tag_id]);
-                    break;
-                }
+                    list-header (01)
+                    ...
+                    list-header (10)
+                    ...
+                    list-header (11)
+                    ...
+                    list-header (20)
+                    ...
+                    list-header (21)
+            */
+                break;
+            default:
+                g_warning("%s:%d: %s not implemented\n",
+                    __FILE__,
+                    __LINE__,
+                    ghwp_get_tag_name(context->tag_id));
+                break;
             }
             prev_lv = curr_lv;
         }
@@ -453,7 +448,6 @@ static void ghwp_document_make_pages (GHWPDocument* self)
     _g_object_unref0 (page);
 }
 
-
 static void ghwp_document_parse_prv_text (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
@@ -490,7 +484,58 @@ static void ghwp_document_parse_prv_text (GHWPDocument* self)
     _g_object_unref0 (gis);
 }
 
+static void
+_ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
+{
+    gchar        *name  = (gchar        *) k;
+    GsfDocProp   *prop  = (GsfDocProp   *) v;
+    GHWPDocument *doc   = (GHWPDocument *) user_data;
+    GValue const *value = gsf_doc_prop_get_val (prop);
 
+    if ( g_strcmp0(name, GSF_META_NAME_CREATOR) == 0 ) {
+
+        doc->creator = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_DATE_MODIFIED) == 0 ) {
+        GsfTimestamp *ts    = g_value_get_boxed (value);
+        doc->mod_date = (GTime) ts->timet;
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_DESCRIPTION) == 0 ) {
+        doc->desc = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_KEYWORDS) == 0 ) {
+        doc->keywords = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_SUBJECT) == 0 ) {
+        doc->subject = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_TITLE) == 0 ) {
+        doc->title = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_LAST_PRINTED) == 0 ) {
+        GsfTimestamp *ts    = g_value_get_boxed (value);
+        doc->last_printed   = (GTime) ts->timet;
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_LAST_SAVED_BY) == 0 ) {
+        doc->last_saved_by = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_DATE_CREATED) == 0 ) {
+        GsfTimestamp *ts    = g_value_get_boxed (value);
+        doc->creation_date  = (GTime) ts->timet;
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_REVISION_COUNT) == 0 ) {
+        doc->revision_count = g_value_get_string (value);
+
+    } else if ( g_strcmp0(name, GSF_META_NAME_PAGE_COUNT) == 0 ) {
+        /* not correct n_pages == 0 ?? */
+        doc->n_pages = g_value_get_int (value);
+
+    } else {
+        printf("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
+    }
+}
+
+/* experimental */
 static void ghwp_document_parse_summary_info (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
@@ -533,13 +578,15 @@ static void ghwp_document_parse_summary_info (GHWPDocument* self)
 
     meta = gsf_doc_meta_data_new ();
 
-#if HAVE_GSF_DOC_META_DATA_READ_FROM_MSOLE == 1
-    /* Since libgsf 1.14.24 */
+#ifdef HAVE_GSF_DOC_META_DATA_READ_FROM_MSOLE
+    /* since libgsf 1.14.24 */
     gsf_doc_meta_data_read_from_msole (meta, (GsfInput*) summary);
 #else
-    /* NOTE gsf_msole_metadata_read: deprecated since libgsf 1.14.24 */
+    /* NOTICE gsf_msole_metadata_read: deprecated since libgsf 1.14.24 */
     gsf_msole_metadata_read ((GsfInput*) summary, meta);
 #endif
+
+    gsf_doc_meta_data_foreach (meta, _ghwp_metadata_hash_func, self);
 
     _g_object_unref0 (self->summary_info);
     self->summary_info = _g_object_ref0 (meta);
@@ -556,15 +603,16 @@ GHWPDocument* ghwp_document_new (void)
 }
 
 
-static void ghwp_document_class_init (GHWPDocumentClass * klass) {
-    ghwp_document_parent_class = g_type_class_peek_parent (klass);
-    G_OBJECT_CLASS (klass)->finalize = ghwp_document_finalize;
+static void ghwp_document_class_init (GHWPDocumentClass * klass)
+{
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    object_class->finalize     = ghwp_document_finalize;
 }
 
 
 static void ghwp_document_init (GHWPDocument * self) {
     self->office_text = g_array_new (TRUE, TRUE, sizeof (TextP*));
-    self->pages = g_array_new (TRUE, TRUE, sizeof (GHWPPage*));
+    self->pages       = g_array_new (TRUE, TRUE, sizeof (GHWPPage*));
 }
 
 
@@ -577,4 +625,40 @@ static void ghwp_document_finalize (GObject* obj) {
     _g_array_free0 (self->pages);
     _g_object_unref0 (self->summary_info);
     G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);
+}
+
+gchar *
+ghwp_document_get_title (GHWPDocument *doc)
+{
+    return g_strdup (doc->title);
+}
+
+gchar *
+ghwp_document_get_keywords (GHWPDocument *doc)
+{
+    return g_strdup (doc->keywords);
+}
+
+gchar *
+ghwp_document_get_subject (GHWPDocument *doc)
+{
+    return g_strdup (doc->subject);
+}
+
+gchar *
+ghwp_document_get_creator (GHWPDocument *doc)
+{
+    return g_strdup (doc->creator);
+}
+
+GTime
+ghwp_document_get_creation_date (GHWPDocument *doc)
+{
+    return doc->creation_date;
+}
+
+GTime
+ghwp_document_get_modification_date (GHWPDocument *doc)
+{
+    return doc->mod_date;
 }

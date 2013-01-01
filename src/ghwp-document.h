@@ -17,13 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GHWP_DOCUMENT_H_
-#define _GHWP_DOCUMENT_H_
+#ifndef __GHWP_DOCUMENT_H__
+#define __GHWP_DOCUMENT_H__
 
 #include <glib-object.h>
+#include <gsf/gsf-doc-meta-data.h>
 
-#include "ghwp-file.h"
-#include "ghwp-page.h"
+#include "ghwp.h"
 
 G_BEGIN_DECLS
 
@@ -34,22 +34,46 @@ G_BEGIN_DECLS
 #define GHWP_IS_DOCUMENT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_DOCUMENT))
 #define GHWP_DOCUMENT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_DOCUMENT, GHWPDocumentClass))
 
-typedef struct _GHWPDocument GHWPDocument;
-typedef struct _GHWPDocumentClass GHWPDocumentClass;
+typedef struct _GHWPDocument        GHWPDocument;
+typedef struct _GHWPDocumentClass   GHWPDocumentClass;
 typedef struct _GHWPDocumentPrivate GHWPDocumentPrivate;
 
 struct _GHWPDocument {
-	GObject parent_instance;
-	GHWPDocumentPrivate * priv;
-	GHWPFile* ghwp_file;
-	gchar* prv_text;
-	GArray* office_text;
-	GArray* pages;
-	GsfDocMetaData* summary_info;
+    GObject              parent_instance;
+    GHWPDocumentPrivate *priv;
+    GHWPFile            *ghwp_file;
+    gchar               *prv_text;
+    GArray              *office_text;
+    GArray              *pages;
+    GsfDocMetaData      *summary_info;
+    /* ev info */
+    const gchar         *title;
+    gchar               *format;
+    const gchar         *author;
+    const gchar         *subject;
+    const gchar         *keywords;
+    gchar               *layout;
+    gchar               *start_mode;
+    gchar               *permissions;
+    gchar               *ui_hints;
+    const gchar         *creator;
+    gchar               *producer;
+    GTime                creation_date;
+    GTime                mod_date;
+    gchar               *linearized;
+    guint                n_pages; /* FIXME duplicate */
+    gchar               *security;
+    gchar               *paper_size;
+    gchar               *license;
+    /* hwp info */
+    const gchar         *desc;
+    GTime                last_printed;
+    const gchar         *last_saved_by;
+    const gchar         *revision_count;
 };
 
 struct _GHWPDocumentClass {
-	GObjectClass parent_class;
+    GObjectClass parent_class;
 };
 
 GType ghwp_document_get_type (void) G_GNUC_CONST;
@@ -60,8 +84,13 @@ GHWPDocument* ghwp_document_new_from_filename (const gchar* filename, GError** e
 guint ghwp_document_get_n_pages (GHWPDocument* self);
 GHWPPage* ghwp_document_get_page (GHWPDocument *doc, gint n_page);
 
-
-
+gchar *ghwp_document_get_title (GHWPDocument *doc);
+gchar *ghwp_document_get_keywords (GHWPDocument *doc);
+gchar *ghwp_document_get_subject (GHWPDocument *doc);
+gchar *ghwp_document_get_creator (GHWPDocument *doc);
+GTime  ghwp_document_get_creation_date (GHWPDocument *doc);
+GTime  ghwp_document_get_modification_date (GHWPDocument *doc);
+guint  ghwp_document_get_real_n_pages (GHWPDocument *doc);
 
 #define TEXT_TYPE_SPAN             (text_span_get_type ())
 #define TEXT_SPAN(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), TEXT_TYPE_SPAN, TextSpan))
@@ -119,4 +148,4 @@ TextP* text_p_new (void);
 
 G_END_DECLS
 
-#endif /* _GHWP_DOCUMENT_H_ */
+#endif /* __GHWP_DOCUMENT_H__ */
