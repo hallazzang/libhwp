@@ -3,11 +3,12 @@
 lib_LTLIBRARIES = libghwp.la
 
 
-libghwp_la_SOURCES = \
+libghwp_la_SOURCES =    \
+	ghwp.c          \
 	ghwp-document.c \
-	ghwp-file.c \
-	ghwp-page.c \
-	ghwp-parse.c \
+	ghwp-file.c     \
+	ghwp-page.c     \
+	ghwp-parse.c    \
 	gsf-input-stream.c
 
 libghwp_la_CPPFLAGS = \
@@ -36,7 +37,6 @@ ghwpinclude_HEADERS = \
 	ghwp-file.h     \
 	ghwp-page.h     \
 	ghwp-parse.h    \
-	ghwp-tags.h     \
 	ghwp-version.h  \
 	gsf-input-stream.h
 
