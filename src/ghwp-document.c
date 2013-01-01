@@ -499,7 +499,6 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     } else if ( g_strcmp0(name, GSF_META_NAME_DATE_MODIFIED) == 0 ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->mod_date = (GTime) ts->timet;
-        gsf_timestamp_free (ts);
 
     } else if ( g_strcmp0(name, GSF_META_NAME_DESCRIPTION) == 0 ) {
         doc->desc = g_value_get_string (value);
@@ -516,7 +515,6 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     } else if ( g_strcmp0(name, GSF_META_NAME_LAST_PRINTED) == 0 ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->last_printed   = (GTime) ts->timet;
-        gsf_timestamp_free (ts);
 
     } else if ( g_strcmp0(name, GSF_META_NAME_LAST_SAVED_BY) == 0 ) {
         doc->last_saved_by = g_value_get_string (value);
@@ -524,7 +522,6 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     } else if ( g_strcmp0(name, GSF_META_NAME_DATE_CREATED) == 0 ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->creation_date  = (GTime) ts->timet;
-        gsf_timestamp_free (ts);
 
     } else if ( g_strcmp0(name, GSF_META_NAME_REVISION_COUNT) == 0 ) {
         doc->revision_count = g_value_get_string (value);
