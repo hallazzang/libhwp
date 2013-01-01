@@ -18,12 +18,11 @@
  */
 
 #include "ghwp-page.h"
-#include "ghwp-document.h"
 
 G_DEFINE_TYPE (GHWPPage, ghwp_page, G_TYPE_OBJECT);
 
 static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements);
-static void ghwp_page_finalize (GObject* obj);
+static void     ghwp_page_finalize  (GObject* obj);
 
 void ghwp_page_get_size (GHWPPage* self,
                          gdouble*  width,
@@ -35,9 +34,10 @@ void ghwp_page_get_size (GHWPPage* self,
 }
 
 
-gboolean ghwp_page_render (GHWPPage* self, cairo_t* cr) {
+gboolean ghwp_page_render (GHWPPage* self, cairo_t* cr)
+{
     g_return_val_if_fail (self != NULL, FALSE);
-    g_return_val_if_fail (cr != NULL, FALSE);
+    g_return_val_if_fail (cr   != NULL, FALSE);
     cairo_save (cr);
     ghwp_page_draw_page (cr, self->elements);
     cairo_restore (cr);
@@ -69,6 +69,7 @@ once_ft_init_and_new (void)
     }
 }
 
+
 static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
     g_return_val_if_fail (cr != NULL, FALSE);
     g_return_val_if_fail (elements != NULL, FALSE);
@@ -89,19 +90,18 @@ static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
     double x = 20.0;
     double y = 40.0;
 
+    /* create scaled font */
     once_ft_init_and_new(); /*한 번만 초기화, 로드*/
-
     font_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
-
     cairo_matrix_init_identity (&font_matrix);
     cairo_matrix_scale (&font_matrix, 12.0, 12.0);
     cairo_get_matrix (cr, &ctm);
-
     font_options = cairo_font_options_create ();
     cairo_get_font_options (cr, font_options);
     scaled_font = cairo_scaled_font_create (font_face,
                                            &font_matrix, &ctm, font_options);
     cairo_font_options_destroy (font_options);
+
     cairo_set_scaled_font(cr, scaled_font); /* 요 문장 없으면 fault 떨어짐 */
     cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
 
@@ -144,13 +144,13 @@ static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
 
 
 GHWPPage* ghwp_page_new (void) {
-	return (GHWPPage*) g_object_new (GHWP_TYPE_PAGE, NULL);
+    return (GHWPPage*) g_object_new (GHWP_TYPE_PAGE, NULL);
 }
 
 
 static void ghwp_page_class_init (GHWPPageClass * klass) {
-	ghwp_page_parent_class = g_type_class_peek_parent (klass);
-	G_OBJECT_CLASS (klass)->finalize = ghwp_page_finalize;
+    ghwp_page_parent_class = g_type_class_peek_parent (klass);
+    G_OBJECT_CLASS (klass)->finalize = ghwp_page_finalize;
 }
 
 
@@ -161,8 +161,54 @@ static void ghwp_page_init (GHWPPage * self) {
 
 static void ghwp_page_finalize (GObject* obj)
 {
-	GHWPPage * self;
-	self = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_PAGE, GHWPPage);
-	g_array_free (self->elements, TRUE);
-	G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
+    GHWPPage *self;
+    self = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_PAGE, GHWPPage);
+    g_array_free (self->elements, TRUE);
+    G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
+}
+
+/* experimental */
+void
+ghwp_page_render_selection (GHWPPage           *page,
+                            cairo_t            *cr,
+                            GHWPRectangle      *selection,
+                            GHWPRectangle      *old_selection,
+                            GHWPSelectionStyle  style, 
+                            GHWPColor          *glyph_color,
+                            GHWPColor          *background_color)
+{
+    /* TODO */
+}
+
+/* experimental */
+char *
+ghwp_page_get_selected_text (GHWPPage          *page,
+                             GHWPSelectionStyle style,
+                             GHWPRectangle     *selection)
+{
+    /* TODO */
+    return NULL;
+}
+
+/* experimental */
+GList *
+ghwp_page_get_selection_region (GHWPPage          *page,
+                                gdouble            scale,
+                                GHWPSelectionStyle style,
+                                GHWPRectangle     *selection)
+{
+    /* TODO */
+    return NULL;
+}
+
+/**
+ * ghwp_rectangle_free:
+ * @rectangle: a #GHWPRectangle
+ *
+ * Frees the given #GHWPRectangle
+ */
+void
+ghwp_rectangle_free (GHWPRectangle *rectangle)
+{
+    g_slice_free (GHWPRectangle, rectangle);
 }

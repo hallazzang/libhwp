@@ -17,12 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GHWP_PAGE_H_
-#define _GHWP_PAGE_H_
+#ifndef __GHWP_PAGE_H__
+#define __GHWP_PAGE_H__
 
 #include <glib-object.h>
 
 #include <cairo.h>
+#include "ghwp.h"
 
 G_BEGIN_DECLS
 
@@ -33,26 +34,61 @@ G_BEGIN_DECLS
 #define GHWP_IS_PAGE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PAGE))
 #define GHWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PAGE, GHWPPageClass))
 
-typedef struct _GHWPPage GHWPPage;
-typedef struct _GHWPPageClass GHWPPageClass;
+typedef struct _GHWPPageClass   GHWPPageClass;
 typedef struct _GHWPPagePrivate GHWPPagePrivate;
 
 struct _GHWPPage {
-	GObject parent_instance;
-	GHWPPagePrivate * priv;
-	GArray* elements;
+    GObject          parent_instance;
+    GHWPPagePrivate *priv;
+    GArray          *elements;
 };
 
 struct _GHWPPageClass {
-	GObjectClass parent_class;
+    GObjectClass parent_class;
 };
 
-GType ghwp_page_get_type (void) G_GNUC_CONST;
+GType     ghwp_page_get_type   (void) G_GNUC_CONST;
+GHWPPage *ghwp_page_new        (void);
+void      ghwp_page_get_size   (GHWPPage *page,
+                                gdouble  *width,
+                                gdouble  *height);
+gboolean  ghwp_page_render     (GHWPPage *page, cairo_t *cr);
+/* experimental */
+void
+ghwp_page_render_selection     (GHWPPage           *page,
+                                cairo_t            *cr,
+                                GHWPRectangle      *selection,
+                                GHWPRectangle      *old_selection,
+                                GHWPSelectionStyle  style, 
+                                GHWPColor          *glyph_color,
+                                GHWPColor          *background_color);
+char *
+ghwp_page_get_selected_text    (GHWPPage          *page,
+                                GHWPSelectionStyle style,
+                                GHWPRectangle     *selection);
+GList *
+ghwp_page_get_selection_region (GHWPPage          *page,
+                                gdouble            scale,
+                                GHWPSelectionStyle style,
+                                GHWPRectangle     *selection);
+void
+ghwp_rectangle_free            (GHWPRectangle     *rectangle);
 
-GHWPPage* ghwp_page_new (void);
-void ghwp_page_get_size (GHWPPage* self, gdouble* width, gdouble* height);
-gboolean ghwp_page_render (GHWPPage* self, cairo_t* cr);
+struct _GHWPColor
+{
+    guint16 red;
+    guint16 green;
+    guint16 blue;
+};
+
+struct _GHWPRectangle
+{
+    gdouble x1;
+    gdouble y1;
+    gdouble x2;
+    gdouble y2;
+};
 
 G_END_DECLS
 
-#endif /* _GHWP_PAGE_H_ */
+#endif /* __GHWP_PAGE_H__ */
