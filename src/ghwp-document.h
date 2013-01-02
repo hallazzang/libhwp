@@ -41,7 +41,7 @@ typedef struct _GHWPDocumentPrivate GHWPDocumentPrivate;
 struct _GHWPDocument {
     GObject              parent_instance;
     GHWPDocumentPrivate *priv;
-    GHWPFile            *ghwp_file;
+    GHWPFile            *file;
     gchar               *prv_text;
     GArray              *office_text;
     GArray              *pages;
@@ -91,6 +91,16 @@ gchar *ghwp_document_get_creator (GHWPDocument *doc);
 GTime  ghwp_document_get_creation_date (GHWPDocument *doc);
 GTime  ghwp_document_get_modification_date (GHWPDocument *doc);
 guint  ghwp_document_get_real_n_pages (GHWPDocument *doc);
+/* e.g. HWP v5.0.0.6 */
+gchar *ghwp_document_get_format (GHWPDocument *document);
+/* e.g. 5.0.0.6 */
+gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document);
+void   ghwp_document_get_hwp_version (GHWPDocument *document,
+                                      guint8       *major_version,
+                                      guint8       *minor_version,
+                                      guint8       *micro_version,
+                                      guint8       *extra_version);
+
 
 #define TEXT_TYPE_SPAN             (text_span_get_type ())
 #define TEXT_SPAN(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), TEXT_TYPE_SPAN, TextSpan))

@@ -19,7 +19,7 @@
 
 /*
  * This software have been developed with reference to
- * the HWP file format specification by Hancom, Inc.
+ * the HWP file format open specification by Hancom, Inc.
  * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
@@ -50,11 +50,12 @@ G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
 G_DEFINE_TYPE (TextSpan,     text_span,     G_TYPE_OBJECT);
 G_DEFINE_TYPE (TextP,        text_p,        G_TYPE_OBJECT);
 
-static void ghwp_document_parse              (GHWPDocument* self);
-static void ghwp_document_parse_doc_info     (GHWPDocument* self);
-static void ghwp_document_parse_body_text    (GHWPDocument* self);
-static void ghwp_document_parse_prv_text     (GHWPDocument* self);
-static void ghwp_document_parse_summary_info (GHWPDocument* self);
+/* private func */
+static void _ghwp_document_parse              (GHWPDocument* self);
+static void _ghwp_document_parse_doc_info     (GHWPDocument* self);
+static void _ghwp_document_parse_body_text    (GHWPDocument* self);
+static void _ghwp_document_parse_prv_text     (GHWPDocument* self);
+static void _ghwp_document_parse_summary_info (GHWPDocument* self);
 
 static gchar*
 ghwp_document_get_text_from_raw_data (GHWPDocument *self,
@@ -71,6 +72,34 @@ static void text_span_finalize (GObject* obj);
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
+struct _IDMappings {
+    guint32 n_binary_data;
+    guint32 n_korean_fonts;
+    guint32 n_english_fonts;
+    guint32 n_hanja_fonts;
+    guint32 n_japanese_fonts;
+    guint32 n_others_fonts;
+    guint32 n_symbol_fonts;
+    guint32 n_user_fonts;
+    guint32 n_border_fills;
+    guint32 n_char_shapes;
+    guint32 n_tab_defs;
+    guint32 n_para_numberings;
+    guint32 n_bullets;
+    guint32 n_para_shapes;
+    guint32 n_styles;
+    /*
+     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
+     * 한/글2007 이전 문서는 data_len == 60,
+     * v5.0.0.6 : ID_MAPPINGS data_len: 60
+     *
+     * 한/글2007 을 포함한 이후 문서는 data_len == 64
+     * v5.0.1.7 : ID_MAPPINGS data_len: 64
+     * v5.0.2.4 : ID_MAPPINGS data_len: 64
+     */
+    guint32 n_memo_shapes;
+};
+
 static gpointer _g_object_ref0 (gpointer self)
 {
     return self ? g_object_ref (self) : NULL;
@@ -81,8 +110,8 @@ void text_p_add_textspan (TextP* self, TextSpan* textspan)
 {
     g_return_if_fail (self != NULL);
     g_return_if_fail (textspan != NULL);
-    TextSpan* _tmp2_ = _g_object_ref0 (textspan);
-    g_array_append_val (self->textspans, _tmp2_);
+    textspan = g_object_ref (textspan);
+    g_array_append_val (self->textspans, textspan);
 }
 
 
@@ -153,9 +182,9 @@ GHWPDocument* ghwp_document_new_from_uri (const gchar* uri, GError** error)
     }
 
     GHWPDocument *doc = ghwp_document_new();
-    _g_object_unref0 (doc->ghwp_file);
-    doc->ghwp_file = file;
-    ghwp_document_parse (doc);
+    _g_object_unref0 (doc->file);
+    doc->file = file;
+    _ghwp_document_parse (doc);
     return doc;
 }
 
@@ -171,20 +200,20 @@ ghwp_document_new_from_filename (const gchar* filename, GError** error)
     }
 
     GHWPDocument *doc = ghwp_document_new();
-    _g_object_unref0 (doc->ghwp_file);
-    doc->ghwp_file = file;
-    ghwp_document_parse (doc);
+    _g_object_unref0 (doc->file);
+    doc->file = file;
+    _ghwp_document_parse (doc);
     return doc;
 }
 
 
-static void ghwp_document_parse (GHWPDocument* self)
+static void _ghwp_document_parse (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
-    ghwp_document_parse_doc_info (self);
-    ghwp_document_parse_body_text (self);
-    ghwp_document_parse_prv_text (self);
-    ghwp_document_parse_summary_info (self);
+    _ghwp_document_parse_doc_info (self);
+    _ghwp_document_parse_body_text (self);
+    _ghwp_document_parse_prv_text (self);
+    _ghwp_document_parse_summary_info (self);
 }
 
 
@@ -212,15 +241,27 @@ GHWPPage* ghwp_document_get_page (GHWPDocument* doc, gint n_page)
 }
 
 
-static void ghwp_document_parse_doc_info (GHWPDocument* self)
+static void _ghwp_document_parse_doc_info (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
-    GInputStream* stream  = self->ghwp_file->doc_info_stream;
+
+    GInputStream* stream  = self->file->doc_info_stream;
     GHWPContext*  context = ghwp_context_new (stream);
     while (ghwp_context_pull (context)) {
-        /* TODO */
+        switch (context->tag_id) {
+        case GHWP_TAG_DOCUMENT_PROPERTIES:
+            /* TODO */
+            break;
+        case GHWP_TAG_ID_MAPPINGS:
+            break;
+        default:
+            printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
+                _ghwp_get_tag_name (context->tag_id));
+            break;
+        }
     }
-    _g_object_unref0 (context);
+
+    g_object_unref (context);
 }
 
 
@@ -293,17 +334,17 @@ ghwp_document_get_text_from_raw_data (GHWPDocument *self,
 }
 
 
-static void ghwp_document_parse_body_text (GHWPDocument* self)
+static void _ghwp_document_parse_body_text (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
     guint curr_lv = 0;
     guint prev_lv = 0;
     guint index;
 
-    for (index = 0; index < self->ghwp_file->section_streams->len; index++) {
+    for (index = 0; index < self->file->section_streams->len; index++) {
         GInputStream *section_stream;
         GHWPContext  *context;
-        section_stream = g_array_index (self->ghwp_file->section_streams,
+        section_stream = g_array_index (self->file->section_streams,
                                         GInputStream*,
                                         index);
         section_stream = _g_object_ref0 (section_stream);
@@ -390,7 +431,7 @@ static void ghwp_document_parse_body_text (GHWPDocument* self)
                 g_warning("%s:%d: %s not implemented\n",
                     __FILE__,
                     __LINE__,
-                    ghwp_get_tag_name(context->tag_id));
+                    _ghwp_get_tag_name(context->tag_id));
                 break;
             }
             prev_lv = curr_lv;
@@ -448,11 +489,11 @@ static void ghwp_document_make_pages (GHWPDocument* self)
     _g_object_unref0 (page);
 }
 
-static void ghwp_document_parse_prv_text (GHWPDocument* self)
+static void _ghwp_document_parse_prv_text (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
 
-    GsfInputStream *gis   = _g_object_ref0 (self->ghwp_file->prv_text_stream);
+    GsfInputStream *gis   = _g_object_ref0 (self->file->prv_text_stream);
     gssize          size  = gsf_input_stream_size (gis);
     guchar         *buf   = g_new (guchar, size);
     GError         *error = NULL;
@@ -535,8 +576,7 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     }
 }
 
-/* experimental */
-static void ghwp_document_parse_summary_info (GHWPDocument* self)
+static void _ghwp_document_parse_summary_info (GHWPDocument* self)
 {
     g_return_if_fail (self != NULL);
 
@@ -547,7 +587,7 @@ static void ghwp_document_parse_summary_info (GHWPDocument* self)
     GsfDocMetaData *meta;
     GError         *error = NULL;
 
-    gis  = _g_object_ref0 (self->ghwp_file->summary_info_stream);
+    gis  = _g_object_ref0 (self->file->summary_info_stream);
     size = gsf_input_stream_size (gis);
     buf  = g_malloc(size);
 
@@ -619,7 +659,7 @@ static void ghwp_document_init (GHWPDocument * self) {
 static void ghwp_document_finalize (GObject* obj) {
     GHWPDocument * self;
     self = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_DOCUMENT, GHWPDocument);
-    _g_object_unref0 (self->ghwp_file);
+    _g_object_unref0 (self->file);
     _g_free0 (self->prv_text);
     _g_array_free0 (self->office_text);
     _g_array_free0 (self->pages);
@@ -661,4 +701,84 @@ GTime
 ghwp_document_get_modification_date (GHWPDocument *doc)
 {
     return doc->mod_date;
+}
+
+/**
+ * ghwp_document_get_hwp_format:
+ * @document: A #GHWPDocument
+ *
+ * Returns the HWP format of @document as a string (e.g. HWP v5.0.0.6)
+ *
+ * Return value: a new allocated string containing the HWP format
+ *               of @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
+gchar *
+ghwp_document_get_format (GHWPDocument *document)
+{
+    gchar *format;
+
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+
+    format = g_strdup_printf ("HWP v%s",
+        ghwp_document_get_hwp_version_string (document));
+  return format;
+}
+
+/**
+ * ghwp_document_get_hwp_version_string:
+ * @document: A #GHWPDocument
+ *
+ * Returns the HWP version of @document as a string (e.g. 5.0.0.6)
+ *
+ * Return value: a new allocated string containing the HWP version
+ *               of @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
+gchar *
+ghwp_document_get_hwp_version_string (GHWPDocument *document)
+{
+    gchar *version_string;
+
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+
+    version_string = g_strdup_printf ("%d.%d.%d.%d",
+        document->file->major_version,
+        document->file->minor_version,
+        document->file->micro_version,
+        document->file->extra_version);
+  return version_string;
+}
+
+/**
+ * ghwp_document_get_hwp_version:
+ * @document: A #GHWPDocument
+ * @major_version: (out) (allow-none): return location for the HWP major version number
+ * @minor_version: (out) (allow-none): return location for the HWP minor version number
+ * @micro_version: (out) (allow-none): return location for the HWP micro version number
+ * @extra_version: (out) (allow-none): return location for the HWP extra version number
+ *
+ * Returns: the major and minor and micro and extra HWP version numbers
+ *
+ * Since: 0.1.2
+ **/
+void
+ghwp_document_get_hwp_version (GHWPDocument *document,
+                               guint8       *major_version,
+                               guint8       *minor_version,
+                               guint8       *micro_version,
+                               guint8       *extra_version)
+{
+    g_return_if_fail (GHWP_IS_DOCUMENT (document));
+
+    if (major_version)
+       *major_version = document->file->major_version;
+    if (minor_version)
+       *minor_version = document->file->minor_version;
+    if (micro_version)
+       *micro_version = document->file->micro_version;
+    if (extra_version)
+       *extra_version = document->file->extra_version;
 }
