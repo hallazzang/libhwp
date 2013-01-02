@@ -121,9 +121,8 @@ GType ghwp_tag_get_type             (void) G_GNUC_CONST;
 #define GHWP_TYPE_SELECTION_STYLE   (ghwp_selection_style_get_type ())
 #define GHWP_TYPE_TAG               (ghwp_tag_get_type ())
 
-const char *ghwp_get_version  (void);
-/* FIXME ghwp_get_tag_name function should be a private function */
-const char *ghwp_get_tag_name (guint tag_id);
+const char  *ghwp_get_version  (void);
+const char *_ghwp_get_tag_name (guint tag_id);
 
 typedef struct _GHWPColor     GHWPColor;
 typedef struct _GHWPDocument  GHWPDocument;

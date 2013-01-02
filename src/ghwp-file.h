@@ -28,40 +28,6 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_HEADER             (ghwp_file_header_get_type ())
-#define GHWP_FILE_HEADER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_HEADER, GHWPFileHeader))
-#define GHWP_FILE_HEADER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_HEADER, GHWPFileHeaderClass))
-#define GHWP_IS_FILE_HEADER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_HEADER))
-#define GHWP_IS_FILE_HEADER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_HEADER))
-#define GHWP_FILE_HEADER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_HEADER, GHWPFileHeaderClass))
-
-typedef struct _GHWPFileHeaderClass GHWPFileHeaderClass;
-typedef struct _GHWPFileHeader GHWPFileHeader;
-
-struct _GHWPFileHeaderClass
-{
-    GObjectClass parent_class;
-};
-
-struct _GHWPFileHeader {
-    gchar*   signature;
-    guint32  version;
-    gboolean is_compress;
-    gboolean is_encrypt;
-    gboolean is_distribute;
-    gboolean is_script;
-    gboolean is_drm;
-    gboolean is_xml_template;
-    gboolean is_history;
-    gboolean is_sign;
-    gboolean is_certificate_encrypt;
-    gboolean is_sign_spare;
-    gboolean is_certificate_drm;
-    gboolean is_ccl;
-};
-
-GType ghwp_file_header_get_type (void) G_GNUC_CONST;
-
 #define GHWP_TYPE_FILE             (ghwp_file_get_type ())
 #define GHWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE, GHWPFile))
 #define GHWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE, GHWPFileClass))
@@ -75,13 +41,30 @@ typedef struct _GHWPFilePrivate GHWPFilePrivate;
 struct _GHWPFile {
     GObject          parent_instance;
     GHWPFilePrivate *priv;
-    GHWPFileHeader   header;
     GInputStream    *prv_text_stream;
     GInputStream    *prv_image_stream;
     GInputStream    *file_header_stream;
     GInputStream    *doc_info_stream;
-    GArray*          section_streams;
+    GArray          *section_streams;
     GInputStream    *summary_info_stream;
+
+    gchar   *signature;
+    guint8   major_version;
+    guint8   minor_version;
+    guint8   micro_version;
+    guint8   extra_version;
+    gboolean is_compress;
+    gboolean is_encrypt;
+    gboolean is_distribute;
+    gboolean is_script;
+    gboolean is_drm;
+    gboolean is_xml_template;
+    gboolean is_history;
+    gboolean is_sign;
+    gboolean is_certificate_encrypt;
+    gboolean is_sign_spare;
+    gboolean is_certificate_drm;
+    gboolean is_ccl;
 };
 
 struct _GHWPFileClass {

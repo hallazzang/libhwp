@@ -40,9 +40,8 @@ struct _GHWPContext {
     GHWPContextPrivate *priv;
     guint16             tag_id;
     guint16             level;
-    guint32             size;
+    guint16             data_len;
     guchar*             data;
-    gint                data_len;
 };
 
 struct _GHWPContextClass {

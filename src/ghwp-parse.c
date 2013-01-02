@@ -57,11 +57,11 @@ gboolean ghwp_context_decode_header (GHWPContext *self,
                                     (buf[1] <<  8) |
                                      buf[0]);
 
-    self->tag_id = (guint16) ( self->priv->header        & 0x3ff);
-    self->level  = (guint16) ((self->priv->header >> 10) & 0x3ff);
-    self->size   = (guint32) ((self->priv->header >> 20) & 0xfff);
+    self->tag_id   = (guint16) ( self->priv->header        & 0x3ff);
+    self->level    = (guint16) ((self->priv->header >> 10) & 0x3ff);
+    self->data_len = (guint32) ((self->priv->header >> 20) & 0xfff);
 
-    if (self->size == ((guint32) 0xfff)) {
+    if (self->data_len == ((guint32) 0xfff)) {
 
         g_input_stream_read_all (self->priv->stream,
                                  (void*)buf, (gsize) buf_len,
@@ -78,10 +78,10 @@ gboolean ghwp_context_decode_header (GHWPContext *self,
             return FALSE;
         }
 
-        self->size = (guint32) ((buf[3] << 24) |
-                                (buf[2] << 16) |
-                                (buf[1] <<  8) |
-                                 buf[0]);
+        self->data_len = (guint32) ((buf[3] << 24) |
+                                    (buf[2] << 16) |
+                                    (buf[1] <<  8) |
+                                     buf[0]);
     }
 
     return TRUE;
@@ -121,10 +121,10 @@ gboolean ghwp_context_pull (GHWPContext* self)
 
     /* data 가져오기 */
     self->data = (g_free (self->data), NULL);
-    self->data = g_malloc (self->size);
+    self->data = g_malloc (self->data_len);
 
     g_input_stream_read_all (self->priv->stream, (void*) self->data,
-                             (gsize) self->size, &self->priv->bytes_read,
+                             (gsize) self->data_len, &self->priv->bytes_read,
                              NULL, &error);
 
     if (error != NULL) {
@@ -141,7 +141,6 @@ gboolean ghwp_context_pull (GHWPContext* self)
         return FALSE;
     }
 
-    self->data_len = self->size;
     return TRUE;
 }
 
