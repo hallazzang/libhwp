@@ -1,3 +1,4 @@
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  * ghwp-document.h
  *
@@ -100,61 +101,6 @@ void   ghwp_document_get_hwp_version (GHWPDocument *document,
                                       guint8       *minor_version,
                                       guint8       *micro_version,
                                       guint8       *extra_version);
-
-
-#define TEXT_TYPE_SPAN             (text_span_get_type ())
-#define TEXT_SPAN(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), TEXT_TYPE_SPAN, TextSpan))
-#define TEXT_SPAN_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), TEXT_TYPE_SPAN, TextSpanClass))
-#define TEXT_IS_SPAN(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TEXT_TYPE_SPAN))
-#define TEXT_IS_SPAN_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), TEXT_TYPE_SPAN))
-#define TEXT_SPAN_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), TEXT_TYPE_SPAN, TextSpanClass))
-
-typedef struct _TextSpan TextSpan;
-typedef struct _TextSpanClass TextSpanClass;
-typedef struct _TextSpanPrivate TextSpanPrivate;
-
-struct _TextSpan {
-	GObject parent_instance;
-	TextSpanPrivate * priv;
-	gchar* text;
-};
-
-struct _TextSpanClass {
-	GObjectClass parent_class;
-};
-
-GType text_span_get_type (void) G_GNUC_CONST;
-
-TextSpan* text_span_new (const gchar* text);
-
-
-
-
-#define TEXT_TYPE_P             (text_p_get_type ())
-#define TEXT_P(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), TEXT_TYPE_P, TextP))
-#define TEXT_P_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), TEXT_TYPE_P, TextPClass))
-#define TEXT_IS_P(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), TEXT_TYPE_P))
-#define TEXT_IS_P_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), TEXT_TYPE_P))
-#define TEXT_P_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), TEXT_TYPE_P, TextPClass))
-
-typedef struct _TextP TextP;
-typedef struct _TextPClass TextPClass;
-typedef struct _TextPPrivate TextPPrivate;
-
-struct _TextP {
-	GObject parent_instance;
-	TextPPrivate * priv;
-	GArray* textspans;
-};
-
-struct _TextPClass {
-	GObjectClass parent_class;
-};
-
-GType text_p_get_type (void) G_GNUC_CONST;
-
-void text_p_add_textspan (TextP* self, TextSpan* textspan);
-TextP* text_p_new (void);
 
 G_END_DECLS
 

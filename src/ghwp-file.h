@@ -41,11 +41,12 @@ typedef struct _GHWPFilePrivate GHWPFilePrivate;
 struct _GHWPFile {
     GObject          parent_instance;
     GHWPFilePrivate *priv;
+
+    GArray          *section_streams;
     GInputStream    *prv_text_stream;
     GInputStream    *prv_image_stream;
     GInputStream    *file_header_stream;
     GInputStream    *doc_info_stream;
-    GArray          *section_streams;
     GInputStream    *summary_info_stream;
 
     gchar   *signature;
@@ -76,11 +77,10 @@ struct _GHWPFilePrivate {
     GInputStream   *section_stream;
 };
 
-GType ghwp_file_get_type (void) G_GNUC_CONST;
-
-GHWPFile* ghwp_file_new_from_uri (const gchar* uri, GError** error);
+GType     ghwp_file_get_type          (void) G_GNUC_CONST;
+GHWPFile* ghwp_file_new               (void);
+GHWPFile* ghwp_file_new_from_uri      (const gchar* uri, GError** error);
 GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error);
-GHWPFile* ghwp_file_new (void);
 
 G_END_DECLS
 

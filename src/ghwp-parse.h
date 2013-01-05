@@ -41,7 +41,8 @@ struct _GHWPContext {
     guint16             tag_id;
     guint16             level;
     guint16             data_len;
-    guchar*             data;
+    guint8             *data;
+    guint8              status;
 };
 
 struct _GHWPContextClass {
@@ -49,18 +50,16 @@ struct _GHWPContextClass {
 };
 
 struct _GHWPContextPrivate {
-    GInputStream* stream;
-    guint32       header;
-    gsize         bytes_read;
-    gboolean      ret;
-    guchar       *buf;
-    gint          buf_len;
+    GInputStream *stream;
+    guint32           header;
+    gsize             bytes_read;
+    gboolean          ret;
 };
 
 GType ghwp_context_get_type (void) G_GNUC_CONST;
 
-GHWPContext* ghwp_context_new (GInputStream* stream);
-gboolean ghwp_context_pull (GHWPContext* self);
+GHWPContext* ghwp_context_new  (GInputStream* stream);
+gboolean     ghwp_context_pull (GHWPContext *self, GError **error);
 
 G_END_DECLS
 
