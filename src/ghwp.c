@@ -31,7 +31,7 @@ GQuark ghwp_error_quark (void)
     static GQuark q = 0;
 
     if (q == 0)
-        q = g_quark_from_static_string ("ghwp-quark");
+        q = g_quark_from_static_string ("ghwp-error-quark");
 
     return q;
 }
@@ -56,6 +56,11 @@ _ghwp_get_tag_name (guint tag_id)
 {
     GEnumClass *tag_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_TAG);
     GEnumValue *tag       = g_enum_get_value (tag_class, tag_id);
+
+    if (tag == NULL) {
+        g_type_class_unref (tag_class);
+        return g_strdup_printf ("unknown tag: %d", tag_id);
+    }
     g_type_class_unref (tag_class);
     return tag->value_name;
 }
