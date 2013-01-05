@@ -136,6 +136,7 @@ G_END_DECLS
 
 #include "ghwp-document.h"
 #include "ghwp-file.h"
+#include "ghwp-models.h"
 #include "ghwp-page.h"
 #include "ghwp-version.h"
 #include "gsf-input-stream.h"

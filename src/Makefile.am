@@ -7,6 +7,7 @@ libghwp_la_SOURCES =    \
 	ghwp.c          \
 	ghwp-document.c \
 	ghwp-file.c     \
+	ghwp-models.c   \
 	ghwp-page.c     \
 	ghwp-parse.c    \
 	gsf-input-stream.c
@@ -31,10 +32,11 @@ libghwp_la_LIBADD = $(GHWP_LIBS)
 
 ghwpincludedir = $(includedir)/ghwp
 
-ghwpinclude_HEADERS = \
+ghwpinclude_HEADERS =   \
 	ghwp.h          \
 	ghwp-document.h \
 	ghwp-file.h     \
+	ghwp-models.h   \
 	ghwp-page.h     \
 	ghwp-parse.h    \
 	ghwp-version.h  \
@@ -43,10 +45,10 @@ ghwpinclude_HEADERS = \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = ghwp-0.1.pc
 
-EXTRA_DIST = \
+EXTRA_DIST =           \
 	ghwp-0.1.pc.in \
 	ghwp-version.h.in
 
-DISTCLEANFILES = \
+DISTCLEANFILES =    \
 	ghwp-0.1.pc \
 	ghwp-version.h
