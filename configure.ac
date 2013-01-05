@@ -26,7 +26,7 @@ m4_define([ghwp_lt_current_minus_age],[m4_eval(ghwp_lt_current - ghwp_lt_age)])
 
 # *****************************************************************************
 
-AC_INIT([libghwp], [0.1.2],
+AC_INIT([libghwp], [ghwp_version],
         [https://github.com/cogniti/libghwp/issues], [libghwp],
         [https://github.com/cogniti/libghwp])
 
@@ -41,6 +41,16 @@ AM_SILENT_RULES([yes])
 AC_PROG_CC
 
 LT_INIT
+
+dnl ***************************************************************************
+dnl Internationalization
+dnl ***************************************************************************
+IT_PROG_INTLTOOL([0.35.0])
+
+GETTEXT_PACKAGE=libghwp
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
+AM_GLIB_GNU_GETTEXT
 
 PKG_CHECK_MODULES(GHWP, [libgsf-1 glib-2.0 gio-2.0 cairo gobject-2.0 cairo-ft freetype2 ])
 
@@ -66,6 +76,7 @@ AC_SUBST([GHWP_LT_CURRENT_MINUS_AGE],[ghwp_lt_current_minus_age])
 
 AC_OUTPUT([
     Makefile
+    po/Makefile.in
     src/ghwp-0.1.pc
     src/Makefile
     src/ghwp-version.h
