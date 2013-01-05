@@ -22,6 +22,12 @@ missing
 stamp-h1
 m4/
 
+# po
+mkinstalldirs
+Makefile.in*
+POTFILES
+stamp-it
+
 # output
 .deps/
 .libs/
