@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include "config.h"
 #include <glib.h>
 #include <glib-object.h>
+#include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 
+#include "ghwp.h"
 #include "ghwp-parse.h"
 
 G_DEFINE_TYPE (GHWPContext, ghwp_context, G_TYPE_OBJECT);
@@ -31,113 +33,111 @@ G_DEFINE_TYPE (GHWPContext, ghwp_context, G_TYPE_OBJECT);
 
 #define GHWP_CONTEXT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GHWP_TYPE_CONTEXT, GHWPContextPrivate))
 
-gboolean ghwp_context_decode_header (GHWPContext *self,
-                                     guchar      *buf,
-                                     int          buf_len);
 static void ghwp_context_finalize (GObject* obj);
+
 
 GHWPContext* ghwp_context_new (GInputStream* stream)
 {
     g_return_val_if_fail (stream != NULL, NULL);
-    GHWPContext *self = (GHWPContext*) g_object_new (GHWP_TYPE_CONTEXT, NULL);
-    self->priv->stream = g_object_ref (stream);
-    return self;
+    GHWPContext *context = (GHWPContext*) g_object_new (GHWP_TYPE_CONTEXT,
+                                                        NULL);
+    context->priv->stream = g_object_ref (stream);
+    return context;
 }
 
-
-gboolean ghwp_context_decode_header (GHWPContext *self,
-                                     guchar      *buf,
-                                     int          buf_len)
+/* 에러일 경우 FALSE 반환, error 설정,
+ * 성공일 경우 TRUE 반환,
+ * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
+gboolean ghwp_context_pull (GHWPContext *context, GError **error)
 {
-    GError *error = NULL;
-    g_return_val_if_fail (self != NULL, FALSE);
-
-    self->priv->header = (guint32) ((buf[3] << 24) |
-                                    (buf[2] << 16) |
-                                    (buf[1] <<  8) |
-                                     buf[0]);
-
-    self->tag_id   = (guint16) ( self->priv->header        & 0x3ff);
-    self->level    = (guint16) ((self->priv->header >> 10) & 0x3ff);
-    self->data_len = (guint32) ((self->priv->header >> 20) & 0xfff);
-
-    if (self->data_len == ((guint32) 0xfff)) {
-
-        g_input_stream_read_all (self->priv->stream,
-                                 (void*)buf, (gsize) buf_len,
-                                 &self->priv->bytes_read, NULL, &error);
-        if (error != NULL) {
-            g_critical ("file %s: line %d: uncaught error: %s (%s, %d)",
-                __FILE__, __LINE__, error->message,
-                g_quark_to_string (error->domain), error->code);
-            g_clear_error (&error);
-            return FALSE;
-        }
-
-        if (self->priv->bytes_read <= ((gsize) 0)) {
-            return FALSE;
-        }
-
-        self->data_len = (guint32) ((buf[3] << 24) |
-                                    (buf[2] << 16) |
-                                    (buf[1] <<  8) |
-                                     buf[0]);
-    }
-
-    return TRUE;
-}
-
-gboolean ghwp_context_pull (GHWPContext* self)
-{
-    g_return_val_if_fail (self != NULL, FALSE);
-
-    GError * error = NULL;
+    g_return_val_if_fail (context != NULL, FALSE);
+    gboolean is_success = TRUE;
 
     /* 4바이트 읽기 */
-    g_input_stream_read_all (self->priv->stream, (void*) self->priv->buf,
-                            (gsize) self->priv->buf_len,
-                            &self->priv->bytes_read, NULL, &error);
+    is_success = g_input_stream_read_all (context->priv->stream,
+                                          &context->priv->header,
+                                          (gsize) 4,
+                                          &context->priv->bytes_read,
+                                          NULL, error);
 
-    if (error != NULL) {
-        g_critical ("file %s: line %d: uncaught error: %s (%s, %d)",
-            __FILE__, __LINE__, error->message,
-            g_quark_to_string (error->domain), error->code);
-        g_clear_error (&error);
+    if (is_success == FALSE) {
+        /* g_input_stream_read_all이 에러를 설정했으므로
+         * 따로 에러 설정할 필요 없다. */
+        g_input_stream_close (context->priv->stream, NULL, NULL);
+        return FALSE;
+    }
+    /* 스트림의 끝, 에러가 아님 */
+    if (context->priv->bytes_read == ((gsize) 0)) {
+        g_input_stream_close (context->priv->stream, NULL, error);
+        return FALSE;
+    }
+    /* 비정상 */
+    if (context->priv->bytes_read != ((gsize) 4)) {
+        g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
+                             _("File corrupted"));
+        g_input_stream_close (context->priv->stream, NULL, NULL);
         return FALSE;
     }
 
-    if (self->priv->bytes_read <= ((gsize) 0)) {
-        return FALSE;
-    }
-
+    /* Converts a guint32 value from little-endian to host byte order. */
+    context->priv->header = GUINT32_FROM_LE(context->priv->header);
     /* 4바이트 헤더 디코딩하기 */
-    self->priv->ret = ghwp_context_decode_header (self,
-                                                  self->priv->buf,
-                                                  self->priv->buf_len);
-    /* TODO self->priv->ret 대신에 GError을 사용하여 처리할 것 */
-    if (self->priv->ret == FALSE) {
+    context->tag_id   = (guint16) ( context->priv->header        & 0x3ff);
+    context->level    = (guint16) ((context->priv->header >> 10) & 0x3ff);
+    context->data_len = (guint16) ((context->priv->header >> 20) & 0xfff);
+    /* 비정상 */
+    if (context->data_len == 0) {
+        g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
+                             _("File corrupted"));
+        g_input_stream_close (context->priv->stream, NULL, NULL);
         return FALSE;
+    }
+    /* data_len == 0xfff 이면 다음 4바이트는 data_len 이다 */
+    if (context->data_len == 0xfff) {
+        is_success = g_input_stream_read_all (context->priv->stream,
+                                              &context->data_len, (gsize) 4,
+                                              &context->priv->bytes_read,
+                                              NULL, error);
+
+        if (is_success == FALSE) {
+            /* g_input_stream_read_all이 에러를 설정했으므로
+             * 따로 에러 설정할 필요 없다. */
+            g_input_stream_close (context->priv->stream, NULL, NULL);
+            return FALSE;
+        }
+
+        /* 비정상 */
+        if (context->priv->bytes_read != ((gsize) 4)) {
+            g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
+                                 _("File corrupted"));
+            g_input_stream_close (context->priv->stream, NULL, NULL);
+            return FALSE;
+        }
+
+        context->data_len = GUINT32_FROM_LE(context->data_len);
     }
 
     /* data 가져오기 */
-    self->data = (g_free (self->data), NULL);
-    self->data = g_malloc (self->data_len);
+    context->data = (g_free (context->data), NULL);
+    context->data = g_malloc (context->data_len);
 
-    g_input_stream_read_all (self->priv->stream, (void*) self->data,
-                             (gsize) self->data_len, &self->priv->bytes_read,
-                             NULL, &error);
+    is_success = g_input_stream_read_all (context->priv->stream,
+                                          context->data,
+                                          (gsize) context->data_len,
+                                          &context->priv->bytes_read,
+                                          NULL, error);
 
-    if (error != NULL) {
-        self->data = (g_free (self->data), NULL);
-        g_critical ("file %s: line %d: uncaught error: %s (%s, %d)",
-            __FILE__, __LINE__, error->message,
-            g_quark_to_string (error->domain), error->code);
-        g_clear_error (&error);
+    if (is_success == FALSE) {
+        context->data = (g_free (context->data), NULL);
+        g_input_stream_close (context->priv->stream, NULL, NULL);
         return FALSE;
     }
 
-    if (self->priv->bytes_read <= ((gsize) 0)) {
-        self->data = (g_free (self->data), NULL);
+    if (context->priv->bytes_read != context->data_len) {
+        g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
+                             _("File corrupted"));
+        context->data = (g_free (context->data), NULL);
+        g_input_stream_close (context->priv->stream, NULL, NULL);
         return FALSE;
     }
 
@@ -145,26 +145,26 @@ gboolean ghwp_context_pull (GHWPContext* self)
 }
 
 
-static void ghwp_context_class_init (GHWPContextClass * klass) {
+static void ghwp_context_class_init (GHWPContextClass * klass)
+{
     ghwp_context_parent_class = g_type_class_peek_parent (klass);
     g_type_class_add_private (klass, sizeof (GHWPContextPrivate));
     G_OBJECT_CLASS (klass)->finalize = ghwp_context_finalize;
 }
 
 
-static void ghwp_context_init (GHWPContext * self)
+static void ghwp_context_init (GHWPContext * context)
 {
-    self->priv = GHWP_CONTEXT_GET_PRIVATE (self);
-    self->priv->buf_len = 4;
-    self->priv->buf = g_malloc (self->priv->buf_len);
+    context->priv = GHWP_CONTEXT_GET_PRIVATE (context);
 }
 
 
-static void ghwp_context_finalize (GObject* obj) {
-    GHWPContext * self;
-    self = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_CONTEXT, GHWPContext);
-    _g_object_unref0 (self->priv->stream);
-    self->priv->buf = (g_free (self->priv->buf), NULL);
-    self->data = (g_free (self->data), NULL);
+static void ghwp_context_finalize (GObject *obj)
+{
+    GHWPContext *context;
+    context = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_CONTEXT, GHWPContext);
+    g_input_stream_close (context->priv->stream, NULL, NULL);
+    g_object_unref (context->priv->stream);
+    context->data = (g_free (context->data), NULL);
     G_OBJECT_CLASS (ghwp_context_parent_class)->finalize (obj);
 }
