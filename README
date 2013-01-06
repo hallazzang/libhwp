@@ -10,4 +10,10 @@ make
 sudo make install
 sudo ldconfig
 
-They are installed in /usr/local/include, /usr/local/lib.
+
+Making deb Package
+------------------
+cd libghwp
+dch -l custom
+dpkg-buildpackage -b
+ls ..
