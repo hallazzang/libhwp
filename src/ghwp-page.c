@@ -149,8 +149,8 @@ GHWPPage* ghwp_page_new (void) {
 
 
 static void ghwp_page_class_init (GHWPPageClass * klass) {
-    ghwp_page_parent_class = g_type_class_peek_parent (klass);
-    G_OBJECT_CLASS (klass)->finalize = ghwp_page_finalize;
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    object_class->finalize     = ghwp_page_finalize;
 }
 
 
@@ -161,8 +161,7 @@ static void ghwp_page_init (GHWPPage * self) {
 
 static void ghwp_page_finalize (GObject* obj)
 {
-    GHWPPage *self;
-    self = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_PAGE, GHWPPage);
+    GHWPPage *self = GHWP_PAGE(obj);
     g_array_free (self->elements, TRUE);
     G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
 }

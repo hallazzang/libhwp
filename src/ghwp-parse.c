@@ -147,9 +147,9 @@ gboolean ghwp_context_pull (GHWPContext *context, GError **error)
 
 static void ghwp_context_class_init (GHWPContextClass * klass)
 {
-    ghwp_context_parent_class = g_type_class_peek_parent (klass);
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
     g_type_class_add_private (klass, sizeof (GHWPContextPrivate));
-    G_OBJECT_CLASS (klass)->finalize = ghwp_context_finalize;
+    object_class->finalize = ghwp_context_finalize;
 }
 
 
@@ -161,8 +161,7 @@ static void ghwp_context_init (GHWPContext * context)
 
 static void ghwp_context_finalize (GObject *obj)
 {
-    GHWPContext *context;
-    context = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_CONTEXT, GHWPContext);
+    GHWPContext *context = GHWP_CONTEXT(obj);
     g_input_stream_close (context->priv->stream, NULL, NULL);
     g_object_unref (context->priv->stream);
     context->data = (g_free (context->data), NULL);

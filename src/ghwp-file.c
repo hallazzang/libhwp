@@ -362,9 +362,9 @@ GHWPFile *ghwp_file_new (void)
 
 static void ghwp_file_class_init (GHWPFileClass * klass)
 {
-    ghwp_file_parent_class = g_type_class_peek_parent (klass);
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
     g_type_class_add_private (klass, sizeof (GHWPFilePrivate));
-    G_OBJECT_CLASS (klass)->finalize = ghwp_file_finalize;
+    object_class->finalize = ghwp_file_finalize;
 }
 
 
@@ -375,7 +375,7 @@ static void ghwp_file_init (GHWPFile * file)
 
 static void ghwp_file_finalize (GObject* obj)
 {
-    GHWPFile *file = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_FILE, GHWPFile);
+    GHWPFile *file = GHWP_FILE(obj);
     _g_object_unref0 (file->priv->olefile);
     _g_object_unref0 (file->prv_text_stream);
     _g_object_unref0 (file->prv_image_stream);

@@ -49,8 +49,8 @@ static void ghwp_paragraph_finalize (GObject* obj)
 
 static void ghwp_paragraph_class_init (GHWPParagraphClass * klass)
 {
-    ghwp_paragraph_parent_class = g_type_class_peek_parent (klass);
-    G_OBJECT_CLASS (klass)->finalize = ghwp_paragraph_finalize;
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    object_class->finalize     = ghwp_paragraph_finalize;
 }
 
 static void ghwp_paragraph_init (GHWPParagraph * self)
@@ -95,19 +95,19 @@ TextSpan* text_span_new (const gchar* text)
     return self;
 }
 
-static void text_span_finalize (GObject* obj)
+static void text_span_finalize (GObject *obj)
 {
-    TextSpan * self;
-    self = G_TYPE_CHECK_INSTANCE_CAST (obj, TEXT_TYPE_SPAN, TextSpan);
+    TextSpan *self = TEXT_SPAN(obj);
     _g_free0 (self->text);
     G_OBJECT_CLASS (text_span_parent_class)->finalize (obj);
 }
 
-static void text_span_class_init (TextSpanClass * klass) {
-    text_span_parent_class = g_type_class_peek_parent (klass);
-    G_OBJECT_CLASS (klass)->finalize = text_span_finalize;
+static void text_span_class_init (TextSpanClass * klass)
+{
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    object_class->finalize     = text_span_finalize;
 }
 
-static void text_span_init (TextSpan * self)
+static void text_span_init (TextSpan *self)
 {
 }
