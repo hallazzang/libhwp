@@ -32,26 +32,26 @@ G_BEGIN_DECLS
 #define GSF_IS_INPUT_STREAM_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GSF_TYPE_INPUT_STREAM))
 #define GSF_INPUT_STREAM_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GSF_TYPE_INPUT_STREAM, GsfInputStreamClass))
 
-typedef struct _GsfInputStream GsfInputStream;
-typedef struct _GsfInputStreamClass GsfInputStreamClass;
+typedef struct _GsfInputStream        GsfInputStream;
+typedef struct _GsfInputStreamClass   GsfInputStreamClass;
 typedef struct _GsfInputStreamPrivate GsfInputStreamPrivate;
 
 struct _GsfInputStream {
-	GInputStream parent_instance;
-	GsfInputStreamPrivate * priv;
+    GInputStream           parent_instance;
+    GsfInputStreamPrivate *priv;
 };
 
 struct _GsfInputStreamClass {
-	GInputStreamClass parent_class;
+    GInputStreamClass parent_class;
 };
 
 struct _GsfInputStreamPrivate {
-	GsfInput* input;
+    GsfInput* input;
 };
 
-GType gsf_input_stream_get_type (void) G_GNUC_CONST;
-GsfInputStream* gsf_input_stream_new (GsfInput* input);
-gssize gsf_input_stream_size (GsfInputStream* self);
+GType           gsf_input_stream_get_type (void) G_GNUC_CONST;
+GsfInputStream *gsf_input_stream_new      (GsfInput       *input);
+gssize          gsf_input_stream_size     (GsfInputStream *gsf_input_stream);
 
 G_END_DECLS
 

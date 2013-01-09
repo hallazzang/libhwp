@@ -21,25 +21,27 @@
 
 G_DEFINE_TYPE (GHWPPage, ghwp_page, G_TYPE_OBJECT);
 
+#define _g_free0(var) (var = (g_free (var), NULL))
+
 static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements);
 static void     ghwp_page_finalize  (GObject* obj);
 
-void ghwp_page_get_size (GHWPPage* self,
-                         gdouble*  width,
-                         gdouble*  height)
+void ghwp_page_get_size (GHWPPage *page,
+                         gdouble  *width,
+                         gdouble  *height)
 {
-    g_return_if_fail (self != NULL);
+    g_return_if_fail (page != NULL);
     *width  = 595.0;
     *height = 842.0;
 }
 
 
-gboolean ghwp_page_render (GHWPPage* self, cairo_t* cr)
+gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
 {
-    g_return_val_if_fail (self != NULL, FALSE);
+    g_return_val_if_fail (page != NULL, FALSE);
     g_return_val_if_fail (cr   != NULL, FALSE);
     cairo_save (cr);
-    ghwp_page_draw_page (cr, self->elements);
+    ghwp_page_draw_page (cr, page->elements);
     cairo_restore (cr);
     return TRUE;
 }
@@ -70,9 +72,9 @@ once_ft_init_and_new (void)
 }
 
 
-static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
-    g_return_val_if_fail (cr != NULL, FALSE);
-    g_return_val_if_fail (elements != NULL, FALSE);
+static gboolean ghwp_page_draw_page (cairo_t *cr, GArray *elements)
+{
+    g_return_val_if_fail ((cr != NULL) && (elements != NULL), FALSE);
 
     gint      i, j;
     TextSpan *textspan;
@@ -86,7 +88,7 @@ static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
     cairo_font_options_t *font_options;
     cairo_text_extents_t  extents;
 
-    gchar *ch;
+    gchar *ch = NULL;
     double x = 20.0;
     double y = 40.0;
 
@@ -119,7 +121,7 @@ static gboolean ghwp_page_draw_page (cairo_t* cr, GArray* elements) {
                                               ch, -1,
                                              &glyphs, &num_glyphs,
                                               NULL, NULL, NULL);
-            g_free(ch);
+            _g_free0 (ch);
             cairo_glyph_extents(cr, glyphs, num_glyphs, &extents);
 
             if (x >= 595.0 - extents.x_advance - 20.0) {
@@ -154,15 +156,16 @@ static void ghwp_page_class_init (GHWPPageClass * klass) {
 }
 
 
-static void ghwp_page_init (GHWPPage * self) {
-    self->elements = g_array_new (TRUE, TRUE, sizeof (GObject*));
+static void ghwp_page_init (GHWPPage *page)
+{
+    page->elements = g_array_new (TRUE, TRUE, sizeof (GObject*));
 }
 
 
-static void ghwp_page_finalize (GObject* obj)
+static void ghwp_page_finalize (GObject *obj)
 {
-    GHWPPage *self = GHWP_PAGE(obj);
-    g_array_free (self->elements, TRUE);
+    GHWPPage *page = GHWP_PAGE(obj);
+    g_array_free (page->elements, TRUE);
     G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
 }
 

@@ -77,30 +77,30 @@ struct _GHWPDocumentClass {
     GObjectClass parent_class;
 };
 
-GType ghwp_document_get_type (void) G_GNUC_CONST;
-
-GHWPDocument* ghwp_document_new (void);
-GHWPDocument* ghwp_document_new_from_uri (const gchar* uri, GError** error);
-GHWPDocument* ghwp_document_new_from_filename (const gchar* filename, GError** error);
-guint ghwp_document_get_n_pages (GHWPDocument* self);
-GHWPPage* ghwp_document_get_page (GHWPDocument *doc, gint n_page);
-
-gchar *ghwp_document_get_title (GHWPDocument *doc);
-gchar *ghwp_document_get_keywords (GHWPDocument *doc);
-gchar *ghwp_document_get_subject (GHWPDocument *doc);
-gchar *ghwp_document_get_creator (GHWPDocument *doc);
-GTime  ghwp_document_get_creation_date (GHWPDocument *doc);
-GTime  ghwp_document_get_modification_date (GHWPDocument *doc);
-guint  ghwp_document_get_real_n_pages (GHWPDocument *doc);
+GType         ghwp_document_get_type           (void) G_GNUC_CONST;
+GHWPDocument *ghwp_document_new                (void);
+GHWPDocument *ghwp_document_new_from_uri       (const gchar  *uri,
+                                                GError      **error);
+GHWPDocument *ghwp_document_new_from_filename  (const gchar  *filename,
+                                                GError      **error);
+guint     ghwp_document_get_n_pages            (GHWPDocument *doc);
+GHWPPage *ghwp_document_get_page               (GHWPDocument *doc, gint n_page);
+gchar    *ghwp_document_get_title              (GHWPDocument *doc);
+gchar    *ghwp_document_get_keywords           (GHWPDocument *doc);
+gchar    *ghwp_document_get_subject            (GHWPDocument *doc);
+gchar    *ghwp_document_get_creator            (GHWPDocument *doc);
+GTime     ghwp_document_get_creation_date      (GHWPDocument *doc);
+GTime     ghwp_document_get_modification_date  (GHWPDocument *doc);
+guint     ghwp_document_get_real_n_pages       (GHWPDocument *doc);
 /* e.g. HWP v5.0.0.6 */
-gchar *ghwp_document_get_format (GHWPDocument *document);
+gchar    *ghwp_document_get_format             (GHWPDocument *document);
 /* e.g. 5.0.0.6 */
-gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document);
-void   ghwp_document_get_hwp_version (GHWPDocument *document,
-                                      guint8       *major_version,
-                                      guint8       *minor_version,
-                                      guint8       *micro_version,
-                                      guint8       *extra_version);
+gchar    *ghwp_document_get_hwp_version_string (GHWPDocument *document);
+void      ghwp_document_get_hwp_version        (GHWPDocument *document,
+                                                guint8       *major_version,
+                                                guint8       *minor_version,
+                                                guint8       *micro_version,
+                                                guint8       *extra_version);
 
 G_END_DECLS
 
