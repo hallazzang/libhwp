@@ -43,12 +43,12 @@ G_DEFINE_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
 #define GHWP_FILE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GHWP_TYPE_FILE, GHWPFilePrivate))
 
 static void _ghwp_file_make_stream (GHWPFile* file);
-static void ghwp_file_decode_file_header (GHWPFile *file, GError **error);
+static void ghwp_file_decode_file_header (GHWPFile *file);
 static void ghwp_file_finalize (GObject* obj);
 
-static gpointer _g_object_ref0 (gpointer self)
+static gpointer _g_object_ref0 (gpointer obj)
 {
-    return self ? g_object_ref (self) : NULL;
+    return obj ? g_object_ref (obj) : NULL;
 }
 
 
@@ -191,7 +191,7 @@ static void _ghwp_file_make_stream (GHWPFile *file)
             _g_object_unref0 (file->file_header_stream);
             file->file_header_stream = (GInputStream*) gsf_input_stream_new (input);
             _g_object_unref0 (input);
-            ghwp_file_decode_file_header (file, NULL);
+            ghwp_file_decode_file_header (file);
         }
         else if (g_str_equal (name, "DocInfo")) {
             input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
@@ -299,59 +299,50 @@ static void _ghwp_file_make_stream (GHWPFile *file)
     } /* for */
 }
 
-
-static void ghwp_file_decode_file_header (GHWPFile *file, GError **error)
+/* TODO 에러 감지/전파 코드 있어야 한다. */
+static void ghwp_file_decode_file_header (GHWPFile *file)
 {
     g_return_if_fail (file != NULL);
 
     GsfInputStream *gis;
     gssize          size;
+    gsize           bytes_read;
     guint8         *buf;
-    guint32         prop;
+    guint32         prop = 0;
 
     gis  = (GsfInputStream *) g_object_ref (file->file_header_stream);
     size = gsf_input_stream_size (gis);
     buf  = g_malloc (size);
 
-    g_input_stream_read ((GInputStream*) gis, buf,
-                         (gsize) size, NULL, error);
+    g_input_stream_read_all ((GInputStream*) gis, buf, (gsize) size,
+                             &bytes_read, NULL, NULL);
     g_object_unref (gis);
 
-    if (error != NULL) {
-        buf = (g_free (buf), NULL);
-        _g_object_unref0 (gis);
-        g_set_error (error, GHWP_ERROR,
-                            GHWP_ERROR_DAMAGED,
-                            "damaged file: %s",
-                            (*error)->message);
+    if (bytes_read >= 40) {
+        file->signature = g_strndup ((const gchar *)buf, 32); /* null로 끝남 */
+        file->major_version = buf[35];
+        file->minor_version = buf[34];
+        file->micro_version = buf[33];
+        file->extra_version = buf[32];
+
+        memcpy (&prop, buf + 36, 4);
+        prop = GUINT32_FROM_LE(prop);
+
+        if ((prop & (1 <<  0)) == 1) file->is_compress            = TRUE;
+        if ((prop & (1 <<  1)) == 1) file->is_encrypt             = TRUE;
+        if ((prop & (1 <<  2)) == 1) file->is_distribute          = TRUE;
+        if ((prop & (1 <<  3)) == 1) file->is_script              = TRUE;
+        if ((prop & (1 <<  4)) == 1) file->is_drm                 = TRUE;
+        if ((prop & (1 <<  5)) == 1) file->is_xml_template        = TRUE;
+        if ((prop & (1 <<  6)) == 1) file->is_history             = TRUE;
+        if ((prop & (1 <<  7)) == 1) file->is_sign                = TRUE;
+        if ((prop & (1 <<  8)) == 1) file->is_certificate_encrypt = TRUE;
+        if ((prop & (1 <<  9)) == 1) file->is_sign_spare          = TRUE;
+        if ((prop & (1 << 10)) == 1) file->is_certificate_drm     = TRUE;
+        if ((prop & (1 << 11)) == 1) file->is_ccl                 = TRUE;
     }
 
-    _g_free0 (file->signature);
-
-
-    file->signature = g_strndup ((const gchar *)buf, 32); /* null로 끝남 */
-    file->major_version = buf[35];
-    file->minor_version = buf[34];
-    file->micro_version = buf[33];
-    file->extra_version = buf[32];
-
-    memcpy (&prop, buf + 36, 4);
-    prop = GUINT32_FROM_LE(prop);
-
     buf = (g_free (buf), NULL);
-
-    if ((prop & (1 <<  0)) == 1) file->is_compress            = TRUE;
-    if ((prop & (1 <<  1)) == 1) file->is_encrypt             = TRUE;
-    if ((prop & (1 <<  2)) == 1) file->is_distribute          = TRUE;
-    if ((prop & (1 <<  3)) == 1) file->is_script              = TRUE;
-    if ((prop & (1 <<  4)) == 1) file->is_drm                 = TRUE;
-    if ((prop & (1 <<  5)) == 1) file->is_xml_template        = TRUE;
-    if ((prop & (1 <<  6)) == 1) file->is_history             = TRUE;
-    if ((prop & (1 <<  7)) == 1) file->is_sign                = TRUE;
-    if ((prop & (1 <<  8)) == 1) file->is_certificate_encrypt = TRUE;
-    if ((prop & (1 <<  9)) == 1) file->is_sign_spare          = TRUE;
-    if ((prop & (1 << 10)) == 1) file->is_certificate_drm     = TRUE;
-    if ((prop & (1 << 11)) == 1) file->is_ccl                 = TRUE;
 }
 
 
