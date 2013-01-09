@@ -22,8 +22,11 @@
 #define __GHWP_MODELS_H__
 
 #include <glib-object.h>
+#include "ghwp-parse.h"
 
 G_BEGIN_DECLS
+
+/** TextSpan *****************************************************************/
 
 #define TEXT_TYPE_SPAN             (text_span_get_type ())
 #define TEXT_SPAN(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), TEXT_TYPE_SPAN, TextSpan))
@@ -49,7 +52,7 @@ struct _TextSpanClass {
 GType     text_span_get_type (void) G_GNUC_CONST;
 TextSpan* text_span_new      (const gchar* text);
 
-/*****************************************************************************/
+/** GHWPParagraph ************************************************************/
 
 #define GHWP_TYPE_PARAGRAPH             (ghwp_paragraph_get_type ())
 #define GHWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraph))
@@ -73,7 +76,7 @@ struct _GHWPParagraphClass {
 };
 
 GType          ghwp_paragraph_get_type     (void) G_GNUC_CONST;
-void           ghwp_paragraph_add_textspan (GHWPParagraph *self,
+void           ghwp_paragraph_add_textspan (GHWPParagraph *paragraph,
                                             TextSpan      *textspan);
 GHWPParagraph *ghwp_paragraph_new          (void);
 
@@ -96,11 +99,26 @@ struct _GHWPTableClass
 
 struct _GHWPTable
 {
-    GObject parent_instance;
+    GObject  parent_instance;
+    guint32  flags;
+    guint16  row_count;
+    guint16  col_count;
+    guint16  cell_spacing;
+    /* margin */
+    guint16  left_margin;
+    guint16  right_margin;
+    guint16  top_margin;
+    guint16  bottom_margin;
+
+    guint16 *row_sizes;
+    guint16  border_fill_id;
+    guint16  valid_zone_info_size;
+    guint16 *zones;
 };
 
-GType      ghwp_table_get_type (void) G_GNUC_CONST;
-GHWPTable *ghwp_table_new      (void);
+GType      ghwp_table_get_type         (void) G_GNUC_CONST;
+GHWPTable *ghwp_table_new              (void);
+GHWPTable *ghwp_table_new_from_context (GHWPContext *context);
 
 G_END_DECLS
 
