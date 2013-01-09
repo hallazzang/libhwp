@@ -50,28 +50,26 @@
 G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
 
 /* private function */
-static void   _ghwp_document_parse                  (GHWPDocument  *self,
-                                                     GError       **error);
-static void   _ghwp_document_parse_doc_info         (GHWPDocument  *self,
-                                                     GError       **error);
-static void   _ghwp_document_parse_body_text        (GHWPDocument* self,
-                                                     GError       **error);
-static void   _ghwp_document_parse_prv_text         (GHWPDocument* self);
-static void   _ghwp_document_parse_summary_info     (GHWPDocument* self);
-static void   _ghwp_document_make_pages             (GHWPDocument* self);
-static gchar *_ghwp_document_get_text_from_raw_data (GHWPDocument *self,
-                                                     guchar       *raw,
-                                                     int           raw_len);
-static void ghwp_document_finalize   (GObject* obj);
+static void   _ghwp_document_parse                 (GHWPDocument *doc,
+                                                    GError      **error);
+static void   _ghwp_document_parse_doc_info        (GHWPDocument *doc,
+                                                    GError      **error);
+static void   _ghwp_document_parse_body_text       (GHWPDocument *doc,
+                                                    GError      **error);
+static void   _ghwp_document_parse_prv_text        (GHWPDocument *doc);
+static void   _ghwp_document_parse_summary_info    (GHWPDocument *doc);
+static void   _ghwp_document_make_pages            (GHWPDocument *doc);
+static gchar *_ghwp_document_get_text_from_context (GHWPContext  *context);
+static void   ghwp_document_finalize               (GObject      *obj);
 
 #define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
-static gpointer _g_object_ref0 (gpointer self)
+static gpointer _g_object_ref0 (gpointer obj)
 {
-    return self ? g_object_ref (self) : NULL;
+    return obj ? g_object_ref (obj) : NULL;
 }
 
 GHWPDocument *ghwp_document_new_from_uri (const gchar* uri, GError** error)
@@ -112,23 +110,23 @@ ghwp_document_new_from_filename (const gchar* filename, GError** error)
 }
 
 
-static void _ghwp_document_parse (GHWPDocument *self, GError **error)
+static void _ghwp_document_parse (GHWPDocument *doc, GError **error)
 {
-    g_return_if_fail (self != NULL);
+    g_return_if_fail (doc != NULL);
 
-    _ghwp_document_parse_doc_info (self, error);
+    _ghwp_document_parse_doc_info (doc, error);
     if (*error) return;
-    _ghwp_document_parse_body_text (self, error);
+    _ghwp_document_parse_body_text (doc, error);
     if (*error) return;
-    _ghwp_document_parse_prv_text (self);
-    _ghwp_document_parse_summary_info (self);
+    _ghwp_document_parse_prv_text (doc);
+    _ghwp_document_parse_summary_info (doc);
 }
 
 
-guint ghwp_document_get_n_pages (GHWPDocument* self)
+guint ghwp_document_get_n_pages (GHWPDocument *doc)
 {
-    g_return_val_if_fail (self != NULL, 0U);
-    return self->pages->len;
+    g_return_val_if_fail (doc != NULL, 0U);
+    return doc->pages->len;
 }
 
 /**
@@ -179,27 +177,27 @@ GHWPPage* ghwp_document_get_page (GHWPDocument* doc, gint n_page)
 /*} IDMappingsID;*/
 
 
-static void _ghwp_document_parse_doc_info (GHWPDocument* self, GError **error)
+static void _ghwp_document_parse_doc_info (GHWPDocument *doc, GError **error)
 {
-    g_return_if_fail (self != NULL);
+    g_return_if_fail (doc != NULL);
 
 /*    guint32 id_mappings[16] = {0}; */ /* 반드시 초기화 해야 한다. */
 /*    int i;*/
 
-    GInputStream* stream  = self->file->doc_info_stream;
-    GHWPContext*  context = ghwp_context_new (stream);
+/*    GInputStream *stream  = doc->file->doc_info_stream;
+    GHWPContext  *context = ghwp_context_new (stream);
     while (ghwp_context_pull (context, error)) {
         switch (context->tag_id) {
-        case GHWP_TAG_DOCUMENT_PROPERTIES:
+        case GHWP_TAG_DOCUMENT_PROPERTIES:*/
             /* TODO */
-            break;
-        case GHWP_TAG_ID_MAPPINGS:
+/*            break;
+        case GHWP_TAG_ID_MAPPINGS:*/
 /*            for (i = 0; i < sizeof(id_mappings); i = i + sizeof(guint32)) {*/
 /*                memcpy(&id_mappings[i], &(context->data[i]), sizeof(guint32));*/
 /*                id_mappings[i] = GUINT16_FROM_LE(id_mappings[i]);*/
 /*                printf("%d\n", id_mappings[i]);*/
 /*            }*/
-            break;
+/*            break;
         default:
             printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
                 _ghwp_get_tag_name (context->tag_id));
@@ -207,24 +205,20 @@ static void _ghwp_document_parse_doc_info (GHWPDocument* self, GError **error)
         }
     }
 
-    g_object_unref (context);
+    g_object_unref (context);*/
 }
 
-
-static gchar*
-_ghwp_document_get_text_from_raw_data (GHWPDocument *self,
-                                       guchar       *raw,
-                                       int           raw_len)
+static gchar *
+_ghwp_document_get_text_from_context (GHWPContext *context)
 {
-    g_return_val_if_fail (self != NULL, NULL);
+    g_return_val_if_fail (context != NULL, NULL);
     gunichar2 ch; /* guint16 */
     GString  *text = g_string_new("");
     guint     i;
 
-    for (i = 0; i < raw_len; i = i + 2)
+    for (i = 0; i < context->data_len; i = i + 2)
     {
-        memcpy (&ch, raw + i, 2);
-        ch = GUINT_FROM_LE(ch);
+        context_read_uint16 (context, &ch);
         switch (ch) {
         case 0:
             break;
@@ -237,9 +231,11 @@ _ghwp_document_get_text_from_raw_data (GHWPDocument *self,
         case 7: /* inline */
         case 8: /* inline */
             i = i + 14;
+            context_skip(context, 14);;
             break;
         case 9: /* inline */ /* tab */
             i = i + 14;
+            context_skip(context, 14);;
             g_string_append_unichar(text, ch);
             break;
         case 10:
@@ -247,6 +243,7 @@ _ghwp_document_get_text_from_raw_data (GHWPDocument *self,
         case 11:
         case 12:
             i = i + 14;
+            context_skip(context, 14);;
             break;
         case 13:
             break;
@@ -261,6 +258,7 @@ _ghwp_document_get_text_from_raw_data (GHWPDocument *self,
         case 22:
         case 23:
             i = i + 14;
+            context_skip(context, 14);;
             break;
         case 24:
         case 25:
@@ -277,13 +275,18 @@ _ghwp_document_get_text_from_raw_data (GHWPDocument *self,
         } /* switch */
     } /* for */
 
+    if (context->data_count != context->data_len) {
+        g_string_free(text, TRUE);
+        return NULL;
+    }
+
     return g_string_free(text, FALSE);
 }
 
-typedef enum
-{
-    GHWP_PARSE_ERROR_UNKNOWN_TAG
-} GHWPParseError;
+/*typedef enum*/
+/*{*/
+/*    GHWP_PARSE_ERROR_UNKNOWN_TAG*/
+/*} GHWPParseError;*/
 
 typedef enum
 {
@@ -305,20 +308,19 @@ typedef enum
 } CtrlID;
 
 /* TODO fsm parser */
-static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
+static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
 {
-    g_return_if_fail (self != NULL);
+    g_return_if_fail (doc != NULL);
     guint16    curr_lv  = 0;
     guint16    prev_lv  = 0;
     guint      index;
     guint32    ctrl_id = 0;
-/*    int        i = 0;*/
-    GHWPTable *table;
+/*    GHWPTable *table;*/
 
-    for (index = 0; index < self->file->section_streams->len; index++) {
+    for (index = 0; index < doc->file->section_streams->len; index++) {
         GInputStream *section_stream;
         GHWPContext  *context;
-        section_stream = g_array_index (self->file->section_streams,
+        section_stream = g_array_index (doc->file->section_streams,
                                         GInputStream*,
                                         index);
         section_stream = _g_object_ref0 (section_stream);
@@ -328,44 +330,37 @@ static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
         while (ghwp_context_pull(context, error)) {
             curr_lv = (guint) context->level;
             /* TODO ctrl_id 설정에 따른 context->status 갱신이 필요함 */
-
             switch (context->tag_id) {
             case GHWP_TAG_PARA_HEADER:
                 if (context->status == STATE_INSIDE_TABLE) {
                     GHWPParagraph *_paragraph_ = ghwp_paragraph_new();
-                    g_array_append_val (self->office_text, _paragraph_);
-                    /* TODO 테이블 객체에 포함 문단을 포함시킬 것 */
+                    g_array_append_val (doc->office_text, _paragraph_);
+                    /* TODO 테이블 cell 객체에 포함 문단을 포함시킬 것 */
                 } else {
                     GHWPParagraph *_paragraph_ = ghwp_paragraph_new();
-                    g_array_append_val (self->office_text, _paragraph_);
+                    g_array_append_val (doc->office_text, _paragraph_);
                 }
                 break;
             case GHWP_TAG_PARA_TEXT:
                 if (curr_lv > prev_lv) {
+                    /* 문단 얻어오기 */
                     GHWPParagraph *paragraph;
-                    paragraph = g_array_index (self->office_text,
-                                           GHWPParagraph*,
-                                           self->office_text->len - 1);
+                    paragraph = g_array_index (doc->office_text,
+                                               GHWPParagraph *,
+                                               doc->office_text->len - 1);
                     paragraph = _g_object_ref0 (paragraph);
-
+                    /* 문단에 text span 추가하기 */
                     gchar *text;
-                    text = _ghwp_document_get_text_from_raw_data (self,
-                                                         context->data,
-                                                         context->data_len);
+                    text = _ghwp_document_get_text_from_context (context);
                     TextSpan *_textspan_ = text_span_new (text);
                     ghwp_paragraph_add_textspan (paragraph, _textspan_);
                     _g_object_unref0 (_textspan_);
-                    _g_free0 (text);
+                    g_free (text);
                     _g_object_unref0 (paragraph);
                 }
                 break;
-            case GHWP_TAG_PARA_CHAR_SHAPE:
-                break;
-            case GHWP_TAG_PARA_LINE_SEG:
-                break;
             case GHWP_TAG_CTRL_HEADER:
-                memcpy(&ctrl_id, context->data, 4);
-                ctrl_id = GUINT32_FROM_LE(ctrl_id);
+                context_read_uint32 (context, &ctrl_id);
                 switch (ctrl_id) {
                 case CTRL_ID_TABLE:
                     context->status = STATE_INSIDE_TABLE;
@@ -375,28 +370,9 @@ static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
                     break;
                 }
                 break;
-            case GHWP_TAG_PAGE_DEF:
-                break;
-            case GHWP_TAG_FOOTNOTE_SHAPE:
-                break;
-            case GHWP_TAG_PAGE_BORDER_FILL:
-                break;
-            case GHWP_TAG_LIST_HEADER:
-                /* TODO ctrl_id 에 따른 객체를 생성한다 */
-                switch (context->status) {
-                case STATE_INSIDE_TABLE:
-/*                    cell = cell_new();*/
-/*                    table_add_cell (tabel, cell);*/
-                    break;
-                default:
-                    break;
-                }
-                break;
-            case GHWP_TAG_EQEDIT:
-                break;
             case GHWP_TAG_TABLE:
             /*
-                     col 0   col 1
+                  \  col 0   col 1
                    +-------+-------+
             row 0  |  00   |   01  |
                    +-------+-------+
@@ -410,7 +386,7 @@ static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
             para-header
                 ...
                 ctrl-header (id:tbl)
-                    table: row-span, col-span
+                    table: row-count, col-count
                     list-header (00)
                     ...
                     list-header (01)
@@ -423,17 +399,23 @@ static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
                     ...
                     list-header (21)
             */
-                /* TODO 테이블 객체 생성한다. with row-span, col-span */
-                table = ghwp_table_new();
-/*                for (i = 0; i < context->data_len; i++) {*/
-/*                    printf("%02x ", context->data[i]);*/
-/*                }*/
-/*                printf("\n");*/
-                g_object_unref(table);
+/*                table = ghwp_table_new_from_context (context);*/
+/*                g_array_append_val (doc->office_text, table);*/
+                break;
+            case GHWP_TAG_LIST_HEADER:
+                /* TODO ctrl_id 에 따른 객체를 생성한다 */
+                switch (context->status) {
+                case STATE_INSIDE_TABLE:
+/*                    cell = cell_new();
+                    table_add_cell (table, cell);*/
+                    break;
+                default:
+                    break;
+                }
                 break;
             default:
-                printf ("%s:%d: %s not implemented\n", __FILE__, __LINE__,
-                    _ghwp_get_tag_name(context->tag_id));
+/*                printf ("%s:%d: %s not implemented\n", __FILE__, __LINE__,*/
+/*                    _ghwp_get_tag_name(context->tag_id));*/
                 break;
             } /* switch */
 
@@ -443,21 +425,21 @@ static void _ghwp_document_parse_body_text (GHWPDocument* self, GError **error)
         _g_object_unref0 (section_stream);
     } /* for */
 
-    _ghwp_document_make_pages (self);
+    _ghwp_document_make_pages (doc);
 }
 
 
-static void _ghwp_document_make_pages (GHWPDocument* self)
+static void _ghwp_document_make_pages (GHWPDocument *doc)
 {
-    g_return_if_fail (self != NULL);
+    g_return_if_fail (doc != NULL);
     gdouble   y    = 0.0;
     guint     len  = 0;
     GHWPPage *page = ghwp_page_new ();
     guint     i, j;
 
-    for (i = 0; i < self->office_text->len; i++) {
+    for (i = 0; i < doc->office_text->len; i++) {
         GHWPParagraph* paragraph;
-        paragraph = g_array_index (self->office_text, GHWPParagraph*, i);
+        paragraph = g_array_index (doc->office_text, GHWPParagraph *, i);
         paragraph = _g_object_ref0 (paragraph);
 
         for(j = 0; j < paragraph->textspans->len; j++) {
@@ -473,7 +455,7 @@ static void _ghwp_document_make_pages (GHWPDocument* self)
 
             if (y > 842.0 - 80.0) {
                 page = _g_object_ref0 (page);
-                g_array_append_val (self->pages, page);
+                g_array_append_val (doc->pages, page);
                 _g_object_unref0 (page);
                 page = ghwp_page_new ();
                 textspan = _g_object_ref0 (textspan);
@@ -489,11 +471,11 @@ static void _ghwp_document_make_pages (GHWPDocument* self)
     } /* for */
     /* add last page */
     page = _g_object_ref0 (page);
-    g_array_append_val (self->pages, page);
+    g_array_append_val (doc->pages, page);
     _g_object_unref0 (page);
 }
 
-static void _ghwp_document_parse_prv_text (GHWPDocument* doc)
+static void _ghwp_document_parse_prv_text (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
 
@@ -618,13 +600,13 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     }
 }
 
-static void _ghwp_document_parse_summary_info (GHWPDocument* doc)
+static void _ghwp_document_parse_summary_info (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
 
     GsfInputStream *gis;
     gssize          size;
-    guint8         *buf;
+    guint8         *buf = NULL;
     GsfInputMemory *summary;
     GsfDocMetaData *meta;
     GError         *error = NULL;
@@ -655,7 +637,15 @@ static void _ghwp_document_parse_summary_info (GHWPDocument* doc)
         0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
     };
 
-    memcpy (buf + 28, component_guid, (gsize) sizeof(component_guid));
+    if (size >= sizeof(component_guid) + 28) {
+        memcpy (buf + 28, component_guid, (gsize) sizeof(component_guid));
+    } else {
+        buf = (g_free (buf), NULL);
+        _g_object_unref0 (doc->file->summary_info_stream);
+        _g_object_unref0 (gis);
+        g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
+        return;
+    }
     summary = (GsfInputMemory*) gsf_input_memory_new (buf, size, FALSE);
 
     meta = gsf_doc_meta_data_new ();
@@ -698,9 +688,9 @@ static void ghwp_document_init (GHWPDocument * doc) {
 }
 
 
-static void ghwp_document_finalize (GObject* obj) {
-    GHWPDocument * doc;
-    doc = G_TYPE_CHECK_INSTANCE_CAST (obj, GHWP_TYPE_DOCUMENT, GHWPDocument);
+static void ghwp_document_finalize (GObject* obj)
+{
+    GHWPDocument *doc = GHWP_DOCUMENT(obj);
     _g_object_unref0 (doc->file);
     _g_free0 (doc->prv_text);
     _g_array_free0 (doc->office_text);

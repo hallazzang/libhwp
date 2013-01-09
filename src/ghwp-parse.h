@@ -21,6 +21,7 @@
 #define _GHWP_CONTEXT_H_
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -31,17 +32,18 @@ G_BEGIN_DECLS
 #define GHWP_IS_CONTEXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_CONTEXT))
 #define GHWP_CONTEXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_CONTEXT, GHWPContextClass))
 
-typedef struct _GHWPContext GHWPContext;
-typedef struct _GHWPContextClass GHWPContextClass;
+typedef struct _GHWPContext        GHWPContext;
+typedef struct _GHWPContextClass   GHWPContextClass;
 typedef struct _GHWPContextPrivate GHWPContextPrivate;
 
 struct _GHWPContext {
     GObject             parent_instance;
     GHWPContextPrivate *priv;
+    GInputStream       *stream;
     guint16             tag_id;
     guint16             level;
     guint16             data_len;
-    guint8             *data;
+    guint16             data_count;
     guint8              status;
 };
 
@@ -50,16 +52,20 @@ struct _GHWPContextClass {
 };
 
 struct _GHWPContextPrivate {
-    GInputStream *stream;
     guint32           header;
     gsize             bytes_read;
     gboolean          ret;
 };
 
-GType ghwp_context_get_type (void) G_GNUC_CONST;
-
-GHWPContext* ghwp_context_new  (GInputStream* stream);
-gboolean     ghwp_context_pull (GHWPContext *self, GError **error);
+GType        ghwp_context_get_type (void) G_GNUC_CONST;
+GHWPContext *ghwp_context_new      (GInputStream *stream);
+gboolean     ghwp_context_pull     (GHWPContext  *context, GError **error);
+gboolean     context_read_uint16   (GHWPContext  *context,
+                                    guint16      *i);
+gboolean     context_read_uint32   (GHWPContext  *context,
+                                    guint32      *i);
+gboolean     context_skip          (GHWPContext  *context,
+                                    guint16       count);
 
 G_END_DECLS
 
