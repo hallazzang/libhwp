@@ -44,7 +44,7 @@ struct _GHWPDocument {
     GHWPDocumentPrivate *priv;
     GHWPFile            *file;
     gchar               *prv_text;
-    GArray              *office_text;
+    GNode               *node;
     GArray              *pages;
     GsfDocMetaData      *summary_info;
     /* ev info */
@@ -85,16 +85,15 @@ GHWPDocument *ghwp_document_new_from_filename  (const gchar  *filename,
                                                 GError      **error);
 guint     ghwp_document_get_n_pages            (GHWPDocument *doc);
 GHWPPage *ghwp_document_get_page               (GHWPDocument *doc, gint n_page);
-gchar    *ghwp_document_get_title              (GHWPDocument *doc);
-gchar    *ghwp_document_get_keywords           (GHWPDocument *doc);
-gchar    *ghwp_document_get_subject            (GHWPDocument *doc);
-gchar    *ghwp_document_get_creator            (GHWPDocument *doc);
-GTime     ghwp_document_get_creation_date      (GHWPDocument *doc);
-GTime     ghwp_document_get_modification_date  (GHWPDocument *doc);
 guint     ghwp_document_get_real_n_pages       (GHWPDocument *doc);
-/* e.g. HWP v5.0.0.6 */
+/* meta data */
+gchar    *ghwp_document_get_title              (GHWPDocument *document);
+gchar    *ghwp_document_get_keywords           (GHWPDocument *document);
+gchar    *ghwp_document_get_subject            (GHWPDocument *document);
+gchar    *ghwp_document_get_creator            (GHWPDocument *document);
+GTime     ghwp_document_get_creation_date      (GHWPDocument *document);
+GTime     ghwp_document_get_modification_date  (GHWPDocument *document);
 gchar    *ghwp_document_get_format             (GHWPDocument *document);
-/* e.g. 5.0.0.6 */
 gchar    *ghwp_document_get_hwp_version_string (GHWPDocument *document);
 void      ghwp_document_get_hwp_version        (GHWPDocument *document,
                                                 guint8       *major_version,

@@ -25,27 +25,17 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <glib.h>
 #include <glib-object.h>
-#include <stdlib.h>
 #include <string.h>
-#include <gio/gio.h>
 #include <stdio.h>
-#include <float.h>
 #include <math.h>
 #include <gsf/gsf-input-memory.h>
 #include <gsf/gsf-msole-utils.h>
-#include <gsf/gsf-input-impl.h>
-#include <cairo.h>
+#include <gsf/gsf-meta-names.h>
+#include <gsf/gsf-timestamp.h>
 
 #include "config.h"
 #include "ghwp-document.h"
-#include "gsf-input-stream.h"
-#include "ghwp-parse.h"
-
-#include <gsf/gsf-meta-names.h>
-#include <gsf/gsf-timestamp.h>
-#include <gsf/gsf-docprop-vector.h>
 
 G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
 
@@ -58,7 +48,6 @@ static void   _ghwp_document_parse_body_text       (GHWPDocument *doc,
                                                     GError      **error);
 static void   _ghwp_document_parse_prv_text        (GHWPDocument *doc);
 static void   _ghwp_document_parse_summary_info    (GHWPDocument *doc);
-static void   _ghwp_document_make_pages            (GHWPDocument *doc);
 static gchar *_ghwp_document_get_text_from_context (GHWPContext  *context);
 static void   ghwp_document_finalize               (GObject      *obj);
 
@@ -72,6 +61,17 @@ static gpointer _g_object_ref0 (gpointer obj)
     return obj ? g_object_ref (obj) : NULL;
 }
 
+/**
+ * ghwp_document_new_from_uri:
+ * @uri: uri of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #GHWPDocument.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #GHWPDocument, or %NULL
+ **/
 GHWPDocument *ghwp_document_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
@@ -307,15 +307,19 @@ typedef enum
     CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
 } CtrlID;
 
-/* TODO fsm parser */
+/* TODO fsm parser, nautilus에서 파일 속성만 보는 경우가 있으므로 속도 문제
+ * 때문에 get_n_pages 로 옮겨갈 필요가 있다. */
 static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
 {
     g_return_if_fail (doc != NULL);
-    guint16    curr_lv  = 0;
-    guint16    prev_lv  = 0;
-    guint      index;
-    guint32    ctrl_id = 0;
-/*    GHWPTable *table;*/
+    guint32 ctrl_id = 0;
+    guint16 ctrl_lv = 0;
+    guint16 curr_lv = 0;
+    guint   index;
+
+    gdouble    y    = 0.0;
+    guint      len  = 0;
+    GHWPPage  *page = ghwp_page_new ();
 
     for (index = 0; index < doc->file->section_streams->len; index++) {
         GInputStream *section_stream;
@@ -329,38 +333,60 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
 
         while (ghwp_context_pull(context, error)) {
             curr_lv = (guint) context->level;
+            /* 상태 변화 */
+            if (curr_lv <= ctrl_lv)
+                context->status = STATE_NOT_IMPLEMENTED;
+
             /* TODO ctrl_id 설정에 따른 context->status 갱신이 필요함 */
             switch (context->tag_id) {
             case GHWP_TAG_PARA_HEADER:
-                if (context->status == STATE_INSIDE_TABLE) {
-                    GHWPParagraph *_paragraph_ = ghwp_paragraph_new();
-                    g_array_append_val (doc->office_text, _paragraph_);
-                    /* TODO 테이블 cell 객체에 포함 문단을 포함시킬 것 */
-                } else {
-                    GHWPParagraph *_paragraph_ = ghwp_paragraph_new();
-                    g_array_append_val (doc->office_text, _paragraph_);
+                if (context->status != STATE_INSIDE_TABLE) {
+                    GHWPParagraph *paragraph = ghwp_paragraph_new ();
+                    GNode              *node = g_node_new (paragraph);
+                    g_node_append (doc->node, node);
+                } else if (context->status == STATE_INSIDE_TABLE) {
+                    GNode *paragraph_node, *table_node, *cell_node;
+                    paragraph_node = g_node_last_child (doc->node);
+                    table_node = g_node_last_child (paragraph_node);
+                    cell_node  = g_node_last_child (table_node);
+                    GHWPParagraph *paragraph = ghwp_paragraph_new ();
+                    g_node_append(cell_node, g_node_new (paragraph));
                 }
                 break;
             case GHWP_TAG_PARA_TEXT:
-                if (curr_lv > prev_lv) {
-                    /* 문단 얻어오기 */
-                    GHWPParagraph *paragraph;
-                    paragraph = g_array_index (doc->office_text,
-                                               GHWPParagraph *,
-                                               doc->office_text->len - 1);
-                    paragraph = _g_object_ref0 (paragraph);
-                    /* 문단에 text span 추가하기 */
-                    gchar *text;
-                    text = _ghwp_document_get_text_from_context (context);
-                    TextSpan *_textspan_ = text_span_new (text);
-                    ghwp_paragraph_add_textspan (paragraph, _textspan_);
-                    _g_object_unref0 (_textspan_);
-                    g_free (text);
-                    _g_object_unref0 (paragraph);
+            {
+                GNode     *paragraph_node;
+                TextSpan  *textspan;
+                paragraph_node = g_node_last_child (doc->node);
+                gchar *text = _ghwp_document_get_text_from_context (context);
+                textspan = text_span_new (text);
+                g_free (text);
+
+                if (context->status != STATE_INSIDE_TABLE) {
+                    g_node_append(paragraph_node, g_node_new (textspan));
+                } else if (context->status == STATE_INSIDE_TABLE) {
+                    GNode *table_node, *cell_node;
+                    table_node = g_node_last_child (paragraph_node);
+                    cell_node  = g_node_last_child (table_node);
+                    g_node_append(cell_node, g_node_new (textspan));
                 }
+
+                len = g_utf8_strlen (textspan->text, -1);
+                y = y + (18.0 * ceil (len / 33.0));
+
+                if (y > 842.0 - 80.0) {
+                    g_array_append_val (doc->pages, page);
+                    page = ghwp_page_new ();
+                    g_array_append_val (page->elements, textspan);
+                    y = 0.0;
+                } else {
+                    g_array_append_val (page->elements, textspan);
+                } /* if */
+            }
                 break;
             case GHWP_TAG_CTRL_HEADER:
                 context_read_uint32 (context, &ctrl_id);
+                ctrl_lv = context->level;
                 switch (ctrl_id) {
                 case CTRL_ID_TABLE:
                     context->status = STATE_INSIDE_TABLE;
@@ -399,15 +425,26 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
                     ...
                     list-header (21)
             */
-/*                table = ghwp_table_new_from_context (context);*/
-/*                g_array_append_val (doc->office_text, table);*/
+            {
+                GHWPTable *table;
+                GNode *paragraph_node;
+                table = ghwp_table_new_from_context (context);
+                paragraph_node = g_node_last_child (doc->node);
+                g_node_append(paragraph_node, g_node_new(table));
+            }
                 break;
             case GHWP_TAG_LIST_HEADER:
                 /* TODO ctrl_id 에 따른 객체를 생성한다 */
                 switch (context->status) {
                 case STATE_INSIDE_TABLE:
-/*                    cell = cell_new();
-                    table_add_cell (table, cell);*/
+                {
+                    GNode *paragraph_node, *table_node;
+                    GHWPTableCell *table_cell;
+                    paragraph_node = g_node_last_child (doc->node);
+                    table_node = g_node_last_child (paragraph_node);
+                    table_cell = ghwp_table_cell_new_from_context(context);
+                    g_node_append (table_node, g_node_new (table_cell));
+                }
                     break;
                 default:
                     break;
@@ -418,61 +455,12 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
 /*                    _ghwp_get_tag_name(context->tag_id));*/
                 break;
             } /* switch */
-
-            prev_lv = curr_lv;
         } /* while */
+        /* add last page */
+        g_array_append_val (doc->pages, page);
         _g_object_unref0 (context);
         _g_object_unref0 (section_stream);
     } /* for */
-
-    _ghwp_document_make_pages (doc);
-}
-
-
-static void _ghwp_document_make_pages (GHWPDocument *doc)
-{
-    g_return_if_fail (doc != NULL);
-    gdouble   y    = 0.0;
-    guint     len  = 0;
-    GHWPPage *page = ghwp_page_new ();
-    guint     i, j;
-
-    for (i = 0; i < doc->office_text->len; i++) {
-        GHWPParagraph* paragraph;
-        paragraph = g_array_index (doc->office_text, GHWPParagraph *, i);
-        paragraph = _g_object_ref0 (paragraph);
-
-        for(j = 0; j < paragraph->textspans->len; j++) {
-
-            TextSpan* textspan;
-            textspan = g_array_index (paragraph->textspans, TextSpan*, j);
-            textspan = _g_object_ref0 (textspan);
-
-            len = g_utf8_strlen (textspan->text, -1);
-
-            y = y + (18.0 * ceil (len / 33.0));
-
-
-            if (y > 842.0 - 80.0) {
-                page = _g_object_ref0 (page);
-                g_array_append_val (doc->pages, page);
-                _g_object_unref0 (page);
-                page = ghwp_page_new ();
-                textspan = _g_object_ref0 (textspan);
-                g_array_append_val (page->elements, textspan);
-                y = 0.0;
-            } else {
-                textspan = _g_object_ref0 (textspan);
-                g_array_append_val (page->elements, textspan);
-            } /* if */
-            _g_object_unref0 (textspan);
-        } /* for */
-        _g_object_unref0 (paragraph);
-    } /* for */
-    /* add last page */
-    page = _g_object_ref0 (page);
-    g_array_append_val (doc->pages, page);
-    _g_object_unref0 (page);
 }
 
 static void _ghwp_document_parse_prv_text (GHWPDocument *doc)
@@ -498,7 +486,7 @@ static void _ghwp_document_parse_prv_text (GHWPDocument *doc)
     /* g_convert() can be used to convert a byte buffer of UTF-16 data of
        ambiguous endianess. */
     doc->prv_text = g_convert ((const gchar*) buf, (gssize) size,
-                                "UTF-8", "UTF-16LE", NULL, NULL, &error);
+                               "UTF-8", "UTF-16LE", NULL, NULL, &error);
 
     if (error != NULL) {
         g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
@@ -668,7 +656,13 @@ static void _ghwp_document_parse_summary_info (GHWPDocument *doc)
     _g_object_unref0 (gis);
 }
 
-
+/**
+ * ghwp_document_new:
+ * 
+ * Creates a new #GHWPDocument.
+ * 
+ * Return value: A newly created #GHWPDocument
+ **/
 GHWPDocument* ghwp_document_new (void)
 {
     return (GHWPDocument*) g_object_new (GHWP_TYPE_DOCUMENT, NULL);
@@ -682,9 +676,10 @@ static void ghwp_document_class_init (GHWPDocumentClass * klass)
 }
 
 
-static void ghwp_document_init (GHWPDocument * doc) {
-    doc->office_text = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph*));
-    doc->pages       = g_array_new (TRUE, TRUE, sizeof (GHWPPage*));
+static void ghwp_document_init (GHWPDocument * doc)
+{
+    doc->node  = g_node_new  (NULL);
+    doc->pages = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
 }
 
 
@@ -693,46 +688,116 @@ static void ghwp_document_finalize (GObject* obj)
     GHWPDocument *doc = GHWP_DOCUMENT(obj);
     _g_object_unref0 (doc->file);
     _g_free0 (doc->prv_text);
-    _g_array_free0 (doc->office_text);
+    g_node_destroy (doc->node);
     _g_array_free0 (doc->pages);
     _g_object_unref0 (doc->summary_info);
     G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);
 }
 
+/**
+ * ghwp_document_get_title:
+ * @document: A #GHWPDocument
+ *
+ * Returns the document's title
+ *
+ * Return value: a new allocated string containing the title
+ *               of @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
 gchar *
-ghwp_document_get_title (GHWPDocument *doc)
+ghwp_document_get_title (GHWPDocument *document)
 {
-    return g_strdup (doc->title);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->title);
 }
 
+/**
+ * ghwp_document_get_keywords:
+ * @document: A #GHWPDocument
+ *
+ * Returns the keywords associated to the document
+ *
+ * Return value: a new allocated string containing keywords associated
+ *               to @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
 gchar *
-ghwp_document_get_keywords (GHWPDocument *doc)
+ghwp_document_get_keywords (GHWPDocument *document)
 {
-    return g_strdup (doc->keywords);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->keywords);
 }
 
+/**
+ * ghwp_document_get_subject:
+ * @document: A #GHWPDocument
+ *
+ * Returns the subject of the document
+ *
+ * Return value: a new allocated string containing the subject
+ *               of @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
 gchar *
-ghwp_document_get_subject (GHWPDocument *doc)
+ghwp_document_get_subject (GHWPDocument *document)
 {
-    return g_strdup (doc->subject);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->subject);
 }
 
+/**
+ * ghwp_document_get_creator:
+ * @document: A #GHWPDocument
+ *
+ * Returns the creator of the document.
+ *
+ * Return value: a new allocated string containing the creator
+ *               of @document, or %NULL
+ *
+ * Since: 0.1.2
+ **/
 gchar *
-ghwp_document_get_creator (GHWPDocument *doc)
+ghwp_document_get_creator (GHWPDocument *document)
 {
-    return g_strdup (doc->creator);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->creator);
 }
 
+/**
+ * ghwp_document_get_creation_date:
+ * @document: A #GHWPDocument
+ *
+ * Returns the date the document was created as seconds since the Epoch
+ *
+ * Return value: the date the document was created, or -1
+ *
+ * Since: 0.1.2
+ **/
 GTime
-ghwp_document_get_creation_date (GHWPDocument *doc)
+ghwp_document_get_creation_date (GHWPDocument *document)
 {
-    return doc->creation_date;
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
+    return document->creation_date;
 }
 
+/**
+ * ghwp_document_get_modification_date:
+ * @document: A #GHWPDocument
+ *
+ * Returns the date the document was most recently modified as seconds since the Epoch
+ *
+ * Return value: the date the document was most recently modified, or -1
+ *
+ * Since: 0.1.2
+ **/
 GTime
-ghwp_document_get_modification_date (GHWPDocument *doc)
+ghwp_document_get_modification_date (GHWPDocument *document)
 {
-    return doc->mod_date;
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
+    return document->mod_date;
 }
 
 /**
