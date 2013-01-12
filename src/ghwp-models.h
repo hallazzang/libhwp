@@ -39,13 +39,15 @@ typedef struct _TextSpan        TextSpan;
 typedef struct _TextSpanClass   TextSpanClass;
 typedef struct _TextSpanPrivate TextSpanPrivate;
 
-struct _TextSpan {
+struct _TextSpan
+{
     GObject          parent_instance;
     TextSpanPrivate *priv;
     gchar           *text;
 };
 
-struct _TextSpanClass {
+struct _TextSpanClass
+{
     GObjectClass parent_class;
 };
 
@@ -57,28 +59,25 @@ TextSpan* text_span_new      (const gchar* text);
 #define GHWP_TYPE_PARAGRAPH             (ghwp_paragraph_get_type ())
 #define GHWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraph))
 #define GHWP_PARAGRAPH_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PARAGRAPH, GHWPParagraphClass))
-#define TEXT_IS_P(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARAGRAPH))
-#define TEXT_IS_P_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PARAGRAPH))
+#define GHWP_IS_PARAGRAPH(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARAGRAPH))
+#define GHWP_IS_PARAGRAPH_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PARAGRAPH))
 #define GHWP_PARAGRAPH_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraphClass))
 
-typedef struct _GHWPParagraph        GHWPParagraph;
-typedef struct _GHWPParagraphClass   GHWPParagraphClass;
-typedef struct _GHWPParagraphPrivate GHWPParagraphPrivate;
+typedef struct _GHWPParagraph      GHWPParagraph;
+typedef struct _GHWPParagraphClass GHWPParagraphClass;
 
-struct _GHWPParagraph {
-    GObject               parent_instance;
-    GHWPParagraphPrivate *priv;
-    GArray               *textspans;
+struct _GHWPParagraph
+{
+    GObject parent_instance;
 };
 
-struct _GHWPParagraphClass {
+struct _GHWPParagraphClass
+{
     GObjectClass parent_class;
 };
 
-GType          ghwp_paragraph_get_type     (void) G_GNUC_CONST;
-void           ghwp_paragraph_add_textspan (GHWPParagraph *paragraph,
-                                            TextSpan      *textspan);
-GHWPParagraph *ghwp_paragraph_new          (void);
+GType          ghwp_paragraph_get_type (void) G_GNUC_CONST;
+GHWPParagraph *ghwp_paragraph_new      (void);
 
 /** GHWPTable ****************************************************************/
 
@@ -119,6 +118,51 @@ struct _GHWPTable
 GType      ghwp_table_get_type         (void) G_GNUC_CONST;
 GHWPTable *ghwp_table_new              (void);
 GHWPTable *ghwp_table_new_from_context (GHWPContext *context);
+
+/** GHWPTableCell ************************************************************/
+
+#define GHWP_TYPE_TABLE_CELL             (ghwp_table_cell_get_type ())
+#define GHWP_TABLE_CELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TABLE_CELL, GHWPTableCell))
+#define GHWP_TABLE_CELL_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TABLE_CELL, GHWPTableCellClass))
+#define GHWP_IS_TABLE_CELL(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TABLE_CELL))
+#define GHWP_IS_TABLE_CELL_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_TABLE_CELL))
+#define GHWP_TABLE_CELL_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_TABLE_CELL, GHWPTableCellClass))
+
+typedef struct _GHWPTableCell      GHWPTableCell;
+typedef struct _GHWPTableCellClass GHWPTableCellClass;
+
+struct _GHWPTableCell
+{
+    GObject parent_instance;
+    /* 표 60 */
+    guint16 n_paragraphs;
+    guint32 flags;
+    guint16 unknown;
+    /* 표 75 */
+    guint16 col_addr;
+    guint16 row_addr;
+    guint16 col_span;
+    guint16 row_span;
+
+    guint32 width;
+    guint32 height;
+
+    guint16 left_margin;
+    guint16 right_margin;
+    guint16 top_margin;
+    guint16 bottom_margin;
+
+    guint16 border_fill_id;
+};
+
+struct _GHWPTableCellClass
+{
+    GObjectClass parent_class;
+};
+
+GType          ghwp_table_cell_get_type         (void) G_GNUC_CONST;
+GHWPTableCell *ghwp_table_cell_new              (void);
+GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context);
 
 G_END_DECLS
 

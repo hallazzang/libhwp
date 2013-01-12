@@ -21,21 +21,41 @@
 #include "ghwp-models.h"
 #include <gio/gio.h>
 
-G_DEFINE_TYPE (GHWPParagraph, ghwp_paragraph, G_TYPE_OBJECT);
-G_DEFINE_TYPE (GHWPTable,     ghwp_table, G_TYPE_OBJECT);
-G_DEFINE_TYPE (TextSpan,      text_span,  G_TYPE_OBJECT);
-
 #define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 
+/** TextSpan *****************************************************************/
+
+G_DEFINE_TYPE (TextSpan, text_span, G_TYPE_OBJECT);
+
+TextSpan* text_span_new (const gchar *text)
+{
+    g_return_val_if_fail (text != NULL, NULL);
+    TextSpan *textspan = (TextSpan*) g_object_new (TEXT_TYPE_SPAN, NULL);
+    textspan->text = g_strdup (text);
+    return textspan;
+}
+
+static void text_span_finalize (GObject *obj)
+{
+    TextSpan *textspan = TEXT_SPAN(obj);
+    _g_free0 (textspan->text);
+    G_OBJECT_CLASS (text_span_parent_class)->finalize (obj);
+}
+
+static void text_span_class_init (TextSpanClass *klass)
+{
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    object_class->finalize     = text_span_finalize;
+}
+
+static void text_span_init (TextSpan *textspan)
+{
+}
+
 /** GHWPParagraph ************************************************************/
 
-void ghwp_paragraph_add_textspan (GHWPParagraph *paragraph, TextSpan *textspan)
-{
-    g_return_if_fail ((paragraph != NULL) && (textspan != NULL));
-    textspan = g_object_ref (textspan);
-    g_array_append_val (paragraph->textspans, textspan);
-}
+G_DEFINE_TYPE (GHWPParagraph, ghwp_paragraph, G_TYPE_OBJECT);
 
 GHWPParagraph* ghwp_paragraph_new (void)
 {
@@ -44,8 +64,6 @@ GHWPParagraph* ghwp_paragraph_new (void)
 
 static void ghwp_paragraph_finalize (GObject *obj)
 {
-    GHWPParagraph *paragraph = GHWP_PARAGRAPH(obj);
-    _g_array_free0 (paragraph->textspans);
     G_OBJECT_CLASS (ghwp_paragraph_parent_class)->finalize (obj);
 }
 
@@ -57,14 +75,14 @@ static void ghwp_paragraph_class_init (GHWPParagraphClass *klass)
 
 static void ghwp_paragraph_init (GHWPParagraph *paragraph)
 {
-    paragraph->textspans = g_array_new (TRUE, TRUE, sizeof (TextSpan*));
 }
 
 /** GHWPTable ****************************************************************/
 
+G_DEFINE_TYPE (GHWPTable, ghwp_table, G_TYPE_OBJECT);
+
 GHWPTable *ghwp_table_new (void)
 {
-    /* The object has a reference count of 1 after g_object_new. */
     return (GHWPTable *) g_object_new (GHWP_TYPE_TABLE, NULL);
 }
 
@@ -87,11 +105,9 @@ void hexdump(guint8 *data, guint16 data_len)
     printf("\n-----------------------------------------------\n");
 }
 
-#include <stdlib.h>
-
 GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
 {
-    GHWPTable *table = (GHWPTable *) g_object_new (GHWP_TYPE_TABLE, NULL);
+    GHWPTable *table = ghwp_table_new ();
     int        i;
 
     context_read_uint32 (context, &table->flags);
@@ -128,9 +144,7 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
     }
 
     if (context->data_count != context->data_len) {
-        g_warning ("%s:%d: size mismatch\n", __FILE__, __LINE__);
-        g_object_unref (table);
-        return NULL;
+        g_warning ("%s:%d: table size mismatch\n", __FILE__, __LINE__);
     }
     return table;
 }
@@ -156,29 +170,75 @@ ghwp_table_class_init (GHWPTableClass *klass)
     object_class->finalize     = ghwp_table_finalize;
 }
 
-/** TextSpan *****************************************************************/
+/** GHWPTableCell ************************************************************/
 
-TextSpan* text_span_new (const gchar *text)
+G_DEFINE_TYPE (GHWPTableCell, ghwp_table_cell, G_TYPE_OBJECT);
+
+static void
+ghwp_table_cell_init (GHWPTableCell *ghwp_table_cell)
 {
-    g_return_val_if_fail (text != NULL, NULL);
-    TextSpan *textspan = (TextSpan*) g_object_new (TEXT_TYPE_SPAN, NULL);
-    textspan->text = g_strdup (text);
-    return textspan;
 }
 
-static void text_span_finalize (GObject *obj)
+static void
+ghwp_table_cell_finalize (GObject *object)
 {
-    TextSpan *textspan = TEXT_SPAN(obj);
-    _g_free0 (textspan->text);
-    G_OBJECT_CLASS (text_span_parent_class)->finalize (obj);
+    G_OBJECT_CLASS (ghwp_table_cell_parent_class)->finalize (object);
 }
 
-static void text_span_class_init (TextSpanClass *klass)
+static void
+ghwp_table_cell_class_init (GHWPTableCellClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = text_span_finalize;
+    object_class->finalize     = ghwp_table_cell_finalize;
 }
 
-static void text_span_init (TextSpan *textspan)
+GHWPTableCell *ghwp_table_cell_new (void)
 {
+    return (GHWPTableCell *) g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
+}
+
+GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
+{
+    GHWPTableCell *table_cell = ghwp_table_cell_new ();
+    /* 표 60 */
+    context_read_uint16 (context, &table_cell->n_paragraphs);
+    context_read_uint32 (context, &table_cell->flags);
+    context_read_uint16 (context, &table_cell->unknown);
+    /* 표 75 */
+    context_read_uint16 (context, &table_cell->col_addr);
+    context_read_uint16 (context, &table_cell->row_addr);
+    context_read_uint16 (context, &table_cell->col_span);
+    context_read_uint16 (context, &table_cell->row_span);
+
+    context_read_uint32 (context, &table_cell->width);
+    context_read_uint32 (context, &table_cell->height);
+
+    context_read_uint16 (context, &table_cell->left_margin);
+    context_read_uint16 (context, &table_cell->right_margin);
+    context_read_uint16 (context, &table_cell->top_margin);
+    context_read_uint16 (context, &table_cell->bottom_margin);
+
+    context_read_uint16 (context, &table_cell->border_fill_id);
+
+/*    printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",*/
+/*        table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,*/
+
+/*        table_cell->col_addr,*/
+/*        table_cell->row_addr,*/
+/*        table_cell->col_span,*/
+/*        table_cell->row_span,*/
+
+/*        table_cell->width, table_cell->height,*/
+
+/*        table_cell->left_margin,*/
+/*        table_cell->right_margin,*/
+/*        table_cell->top_margin,*/
+/*        table_cell->bottom_margin,*/
+
+/*        table_cell->border_fill_id);*/
+
+    if (context->data_count != context->data_len) {
+        g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
+    }
+    return table_cell;
 }
