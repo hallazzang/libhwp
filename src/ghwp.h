@@ -51,6 +51,14 @@ typedef enum
     GHWP_ERROR_DAMAGED
 } GHWPError;
 
+/**
+ * GHWPSelectionStyle:
+ * @GHWP_SELECTION_GLYPH: glyph is the minimum unit for selection
+ * @GHWP_SELECTION_WORD: word is the minimum unit for selection
+ * @GHWP_SELECTION_LINE: line is the minimum unit for selection
+ *
+ * Selection styles
+ */
 typedef enum
 {
     GHWP_SELECTION_GLYPH,
