@@ -2,7 +2,7 @@
 /*
  * ghwp-document.c
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -25,7 +25,6 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <glib-object.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -72,7 +71,7 @@ static gpointer _g_object_ref0 (gpointer obj)
  * 
  * Return value: A newly created #GHWPDocument, or %NULL
  **/
-GHWPDocument *ghwp_document_new_from_uri (const gchar* uri, GError** error)
+GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
@@ -90,7 +89,7 @@ GHWPDocument *ghwp_document_new_from_uri (const gchar* uri, GError** error)
 }
 
 GHWPDocument *
-ghwp_document_new_from_filename (const gchar* filename, GError** error)
+ghwp_document_new_from_filename (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
@@ -139,10 +138,10 @@ guint ghwp_document_get_n_pages (GHWPDocument *doc)
  * Returns: (transfer none): a #GHWPPage
  *     DO NOT FREE the page.
  */
-GHWPPage* ghwp_document_get_page (GHWPDocument* doc, gint n_page)
+GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
 {
     g_return_val_if_fail (doc != NULL, NULL);
-    GHWPPage* page = g_array_index (doc->pages, GHWPPage*, (guint) n_page);
+    GHWPPage *page = g_array_index (doc->pages, GHWPPage *, (guint) n_page);
     return _g_object_ref0 (page);
 }
 
@@ -283,17 +282,6 @@ _ghwp_document_get_text_from_context (GHWPContext *context)
     return g_string_free(text, FALSE);
 }
 
-/*typedef enum*/
-/*{*/
-/*    GHWP_PARSE_ERROR_UNKNOWN_TAG*/
-/*} GHWPParseError;*/
-
-typedef enum
-{
-    STATE_NOT_IMPLEMENTED,
-    STATE_INSIDE_TABLE
-} GHWPParseState;
-
 /* NOTE: LE 저장 방식이 아닌 점에 유의, 설계 실수 같음 */
 #define MAKE_CTRL_ID(a, b, c, d)      \
     (guint32)((((guint8)(a)) << 24) | \
@@ -325,7 +313,7 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
         GInputStream *section_stream;
         GHWPContext  *context;
         section_stream = g_array_index (doc->file->section_streams,
-                                        GInputStream*,
+                                        GInputStream *,
                                         index);
         section_stream = _g_object_ref0 (section_stream);
 
@@ -335,53 +323,60 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
             curr_lv = (guint) context->level;
             /* 상태 변화 */
             if (curr_lv <= ctrl_lv)
-                context->status = STATE_NOT_IMPLEMENTED;
+                context->status = STATE_NORMAL;
 
-            /* TODO ctrl_id 설정에 따른 context->status 갱신이 필요함 */
             switch (context->tag_id) {
             case GHWP_TAG_PARA_HEADER:
                 if (context->status != STATE_INSIDE_TABLE) {
                     GHWPParagraph *paragraph = ghwp_paragraph_new ();
-                    GNode              *node = g_node_new (paragraph);
-                    g_node_append (doc->node, node);
+                    g_array_append_val (doc->paragraphs, paragraph);
                 } else if (context->status == STATE_INSIDE_TABLE) {
-                    GNode *paragraph_node, *table_node, *cell_node;
-                    paragraph_node = g_node_last_child (doc->node);
-                    table_node = g_node_last_child (paragraph_node);
-                    cell_node  = g_node_last_child (table_node);
-                    GHWPParagraph *paragraph = ghwp_paragraph_new ();
-                    g_node_append(cell_node, g_node_new (paragraph));
+                    GHWPParagraph *paragraph;
+                    GHWPTable     *table;
+                    GHWPTableCell *cell;
+                    paragraph = g_array_index (doc->paragraphs,
+                                               GHWPParagraph *,
+                                               doc->paragraphs->len - 1);
+                    table = ghwp_paragraph_get_table (paragraph);
+                    cell  = ghwp_table_get_last_cell (table);
+                    GHWPParagraph *c_paragraph = ghwp_paragraph_new ();
+                    ghwp_table_cell_add_paragraph (cell, c_paragraph);
                 }
                 break;
             case GHWP_TAG_PARA_TEXT:
             {
-                GNode     *paragraph_node;
-                TextSpan  *textspan;
-                paragraph_node = g_node_last_child (doc->node);
-                gchar *text = _ghwp_document_get_text_from_context (context);
-                textspan = text_span_new (text);
+                GHWPParagraph *paragraph;
+                GHWPText      *ghwp_text;
+                paragraph    = g_array_index (doc->paragraphs, GHWPParagraph *,
+                                              doc->paragraphs->len - 1);
+                gchar *text  = _ghwp_document_get_text_from_context (context);
+                ghwp_text    = ghwp_text_new (text);
                 g_free (text);
 
                 if (context->status != STATE_INSIDE_TABLE) {
-                    g_node_append(paragraph_node, g_node_new (textspan));
+                    ghwp_paragraph_set_ghwp_text (paragraph, ghwp_text);
+                    /* 높이 계산 */
+                    len = g_utf8_strlen (ghwp_text->text, -1);
+                    y += 18.0 * ceil (len / 33.0);
+
+                    if (y > 842.0 - 80.0) {
+                        g_array_append_val (doc->pages, page);
+                        page = ghwp_page_new ();
+                        g_array_append_val (page->paragraphs, paragraph);
+                        y = 0.0;
+                    } else {
+                        g_array_append_val (page->paragraphs, paragraph);
+                    } /* if */
+                    paragraph = NULL;
                 } else if (context->status == STATE_INSIDE_TABLE) {
-                    GNode *table_node, *cell_node;
-                    table_node = g_node_last_child (paragraph_node);
-                    cell_node  = g_node_last_child (table_node);
-                    g_node_append(cell_node, g_node_new (textspan));
+                    GHWPTable     *table;
+                    GHWPTableCell *cell;
+                    GHWPParagraph *c_paragraph;
+                    table       = ghwp_paragraph_get_table (paragraph);
+                    cell        = ghwp_table_get_last_cell (table);
+                    c_paragraph = ghwp_table_cell_get_last_paragraph (cell);
+                    ghwp_paragraph_set_ghwp_text (c_paragraph, ghwp_text);
                 }
-
-                len = g_utf8_strlen (textspan->text, -1);
-                y = y + (18.0 * ceil (len / 33.0));
-
-                if (y > 842.0 - 80.0) {
-                    g_array_append_val (doc->pages, page);
-                    page = ghwp_page_new ();
-                    g_array_append_val (page->elements, textspan);
-                    y = 0.0;
-                } else {
-                    g_array_append_val (page->elements, textspan);
-                } /* if */
             }
                 break;
             case GHWP_TAG_CTRL_HEADER:
@@ -392,7 +387,7 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
                     context->status = STATE_INSIDE_TABLE;
                     break;
                 default:
-                    context->status = STATE_NOT_IMPLEMENTED;
+                    context->status = STATE_NORMAL;
                     break;
                 }
                 break;
@@ -426,24 +421,44 @@ static void _ghwp_document_parse_body_text (GHWPDocument *doc, GError **error)
                     list-header (21)
             */
             {
-                GHWPTable *table;
-                GNode *paragraph_node;
+                GHWPTable     *table;
+                GHWPParagraph *paragraph;
                 table = ghwp_table_new_from_context (context);
-                paragraph_node = g_node_last_child (doc->node);
-                g_node_append(paragraph_node, g_node_new(table));
+                paragraph = g_array_index (doc->paragraphs, GHWPParagraph *,
+                                           doc->paragraphs->len - 1);
+                ghwp_paragraph_set_table (paragraph, table);
             }
                 break;
             case GHWP_TAG_LIST_HEADER:
                 /* TODO ctrl_id 에 따른 객체를 생성한다 */
                 switch (context->status) {
+                /* table에 cell을 추가한다 */
                 case STATE_INSIDE_TABLE:
                 {
-                    GNode *paragraph_node, *table_node;
-                    GHWPTableCell *table_cell;
-                    paragraph_node = g_node_last_child (doc->node);
-                    table_node = g_node_last_child (paragraph_node);
-                    table_cell = ghwp_table_cell_new_from_context(context);
-                    g_node_append (table_node, g_node_new (table_cell));
+                    GHWPParagraph *paragraph;
+                    GHWPTable     *table;
+                    GHWPTableCell *cell;
+
+                    paragraph = g_array_index (doc->paragraphs, GHWPParagraph *,
+                                               doc->paragraphs->len - 1);
+
+                    table = ghwp_paragraph_get_table (paragraph);
+                    cell  = ghwp_table_cell_new_from_context(context);
+                    ghwp_table_add_cell (table, cell);
+                    /* TODO 높이 계산 cell_spacing 고려할 것 FIXME 소수점 */
+                    y += cell->height / 7200.0 * 25.4 *
+                            cell->col_span / table->n_cols;
+
+                    if (y > 842.0 - 80.0) {
+                        g_array_append_val (doc->pages, page);
+                        page = ghwp_page_new ();
+                        /* FIXME 중복 저장 */
+                        g_array_append_val (page->paragraphs, paragraph);
+                        y = 0.0;
+                    } else {
+                        /* FIXME 중복 저장 */
+                        g_array_append_val (page->paragraphs, paragraph);
+                    }
                 }
                     break;
                 default:
@@ -663,32 +678,29 @@ static void _ghwp_document_parse_summary_info (GHWPDocument *doc)
  * 
  * Return value: A newly created #GHWPDocument
  **/
-GHWPDocument* ghwp_document_new (void)
+GHWPDocument *ghwp_document_new (void)
 {
     return (GHWPDocument*) g_object_new (GHWP_TYPE_DOCUMENT, NULL);
 }
 
-
-static void ghwp_document_class_init (GHWPDocumentClass * klass)
+static void ghwp_document_class_init (GHWPDocumentClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = ghwp_document_finalize;
 }
 
-
-static void ghwp_document_init (GHWPDocument * doc)
+static void ghwp_document_init (GHWPDocument *doc)
 {
-    doc->node  = g_node_new  (NULL);
-    doc->pages = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
+    doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
+    doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
 }
 
-
-static void ghwp_document_finalize (GObject* obj)
+static void ghwp_document_finalize (GObject *obj)
 {
     GHWPDocument *doc = GHWP_DOCUMENT(obj);
     _g_object_unref0 (doc->file);
     _g_free0 (doc->prv_text);
-    g_node_destroy (doc->node);
+    _g_array_free0 (doc->paragraphs);
     _g_array_free0 (doc->pages);
     _g_object_unref0 (doc->summary_info);
     G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);

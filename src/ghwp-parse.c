@@ -1,7 +1,7 @@
 /*
  * ghwp-parse.c
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -238,7 +238,8 @@ static void ghwp_context_class_init (GHWPContextClass * klass)
 
 static void ghwp_context_init (GHWPContext * context)
 {
-    context->priv = GHWP_CONTEXT_GET_PRIVATE (context);
+    context->status = STATE_NORMAL;
+    context->priv   = GHWP_CONTEXT_GET_PRIVATE (context);
 }
 
 

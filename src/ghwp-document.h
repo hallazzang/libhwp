@@ -2,7 +2,7 @@
 /*
  * ghwp-document.h
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -44,7 +44,7 @@ struct _GHWPDocument {
     GHWPDocumentPrivate *priv;
     GHWPFile            *file;
     gchar               *prv_text;
-    GNode               *node;
+    GArray              *paragraphs;
     GArray              *pages;
     GsfDocMetaData      *summary_info;
     /* ev info */
