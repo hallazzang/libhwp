@@ -39,7 +39,7 @@ void ghwp_page_get_size (GHWPPage *page,
 
 static FT_Library ft_lib;
 static FT_Face    ft_face;
-/*한 번만 초기화, 로드*/
+/*한 번만 초기화, 로드 */
 static void
 once_ft_init_and_new (void)
 {
@@ -76,9 +76,9 @@ static void draw_text(cairo_t             *cr,
         cairo_glyph_extents(cr, glyphs, num_glyphs, &extents);
 
         if (*x >= 595.0 - extents.x_advance - 20.0) {
-            glyphs[0].x = 20.0;
+            glyphs[0].x  = 20.0;
             glyphs[0].y += 16.0;
-            *x = 20.0 + extents.x_advance;
+            *x  = 20.0 + extents.x_advance;
             *y += 16.0;
         }
         else {
@@ -149,7 +149,12 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
                     paragraph = g_array_index(cell->paragraphs,
                                               GHWPParagraph *, k);
                     if (paragraph->ghwp_text) {
-
+                        /* FIXME x, y 좌표 */
+                        x = 40.0 + (595.5 - 40.0) / table->n_cols * cell->col_addr;
+                        if (cell->col_addr != 0)
+                            y -= 16.0;
+                        draw_text(cr, extents, glyphs, scaled_font,
+                                  paragraph->ghwp_text->text, &x, &y);
                     }
                 }
             }
