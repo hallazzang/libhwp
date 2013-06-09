@@ -2,54 +2,61 @@
 /*
  * ghwp-models.c
  *
- * Copyright (C) 2013  Hodong Kim <cogniti@gmail.com>
- * 
+ * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ghwp-models.h"
-#include <gio/gio.h>
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+ */
 
-#define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
+#include <glib/gprintf.h>
+
+#include "ghwp-models.h"
+
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-/** TextSpan *****************************************************************/
+/** GHWPText *****************************************************************/
 
-G_DEFINE_TYPE (TextSpan, text_span, G_TYPE_OBJECT);
+G_DEFINE_TYPE (GHWPText, ghwp_text, G_TYPE_OBJECT);
 
-TextSpan* text_span_new (const gchar *text)
+GHWPText *ghwp_text_new (const gchar *text)
 {
     g_return_val_if_fail (text != NULL, NULL);
-    TextSpan *textspan = (TextSpan*) g_object_new (TEXT_TYPE_SPAN, NULL);
-    textspan->text = g_strdup (text);
-    return textspan;
+    GHWPText *ghwp_text = (GHWPText *) g_object_new (GHWP_TYPE_TEXT, NULL);
+    ghwp_text->text = g_strdup (text);
+    return ghwp_text;
 }
 
-static void text_span_finalize (GObject *obj)
+static void ghwp_text_finalize (GObject *obj)
 {
-    TextSpan *textspan = TEXT_SPAN(obj);
-    _g_free0 (textspan->text);
-    G_OBJECT_CLASS (text_span_parent_class)->finalize (obj);
+    GHWPText *ghwp_text = GHWP_TEXT(obj);
+    _g_free0 (ghwp_text->text);
+    G_OBJECT_CLASS (ghwp_text_parent_class)->finalize (obj);
 }
 
-static void text_span_class_init (TextSpanClass *klass)
+static void ghwp_text_class_init (GHWPTextClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = text_span_finalize;
+    object_class->finalize     = ghwp_text_finalize;
 }
 
-static void text_span_init (TextSpan *textspan)
+static void ghwp_text_init (GHWPText *ghwp_text)
 {
 }
 
@@ -57,7 +64,7 @@ static void text_span_init (TextSpan *textspan)
 
 G_DEFINE_TYPE (GHWPParagraph, ghwp_paragraph, G_TYPE_OBJECT);
 
-GHWPParagraph* ghwp_paragraph_new (void)
+GHWPParagraph *ghwp_paragraph_new (void)
 {
     return (GHWPParagraph *) g_object_new (GHWP_TYPE_PARAGRAPH, NULL);
 }
@@ -75,6 +82,33 @@ static void ghwp_paragraph_class_init (GHWPParagraphClass *klass)
 
 static void ghwp_paragraph_init (GHWPParagraph *paragraph)
 {
+}
+
+void
+ghwp_paragraph_set_ghwp_text (GHWPParagraph *paragraph, GHWPText *ghwp_text)
+{
+    g_return_if_fail (paragraph != NULL);
+    g_return_if_fail (ghwp_text != NULL);
+    paragraph->ghwp_text = ghwp_text;
+}
+
+GHWPText *ghwp_paragraph_get_ghwp_text (GHWPParagraph *paragraph)
+{
+    g_return_val_if_fail (paragraph != NULL, NULL);
+    return paragraph->ghwp_text;
+}
+
+void ghwp_paragraph_set_table (GHWPParagraph *paragraph, GHWPTable *table)
+{
+    g_return_if_fail (paragraph != NULL);
+    g_return_if_fail (table     != NULL);
+    paragraph->table = table;
+}
+
+GHWPTable *ghwp_paragraph_get_table (GHWPParagraph *paragraph)
+{
+    g_return_val_if_fail (paragraph != NULL, NULL);
+    return paragraph->table;
 }
 
 /** GHWPTable ****************************************************************/
@@ -107,12 +141,13 @@ void hexdump(guint8 *data, guint16 data_len)
 
 GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
 {
+    g_return_val_if_fail (context != NULL, NULL);
     GHWPTable *table = ghwp_table_new ();
     int        i;
 
     context_read_uint32 (context, &table->flags);
-    context_read_uint16 (context, &table->row_count);
-    context_read_uint16 (context, &table->col_count);
+    context_read_uint16 (context, &table->n_rows);
+    context_read_uint16 (context, &table->n_cols);
     context_read_uint16 (context, &table->cell_spacing);
     context_read_uint16 (context, &table->left_margin);
     context_read_uint16 (context, &table->right_margin);
@@ -120,17 +155,17 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
     context_read_uint16 (context, &table->bottom_margin);
 
 /*    printf("%d %d %d %d %d %d %d %d\n", table->flags,*/
-/*                                        table->row_count,*/
-/*                                        table->col_count,*/
+/*                                        table->n_rows,*/
+/*                                        table->n_cols,*/
 /*                                        table->cell_spacing,*/
 /*                                        table->left_margin,*/
 /*                                        table->right_margin,*/
 /*                                        table->top_margin,*/
 /*                                        table->bottom_margin);*/
 
-    table->row_sizes = g_malloc0_n (table->row_count, 2);
+    table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
-    for (i = 0; i < table->row_count; i++) {
+    for (i = 0; i < table->n_rows; i++) {
         context_read_uint16 (context, &(table->row_sizes[i]));
     }
 
@@ -150,8 +185,9 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
 }
 
 static void
-ghwp_table_init (GHWPTable *ghwp_table)
+ghwp_table_init (GHWPTable *table)
 {
+    table->cells = g_array_new (TRUE, TRUE, sizeof (GHWPTableCell *));
 }
 
 static void
@@ -160,6 +196,7 @@ ghwp_table_finalize (GObject *object)
     GHWPTable *table = GHWP_TABLE(object);
     _g_free0 (table->row_sizes);
     _g_free0 (table->zones);
+    g_array_free (table->cells, TRUE);
     G_OBJECT_CLASS (ghwp_table_parent_class)->finalize (object);
 }
 
@@ -170,18 +207,35 @@ ghwp_table_class_init (GHWPTableClass *klass)
     object_class->finalize     = ghwp_table_finalize;
 }
 
+GHWPTableCell *ghwp_table_get_last_cell (GHWPTable *table)
+{
+    g_return_val_if_fail (table != NULL, NULL);
+    return g_array_index (table->cells, GHWPTableCell *,
+                          table->cells->len - 1);
+}
+
+void ghwp_table_add_cell (GHWPTable *table, GHWPTableCell *cell)
+{
+    g_return_if_fail (table != NULL);
+    g_return_if_fail (cell  != NULL);
+    g_array_append_val (table->cells, cell);
+}
+
 /** GHWPTableCell ************************************************************/
 
 G_DEFINE_TYPE (GHWPTableCell, ghwp_table_cell, G_TYPE_OBJECT);
 
 static void
-ghwp_table_cell_init (GHWPTableCell *ghwp_table_cell)
+ghwp_table_cell_init (GHWPTableCell *cell)
 {
+    cell->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
 }
 
 static void
 ghwp_table_cell_finalize (GObject *object)
 {
+    GHWPTableCell *cell = GHWP_TABLE_CELL(object);
+    g_array_free (cell->paragraphs, TRUE);
     G_OBJECT_CLASS (ghwp_table_cell_parent_class)->finalize (object);
 }
 
@@ -199,6 +253,8 @@ GHWPTableCell *ghwp_table_cell_new (void)
 
 GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
 {
+    g_return_val_if_fail (context != NULL, NULL);
+
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
     /* 표 60 */
     context_read_uint16 (context, &table_cell->n_paragraphs);
@@ -238,7 +294,22 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
 /*        table_cell->border_fill_id);*/
 
     if (context->data_count != context->data_len) {
-        g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
+        g_printf ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
     }
     return table_cell;
+}
+
+GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell)
+{
+    g_return_val_if_fail (cell != NULL, NULL);
+    return g_array_index (cell->paragraphs, GHWPParagraph *,
+                          cell->paragraphs->len - 1);
+}
+
+void
+ghwp_table_cell_add_paragraph (GHWPTableCell *cell, GHWPParagraph *paragraph)
+{
+    g_return_if_fail (cell       != NULL);
+    g_return_if_fail (paragraph  != NULL);
+    g_array_append_val (cell->paragraphs, paragraph);
 }

@@ -1,7 +1,7 @@
 /*
  * ghwp-parse.h
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013  Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -31,6 +31,17 @@ G_BEGIN_DECLS
 #define GHWP_IS_CONTEXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_CONTEXT))
 #define GHWP_IS_CONTEXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_CONTEXT))
 #define GHWP_CONTEXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_CONTEXT, GHWPContextClass))
+
+/*typedef enum*/
+/*{*/
+/*    GHWP_PARSE_ERROR_UNKNOWN_TAG*/
+/*} GHWPParseError;*/
+
+typedef enum
+{
+    STATE_NORMAL,
+    STATE_INSIDE_TABLE
+} GHWPParseState;
 
 typedef struct _GHWPContext        GHWPContext;
 typedef struct _GHWPContextClass   GHWPContextClass;

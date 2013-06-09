@@ -1,7 +1,7 @@
 /*
  * ghwp-page.h
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -35,15 +35,15 @@ G_BEGIN_DECLS
 #define GHWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PAGE, GHWPPageClass))
 
 typedef struct _GHWPPageClass   GHWPPageClass;
-typedef struct _GHWPPagePrivate GHWPPagePrivate;
 
-struct _GHWPPage {
-    GObject          parent_instance;
-    GHWPPagePrivate *priv;
-    GArray          *elements;
+struct _GHWPPage
+{
+    GObject  parent_instance;
+    GArray  *paragraphs;
 };
 
-struct _GHWPPageClass {
+struct _GHWPPageClass
+{
     GObjectClass parent_class;
 };
 
