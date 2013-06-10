@@ -2,7 +2,7 @@
 /*
  * ghwp-file-v3.c
  *
- * Copyright (C) 2013  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -16,6 +16,13 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
 #include "ghwp-file-v3.h"

@@ -1,7 +1,8 @@
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
  * ghwp-file.h
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -15,6 +16,13 @@
  * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
 #ifndef _GHWP_FILE_H_
@@ -78,7 +86,6 @@ struct _GHWPFilePrivate {
 };
 
 GType     ghwp_file_get_type          (void) G_GNUC_CONST;
-GHWPFile* ghwp_file_new               (void);
 GHWPFile* ghwp_file_new_from_uri      (const gchar* uri, GError** error);
 GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error);
 
