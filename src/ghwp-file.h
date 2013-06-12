@@ -43,6 +43,25 @@ G_BEGIN_DECLS
 #define GHWP_IS_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE))
 #define GHWP_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE, GHWPFileClass))
 
+/**
+ * GHWP_FILE_ERROR:
+ *
+ * Error domain for #GHWPFile. Errors in this domain will be from
+ * the #GHWPFileError enumeration.
+ * See #GError for more information on error domains.
+ */
+#define GHWP_FILE_ERROR          (ghwp_file_error_quark ())
+
+/**
+ * GHWPFileError:
+ * @GHWP_FILE_ERROR_INVALID: The HWP is invalid.
+ *
+ * Error codes returned by #GHWPFile functions.
+ */
+typedef enum {
+	GHWP_FILE_ERROR_INVALID
+} GHWPFileError;
+
 typedef struct _GHWPFileClass   GHWPFileClass;
 typedef struct _GHWPFilePrivate GHWPFilePrivate;
 
@@ -85,10 +104,14 @@ struct _GHWPFilePrivate {
     GInputStream   *section_stream;
 };
 
-GType     ghwp_file_get_type          (void) G_GNUC_CONST;
-GHWPFile* ghwp_file_new_from_uri      (const gchar* uri, GError** error);
-GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error);
-
+GType         ghwp_file_get_type          (void) G_GNUC_CONST;
+GQuark        ghwp_file_error_quark       (void) G_GNUC_CONST;
+GHWPFile*     ghwp_file_new_from_uri      (const gchar* uri,
+                                           GError**     error);
+GHWPFile*     ghwp_file_new_from_filename (const gchar* filename,
+                                           GError**     error);
+GHWPDocument *ghwp_file_get_document      (GHWPFile    *file,
+                                           GError     **error);
 G_END_DECLS
 
 #endif /* _GHWP_FILE_H_ */
