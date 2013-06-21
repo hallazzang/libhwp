@@ -30,6 +30,8 @@
 
 #include <glib-object.h>
 
+#include "ghwp.h"
+
 G_BEGIN_DECLS
 
 #define GHWP_TYPE_FILE_V3             (ghwp_file_v3_get_type ())
@@ -39,24 +41,38 @@ G_BEGIN_DECLS
 #define GHWP_IS_FILE_V3_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_V3))
 #define GHWP_FILE_V3_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_V3, GHWPFileV3Class))
 
-typedef struct _GHWPFileV3Class GHWPFileV3Class;
-typedef struct _GHWPFileV3 GHWPFileV3;
+typedef struct _GHWPFileV3Class   GHWPFileV3Class;
+typedef struct _GHWPFileV3Private GHWPFileV3Private;
 
-
-
-struct _GHWPFileV3Class
+struct _GHWPFileV3Class 
 {
-	GObjectClass parent_class;
+    GHWPFileClass parent_class;
 };
 
 struct _GHWPFileV3
 {
-	GObject parent_instance;
-
- 
+    GHWPFile           parent_instance;
+    GHWPFileV3Private *priv;
 };
 
-GType ghwp_file_v3_get_type (void) G_GNUC_CONST;
+struct _GHWPFileV3Private
+{
+
+};
+
+GType         ghwp_file_v3_get_type               (void) G_GNUC_CONST;
+GHWPFileV3   *ghwp_file_v3_new_from_uri           (const gchar *uri,
+                                                   GError     **error);
+GHWPFileV3   *ghwp_file_v3_new_from_filename      (const gchar *filename,
+                                                   GError     **error);
+gchar        *ghwp_file_v3_get_hwp_version_string (GHWPFile    *file);
+void          ghwp_file_v3_get_hwp_version        (GHWPFile    *file,
+                                                   guint8      *major_version,
+                                                   guint8      *minor_version,
+                                                   guint8      *micro_version,
+                                                   guint8      *extra_version);
+GHWPDocument *ghwp_file_v3_get_document           (GHWPFile    *file,
+                                                   GError     **error);
 
 G_END_DECLS
 

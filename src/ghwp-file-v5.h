@@ -48,7 +48,7 @@ typedef struct _GHWPFileV5Private GHWPFileV5Private;
 
 struct _GHWPFileV5
 {
-    GObject            parent_instance;
+    GHWPFile           parent_instance;
     GHWPFileV5Private *priv;
 
     GArray            *section_streams;
@@ -79,18 +79,28 @@ struct _GHWPFileV5
 
 struct _GHWPFileV5Class
 {
-	GObjectClass parent_class;
+    GHWPFileClass parent_class;
 };
 
-struct _GHWPFileV5Private {
+struct _GHWPFileV5Private
+{
     GsfInfileMSOle *olefile;
     GInputStream   *section_stream;
 };
 
-GType       ghwp_file_v5_get_type          (void) G_GNUC_CONST;
-GHWPFileV5* ghwp_file_v5_new_from_uri      (const gchar* uri, GError** error);
-GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename,
-                                            GError**     error);
+GType         ghwp_file_v5_get_type               (void) G_GNUC_CONST;
+GHWPFileV5   *ghwp_file_v5_new_from_uri           (const gchar *uri,
+                                                   GError     **error);
+GHWPFileV5   *ghwp_file_v5_new_from_filename      (const gchar *filename,
+                                                   GError     **error);
+gchar        *ghwp_file_v5_get_hwp_version_string (GHWPFile    *file);
+void          ghwp_file_v5_get_hwp_version        (GHWPFile    *file,
+                                                   guint8      *major_version,
+                                                   guint8      *minor_version,
+                                                   guint8      *micro_version,
+                                                   guint8      *extra_version);
+GHWPDocument *ghwp_file_v5_get_document           (GHWPFile    *file,
+                                                   GError     **error);
 
 G_END_DECLS
 

@@ -27,32 +27,56 @@
 
 #include "ghwp-file-v3.h"
 
+G_DEFINE_TYPE (GHWPFileV3, ghwp_file_v3, GHWP_TYPE_FILE);
 
-
-G_DEFINE_TYPE (GHWPFileV3, ghwp_file_v3, G_TYPE_OBJECT);
-
-static void
-ghwp_file_v3_init (GHWPFileV3 *ghwp_file_v3)
+GHWPFileV3 *ghwp_file_v3_new_from_uri (const gchar *uri, GError **error)
 {
-
-
-	/* TODO: Add initialization code here */
+    return NULL;
 }
 
-static void
-ghwp_file_v3_finalize (GObject *object)
+GHWPFileV3 *ghwp_file_v3_new_from_filename (const gchar *filename,
+                                            GError     **error)
 {
-	/* TODO: Add deinitalization code here */
-
-	G_OBJECT_CLASS (ghwp_file_v3_parent_class)->finalize (object);
+    return NULL;
 }
 
-static void
-ghwp_file_v3_class_init (GHWPFileV3Class *klass)
+gchar *ghwp_file_v3_get_hwp_version_string (GHWPFile *file)
 {
-	GObjectClass* object_class = G_OBJECT_CLASS (klass);
-	GObjectClass* parent_class = G_OBJECT_CLASS (klass);
-
-	object_class->finalize = ghwp_file_v3_finalize;
+    return NULL;
 }
 
+void ghwp_file_v3_get_hwp_version (GHWPFile *file,
+                                   guint8   *major_version,
+                                   guint8   *minor_version,
+                                   guint8   *micro_version,
+                                   guint8   *extra_version)
+{
+
+}
+
+GHWPDocument *ghwp_file_v3_get_document (GHWPFile *file, GError **error)
+{
+    return NULL;
+}
+
+static void ghwp_file_v3_init (GHWPFileV3 *file)
+{
+    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V3,
+                                                    GHWPFileV3Private);
+}
+
+static void ghwp_file_v3_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (ghwp_file_v3_parent_class)->finalize (object);
+}
+
+static void ghwp_file_v3_class_init (GHWPFileV3Class *klass)
+{
+    GObjectClass* object_class = G_OBJECT_CLASS (klass);
+
+    g_type_class_add_private (klass, sizeof (GHWPFileV3Private));
+    GHWP_FILE_CLASS (klass)->get_document = ghwp_file_v3_get_document;
+    GHWP_FILE_CLASS (klass)->get_hwp_version_string = ghwp_file_v3_get_hwp_version_string;
+    GHWP_FILE_CLASS (klass)->get_hwp_version = ghwp_file_v3_get_hwp_version;
+    object_class->finalize = ghwp_file_v3_finalize;
+}

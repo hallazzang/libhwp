@@ -26,7 +26,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 
 #include "config.h"
 #include "ghwp-document.h"
@@ -61,13 +60,10 @@ GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
-    GHWPFile *file = ghwp_file_new_from_uri (uri, error);
-
-    if (file == NULL) {
-        return NULL;
-    }
-
-    return ghwp_file_get_document (file, error);
+    gchar        *filename = g_filename_from_uri (uri, NULL, error);
+    GHWPDocument *document = ghwp_document_new_from_filename (filename, error);
+    _g_free0 (filename);
+    return document;
 }
 
 GHWPDocument *
@@ -287,16 +283,8 @@ ghwp_document_get_format (GHWPDocument *document)
 gchar *
 ghwp_document_get_hwp_version_string (GHWPDocument *document)
 {
-    gchar *version_string;
-
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-
-    version_string = g_strdup_printf ("%d.%d.%d.%d",
-        document->file->major_version,
-        document->file->minor_version,
-        document->file->micro_version,
-        document->file->extra_version);
-  return version_string;
+    return ghwp_file_get_hwp_version_string(document->file);
 }
 
 /**
@@ -320,12 +308,9 @@ ghwp_document_get_hwp_version (GHWPDocument *document,
 {
     g_return_if_fail (GHWP_IS_DOCUMENT (document));
 
-    if (major_version)
-       *major_version = document->file->major_version;
-    if (minor_version)
-       *minor_version = document->file->minor_version;
-    if (micro_version)
-       *micro_version = document->file->micro_version;
-    if (extra_version)
-       *extra_version = document->file->extra_version;
+    ghwp_file_get_hwp_version (document->file,
+                               major_version,
+                               minor_version,
+                               micro_version,
+                               extra_version);
 }
