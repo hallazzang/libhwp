@@ -683,7 +683,6 @@ GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** erro
     }
 
     GHWPFileV5 *file = g_object_new (GHWP_TYPE_FILE_V5, NULL);
-    _g_object_unref0 (file->priv->olefile);
     file->priv->olefile = olefile;
     _g_object_unref0 (input);
     _ghwp_file_v5_make_stream (file);

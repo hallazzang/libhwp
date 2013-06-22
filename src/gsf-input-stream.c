@@ -27,15 +27,15 @@
 
 G_DEFINE_TYPE (GsfInputStream, gsf_input_stream, G_TYPE_INPUT_STREAM);
 
-static gssize gsf_input_stream_real_read    (GInputStream *base,
-                                             void         *buffer,
-                                             gsize         buffer_len,
-                                             GCancellable *cancellable,
-                                             GError      **error);
-static gboolean gsf_input_stream_real_close (GInputStream *base,
-                                             GCancellable *cancellable,
-                                             GError      **error);
-static void gsf_input_stream_finalize       (GObject *obj);
+static gssize gsf_input_stream_read    (GInputStream *base,
+                                        void         *buffer,
+                                        gsize         buffer_len,
+                                        GCancellable *cancellable,
+                                        GError      **error);
+static gboolean gsf_input_stream_close (GInputStream *base,
+                                        GCancellable *cancellable,
+                                        GError      **error);
+static void gsf_input_stream_finalize  (GObject *obj);
 
 GsfInputStream *
 gsf_input_stream_new (GsfInput *input)
@@ -47,11 +47,11 @@ gsf_input_stream_new (GsfInput *input)
     return gis;
 }
 
-static gssize gsf_input_stream_real_read (GInputStream *base,
-                                          void         *buffer,
-                                          gsize         buffer_len,
-                                          GCancellable *cancellable,
-                                          GError      **error)
+static gssize gsf_input_stream_read (GInputStream *base,
+                                     void         *buffer,
+                                     gsize         buffer_len,
+                                     GCancellable *cancellable,
+                                     GError      **error)
 {
     GsfInputStream *gis = (GsfInputStream *) base;
     gint64    remaining = gsf_input_remaining (gis->priv->input);
@@ -65,9 +65,9 @@ static gssize gsf_input_stream_real_read (GInputStream *base,
 }
 
 static gboolean
-gsf_input_stream_real_close (GInputStream *base,
-                             GCancellable *cancellable,
-                             GError      **error)
+gsf_input_stream_close (GInputStream *base,
+                        GCancellable *cancellable,
+                        GError      **error)
 {
     /* pseudo TRUE, currently do nothing */
     return TRUE;
@@ -85,8 +85,8 @@ gsf_input_stream_class_init (GsfInputStreamClass *klass)
     GObjectClass      *object_class = G_OBJECT_CLASS (klass);
     GInputStreamClass *parent_class = G_INPUT_STREAM_CLASS (klass);
     g_type_class_add_private (klass, sizeof (GsfInputStreamPrivate));
-    parent_class->read_fn  = gsf_input_stream_real_read;
-    parent_class->close_fn = gsf_input_stream_real_close;
+    parent_class->read_fn  = gsf_input_stream_read;
+    parent_class->close_fn = gsf_input_stream_close;
     object_class->finalize = gsf_input_stream_finalize;
 }
 
