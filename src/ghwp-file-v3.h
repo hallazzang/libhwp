@@ -53,11 +53,15 @@ struct _GHWPFileV3
 {
     GHWPFile           parent_instance;
     GHWPFileV3Private *priv;
+    guint16 is_crypt;
+    gint8   is_compress;
+    gint8   rev;
+    guint16 info_block_len;
 };
 
 struct _GHWPFileV3Private
 {
-
+    GInputStream *stream;
 };
 
 GType         ghwp_file_v3_get_type               (void) G_GNUC_CONST;
