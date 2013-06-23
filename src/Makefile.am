@@ -15,6 +15,7 @@ INST_H_FILES =             \
 	gsf-input-stream.h \
 	ghwp-file-v3.h     \
 	ghwp-file-v5.h     \
+	ghwp-context-v3.h  \
 	hnc2unicode.h
 
 ghwpincludedir = $(includedir)/ghwp
@@ -30,6 +31,7 @@ libghwp_la_SOURCES =       \
 	gsf-input-stream.c \
 	ghwp-file-v3.c     \
 	ghwp-file-v5.c     \
+	ghwp-context-v3.c  \
 	hnc2unicode.c      \
 	$(NOINST_H_FILES)  \
 	$(INST_H_FILES)

@@ -26,6 +26,7 @@
  */
 
 #include "ghwp-file-v3.h"
+#include "ghwp-context-v3.h"
 #include "hnc2unicode.h"
 
 G_DEFINE_TYPE (GHWPFileV3, ghwp_file_v3, GHWP_TYPE_FILE);
@@ -54,7 +55,9 @@ GHWPFileV3 *ghwp_file_v3_new_from_filename (const gchar *filename,
 
 gchar *ghwp_file_v3_get_hwp_version_string (GHWPFile *file)
 {
-    return NULL;
+    g_return_val_if_fail (GHWP_IS_FILE_V3 (file), NULL);
+
+    return g_strdup_printf ("3.0.0.%d", GHWP_FILE_V3 (file)->rev);
 }
 
 void ghwp_file_v3_get_hwp_version (GHWPFile *file,
@@ -63,45 +66,83 @@ void ghwp_file_v3_get_hwp_version (GHWPFile *file,
                                    guint8   *micro_version,
                                    guint8   *extra_version)
 {
+    g_return_if_fail (GHWP_IS_FILE_V3 (file));
 
+    if (major_version) *major_version = 3;
+    if (minor_version) *minor_version = 0;
+    if (micro_version) *micro_version = 0;
+    if (extra_version) *extra_version = GHWP_FILE_V3 (file)->rev;
 }
-
-static gsize bytes_read;
 
 static void _ghwp_file_v3_parse_signature (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
+    GHWPContextV3 *context = ghwp_context_v3_new (stream);
     gchar *signature = g_malloc(30);
-    g_input_stream_read_all (stream, signature, (gsize) 30, &bytes_read, NULL, NULL);
+    ghwp_context_v3_read (context, signature, 30);
     g_free (signature);
+    g_object_unref (context);
 }
-
+#include <stdio.h>
 static void _ghwp_file_v3_parse_doc_info (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
+    GHWPFileV3 *file = GHWP_FILE_V3 (doc->file);
     /* 문서 정보 128 bytes */
     /* 암호 여부 */
-    GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
-    gsize bytes_read = 0;
-    g_input_stream_skip (stream, 96, NULL, NULL);
-    g_input_stream_read_all (stream, &(GHWP_FILE_V3 (doc->file)->is_crypt), 2, &bytes_read, NULL, NULL);
+    GInputStream *stream = file->priv->stream;
+    GHWPContextV3 *context = ghwp_context_v3_new (stream);
+
+    ghwp_context_v3_skip (context, 96);
+    ghwp_context_v3_read_uint16 (context, &(file->is_crypt));
 
     /* offset: 124 압축 여부, 0이면 비압축 그외 압축 */
-    g_input_stream_skip (stream, 26, NULL, NULL);
-    g_input_stream_read_all (stream, &(GHWP_FILE_V3 (doc->file)->is_compress), 1, &bytes_read, NULL, NULL);
+    ghwp_context_v3_skip (context, 26);
+    ghwp_context_v3_read_uint8 (context, &(file->is_compress));
     /* sub revision */
-    g_input_stream_read_all (stream, &(GHWP_FILE_V3 (doc->file)->rev), 1, &bytes_read, NULL, NULL);
-
+    ghwp_context_v3_read_uint8 (context, &(file->rev));
     /* 정보 블럭 길이 */
-    g_input_stream_read_all (stream, &(GHWP_FILE_V3 (doc->file)->info_block_len), 2, &bytes_read, NULL, NULL);
+    ghwp_context_v3_read_uint16 (context, &(file->info_block_len));
+    g_object_unref (context);
 }
 
 static void _ghwp_file_v3_parse_summary_info (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
-    g_input_stream_skip (stream, 1008, NULL, NULL);
+    GHWPContextV3 *context = ghwp_context_v3_new (stream);
+
+    guint8 *buffer = g_malloc (112);
+    gchar *str;
+    guint16 c;
+    guint8 count = 0;
+
+    while (count < 112) {
+        ghwp_context_v3_read_uint16 (context, &c);
+        count += 2;
+        str = hnchar_to_utf8 (c);
+        if (str == NULL) {
+            ghwp_context_v3_skip (context, 112 - count);
+            break;
+        } else {
+            printf("%s", str);
+        }
+    }
+    ghwp_context_v3_read (context, buffer, 112);
+    ghwp_context_v3_read (context, buffer, 112);
+    ghwp_context_v3_read (context, buffer, 112);
+    g_free (buffer);
+
+    buffer = g_malloc (112*2);
+    ghwp_context_v3_read (context, buffer, 112*2);
+    g_free (buffer);
+
+    buffer = g_malloc (112*3);
+    ghwp_context_v3_read (context, buffer, 112*3);
+    g_free (buffer);
+
+    g_object_unref (context);
 }
 
 static void _ghwp_file_v3_parse_info_block (GHWPDocument *doc)
@@ -131,6 +172,7 @@ static void _ghwp_file_v3_parse_font_names (GHWPDocument *doc)
     guint16 n_fonts;
     int i = 0;
     guint8 *buffer = NULL;
+    gsize bytes_read;
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
     for (i = 0; i < 7; i++) {
         g_input_stream_read_all (stream, &n_fonts, 2, &bytes_read, NULL, NULL);
@@ -145,6 +187,7 @@ static void _ghwp_file_v3_parse_styles (GHWPDocument *doc)
     g_return_if_fail (doc != NULL);
     guint16 n_styles;
     guint8 *buffer = NULL;
+    gsize bytes_read;
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
     g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, NULL);
     buffer = g_malloc (n_styles * (20 + 31 + 187));
@@ -176,7 +219,7 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
 
     guint8 flag;
     int i;
-
+    gsize bytes_read;
     g_input_stream_read_all (stream, &prev_paragraph_shape, 1, &bytes_read, NULL, NULL);
     g_input_stream_read_all (stream, &n_chars, 2, &bytes_read, NULL, NULL);
     g_input_stream_read_all (stream, &n_lines, 2, &bytes_read, NULL, NULL);
@@ -346,83 +389,13 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
             g_input_stream_read_all (stream, buffer, 2, &bytes_read, NULL, NULL);
             g_free (buffer);
             continue;
-        } else if (c >= 0x0020 && c <= 0x007e) { /* ASCII printable characters */
-            printf ("%c", c);
-            fflush (stdout);
+        } else if (c >= 0x0020 && c <= 0xffff) {
+            gchar *tmp = hnchar_to_utf8 (c);
+            printf ("%s", tmp);
+            g_free (tmp);
             continue;
-        } else if (c >= 0x007f && c <= 0x7fff) {
-            printf ("%s\n", hnc_to_utf8(c));
-            fflush (stdout);
-            continue;
-        } else if (c >= 0x8000 && c <= 0xffff) {
-            guint8 l = (c & 0x7c00) >> 10; /* 초성 */
-            guint8 v = (c & 0x03e0) >> 5;  /* 중성 */
-            guint8 t = (c & 0x001f);       /* 종성 */
-
-            /* 조합형 현대 한글 음절(11172)을 유니코드로 변환 */
-            if (L_MAP[l] != NONE && V_MAP[v] != NONE && T_MAP[t] != NONE) {
-                guint16 syllable = 0xac00 + (L_MAP[l] * 21 * 28) +
-                                    (V_MAP[v] * 28) + T_MAP[t];
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, syllable);
-                printf ("%s", g_string_free (string, FALSE));
-                fflush (stdout);
-            /* 초성만 존재하는 경우 유니코드 한글 호환 자모로 변환 */
-            } else if ((HNC_L1[v] != FILL) &&
-                       (HNC_V1[v] == FILL || HNC_V1[v] == NONE) &&
-                       (HNC_T1[t] == FILL)) {
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, HNC_L1[l]);
-                printf ("%s", g_string_free (string, FALSE));
-                continue;
-            /* 중성만 존재하는 경우 유니코드 한글 호환 자모로 변환 */
-            } else if ((HNC_L1[l] == FILL) &&
-                       (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
-                       (HNC_T1[t] == FILL)) {
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, HNC_V1[v]);
-                printf ("%s", g_string_free (string, FALSE));
-                continue;
-            /* 종성만 존재하는 경우 유니코드 한글 호환 자모로 변환 */
-            } else if ((HNC_L1[l] == FILL) &&
-                       (HNC_V1[v] == FILL || HNC_V1[v] == NONE) &&
-                       (HNC_T1[t] != FILL)) {
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, HNC_T1[t]);
-                printf ("%s", g_string_free (string, FALSE));
-                continue;
-            /* 초성과 중성만 존재하는 조합형 옛한글의 경우 */
-            } else if ((HNC_L1[l] != FILL) &&
-                       (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
-                       (HNC_T1[t] == FILL)) {
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, HNC_L2[l]);
-                g_string_append_unichar (string, HNC_V2[v]);
-                printf ("%s", g_string_free (string, FALSE));
-            /* 초성, 중성, 종성 모두 존재하는 조합형 옛한글의 경우 */
-            } else if ((HNC_L1[l] != FILL) &&
-                       (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
-                       (HNC_T1[t] != FILL)) {
-                GString *string = g_string_new (NULL);
-                g_string_append_unichar (string, HNC_L2[l]);
-                g_string_append_unichar (string, HNC_V2[v]);
-                g_string_append_unichar (string, HNC_T2[t]);
-                printf ("%s", g_string_free (string, FALSE));
-            /* 완성형 옛한글 */
-            } else if (v == 0) {
-                gchar *ch;
-                ch = hnc_to_utf8(c);
-                if (ch != NULL) {
-                    printf ("%s", ch);
-                } else {
-                    g_warning ("HNC code: 0x#{c.to_s(16)})");
-                }
-            } else {
-                g_warning ("HNC code: %04x", c);
-            }
-
         } else {
-            g_warning ("HNC code: %04x", c);
+            g_warning ("special character: %04x", c);
         }
     }
     return TRUE;
