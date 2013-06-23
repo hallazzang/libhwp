@@ -47,9 +47,7 @@ gboolean context_skip (GHWPContext *context, guint16 count)
                                           NULL, NULL);
     g_free (buf);
 
-    if ((is_success == FALSE) ||
-        (context->priv->bytes_read == (gsize) 0) ||
-        (context->priv->bytes_read != (gsize) count))
+    if ((is_success == FALSE) || (context->priv->bytes_read != (gsize) count))
     {
         g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
         g_input_stream_close (context->stream, NULL, NULL);
