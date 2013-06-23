@@ -178,15 +178,15 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
     guint16 ctrl_lv = 0;
     guint16 curr_lv = 0;
     guint   index;
-
+    GHWPFileV5 *file = GHWP_FILE_V5(doc->file);
     gdouble    y    = 0.0;
     guint      len  = 0;
     GHWPPage  *page = ghwp_page_new ();
 
-    for (index = 0; index < GHWP_FILE_V5(doc->file)->section_streams->len; index++) {
+    for (index = 0; index < file->section_streams->len; index++) {
         GInputStream *section_stream;
         GHWPContext  *context;
-        section_stream = g_array_index (GHWP_FILE_V5(doc->file)->section_streams,
+        section_stream = g_array_index (file->section_streams,
                                         GInputStream *,
                                         index);
         section_stream = _g_object_ref0 (section_stream);
