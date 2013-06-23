@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libghwp.la
 
 NOINST_H_FILES = 
 
-INST_H_FILES =         \
+INST_H_FILES =             \
 	ghwp.h             \
 	ghwp-document.h    \
 	ghwp-file.h        \
@@ -14,12 +14,13 @@ INST_H_FILES =         \
 	ghwp-version.h     \
 	gsf-input-stream.h \
 	ghwp-file-v3.h     \
-	ghwp-file-v5.h
+	ghwp-file-v5.h     \
+	hnc2unicode.h
 
 ghwpincludedir = $(includedir)/ghwp
 ghwpinclude_HEADERS = $(INST_H_FILES)
 
-libghwp_la_SOURCES =   \
+libghwp_la_SOURCES =       \
 	ghwp.c             \
 	ghwp-document.c    \
 	ghwp-file.c        \
@@ -29,6 +30,7 @@ libghwp_la_SOURCES =   \
 	gsf-input-stream.c \
 	ghwp-file-v3.c     \
 	ghwp-file-v5.c     \
+	hnc2unicode.c      \
 	$(NOINST_H_FILES)  \
 	$(INST_H_FILES)
 
