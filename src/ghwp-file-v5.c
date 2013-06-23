@@ -625,14 +625,10 @@ ghwp_file_v5_get_hwp_version (GHWPFile *file,
 {
     g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    if (major_version)
-       *major_version = GHWP_FILE_V5(file)->major_version;
-    if (minor_version)
-       *minor_version = GHWP_FILE_V5(file)->minor_version;
-    if (micro_version)
-       *micro_version = GHWP_FILE_V5(file)->micro_version;
-    if (extra_version)
-       *extra_version = GHWP_FILE_V5(file)->extra_version;
+    if (major_version) *major_version = GHWP_FILE_V5(file)->major_version;
+    if (minor_version) *minor_version = GHWP_FILE_V5(file)->minor_version;
+    if (micro_version) *micro_version = GHWP_FILE_V5(file)->micro_version;
+    if (extra_version) *extra_version = GHWP_FILE_V5(file)->extra_version;
 }
 
 gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
