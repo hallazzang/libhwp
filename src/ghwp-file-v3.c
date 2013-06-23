@@ -28,6 +28,7 @@
 #include "ghwp-file-v3.h"
 #include "ghwp-context-v3.h"
 #include "hnc2unicode.h"
+#include <math.h>
 
 G_DEFINE_TYPE (GHWPFileV3, ghwp_file_v3, GHWP_TYPE_FILE);
 
@@ -113,34 +114,44 @@ static void _ghwp_file_v3_parse_summary_info (GHWPDocument *doc)
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
     GHWPContextV3 *context = ghwp_context_v3_new (stream);
 
-    guint8 *buffer = g_malloc (112);
-    gchar *str;
-    guint16 c;
+    gchar   *str;
+    GString *string;
+    guint16  c;
+    int i;
     guint8 count = 0;
 
-    while (count < 112) {
-        ghwp_context_v3_read_uint16 (context, &c);
-        count += 2;
-        str = hnchar_to_utf8 (c);
-        if (str == NULL) {
-            ghwp_context_v3_skip (context, 112 - count);
-            break;
-        } else {
-            printf("%s", str);
+    for (i = 0; i < 9; i++) {
+        count = 0;
+        string = g_string_new (NULL);
+        while (count < 112) {
+            ghwp_context_v3_read_uint16 (context, &c);
+            count += 2;
+            if (c != 0) {
+                str = hnchar_to_utf8 (c);
+                g_string_append (string, str);
+                g_free (str);
+            } else {
+                ghwp_context_v3_skip (context, 112 - count);
+                break;
+            }
+        }
+        if (i == 0) {
+            doc->title = g_string_free (string, FALSE);
+        } else if (i == 1) {
+            doc->subject = g_string_free (string, FALSE);
+        } else if (i == 2) {
+            doc->creator = g_string_free (string, FALSE);
+        } else if (i == 3) {
+            /* str format: "2001년 10월 11일 목요일, 20시 48분" */
+            str = g_string_free (string, FALSE);
+            /* FIXME 임시로 keywords에 할당한다. */
+            doc->keywords = str;
+        } else if (i == 4) {
+            /* doc->keywords = g_string_free (string, FALSE); */
+        } else if (i == 5) {
+            /* doc->keywords = g_string_free (string, FALSE); */
         }
     }
-    ghwp_context_v3_read (context, buffer, 112);
-    ghwp_context_v3_read (context, buffer, 112);
-    ghwp_context_v3_read (context, buffer, 112);
-    g_free (buffer);
-
-    buffer = g_malloc (112*2);
-    ghwp_context_v3_read (context, buffer, 112*2);
-    g_free (buffer);
-
-    buffer = g_malloc (112*3);
-    ghwp_context_v3_read (context, buffer, 112*3);
-    g_free (buffer);
 
     g_object_unref (context);
 }
@@ -160,6 +171,7 @@ static void _ghwp_file_v3_parse_info_block (GHWPDocument *doc)
                                             (GConverter*) zd);
         g_object_unref (GHWP_FILE_V3 (doc->file)->priv->stream);
         g_object_ref (cis);
+        /* NOTE 기존의 스트림은 어떻게 ? */
         GHWP_FILE_V3 (doc->file)->priv->stream = G_INPUT_STREAM (cis);
 
         g_object_unref (zd);
@@ -194,23 +206,24 @@ static void _ghwp_file_v3_parse_styles (GHWPDocument *doc)
     g_input_stream_read_all (stream, buffer, n_styles * (20 + 31 + 187), &bytes_read, NULL, NULL);
     g_free (buffer);
 }
+
 static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc);
+
 static void _ghwp_file_v3_parse_paragraphs (GHWPDocument *doc)
 {
     /* <문단 리스트> ::= <문단>+ <빈문단> */
     while(_ghwp_file_v3_parse_paragraph(doc)) {
     }
+    /* 마지막 페이지 더하기 */
+    g_array_append_val (doc->pages, GHWP_FILE_V3 (doc->file)->page);
 }
-
-#include <stdio.h>
 
 static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
 {
     g_return_val_if_fail (doc != NULL, FALSE);
 
-    guint8 *buffer = NULL;
     GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
-
+    GHWPContextV3 *context = ghwp_context_v3_new (stream);
     /* 문단 정보 */
     guint8  prev_paragraph_shape;
     guint16 n_chars;
@@ -219,21 +232,17 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
 
     guint8 flag;
     int i;
-    gsize bytes_read;
-    g_input_stream_read_all (stream, &prev_paragraph_shape, 1, &bytes_read, NULL, NULL);
-    g_input_stream_read_all (stream, &n_chars, 2, &bytes_read, NULL, NULL);
-    g_input_stream_read_all (stream, &n_lines, 2, &bytes_read, NULL, NULL);
-    g_input_stream_read_all (stream, &char_shape_included, 1, &bytes_read, NULL, NULL);
 
-    buffer = g_malloc (1 + 4 + 1 + 31);
-    g_input_stream_read_all (stream, buffer, 1 + 4 + 1 + 31, &bytes_read, NULL, NULL);
-    g_free (buffer);
+    ghwp_context_v3_read_uint8  (context, &prev_paragraph_shape);
+    ghwp_context_v3_read_uint16 (context, &n_chars);
+    ghwp_context_v3_read_uint16 (context, &n_lines);
+    ghwp_context_v3_read_uint8  (context, &char_shape_included);
+
+    ghwp_context_v3_skip (context, 1 + 4 + 1 + 31);
     /* 여기까지 43 바이트 */
 
     if (prev_paragraph_shape == 0 && n_chars > 0) {
-        buffer = g_malloc (187);
-        g_input_stream_read_all (stream, buffer, 187, &bytes_read, NULL, NULL);
-        g_free (buffer);
+        ghwp_context_v3_skip (context, 187);
     }
 
     /* 빈문단이면 FALSE 반환 */
@@ -241,68 +250,49 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
         return FALSE;
 
     /* 줄 정보 */
-    buffer = g_malloc (n_lines * 14);
-    g_input_stream_read_all (stream, buffer, n_lines * 14, &bytes_read, NULL, NULL);
-    g_free (buffer);
+    ghwp_context_v3_skip (context, n_lines * 14);
 
     /* 글자 모양 정보 */
     if (char_shape_included != 0) {
         for (i = 0; i < n_chars; i++) {
-            g_input_stream_read_all (stream, &flag, 1, &bytes_read, NULL, NULL);
+            ghwp_context_v3_read_uint8 (context, &flag);
             if (flag != 1) {
-                buffer = g_malloc (31);
-                g_input_stream_read_all (stream, buffer, 31, &bytes_read, NULL, NULL);
-                g_free (buffer);
+                ghwp_context_v3_skip (context, 31);
             }
         }
     }
 
+    GHWPParagraph *paragraph = ghwp_paragraph_new ();
+    g_array_append_val (doc->paragraphs, paragraph);
+    GString *string = g_string_new (NULL);
     /* 글자들 */
     guint16 n_chars_read = 0;
     guint16 c;
 
     while (n_chars_read < n_chars) {
-        g_input_stream_read_all (stream, &c, 2, &bytes_read, NULL, NULL);
+        ghwp_context_v3_read_uint16 (context, &c);
         n_chars_read += 1;
 
         if (c == 6) {
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
-
-            buffer = g_malloc (34);
-            g_input_stream_read_all (stream, buffer, 34, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6 + 34);
             continue;
         } else if (c == 9) { /* tab */
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
-            printf("\t");
-            fflush(stdout);
+            ghwp_context_v3_skip (context, 6);
+            g_string_append (string, "\t");
             continue;
         } else if (c == 10) { /* table */
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6);
             /* 테이블 식별 정보 84 바이트 */
-            buffer = g_malloc (80);
-            g_input_stream_read_all (stream, buffer, 80, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 80);
 
             guint16 n_cells;
-            g_input_stream_read_all (stream, &n_cells, 2, &bytes_read, NULL, NULL);
+            ghwp_context_v3_read_uint16 (context, &n_cells);
 
-            buffer = g_malloc (2);
-            g_input_stream_read_all (stream, buffer, 2, &bytes_read, NULL, NULL);
-            g_free (buffer);
-
-            buffer = g_malloc (27 * n_cells);
-            g_input_stream_read_all (stream, buffer, 27 * n_cells, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 2);
+            ghwp_context_v3_skip (context, 27 * n_cells);
 
             /* <셀 문단 리스트>+ */
             for (i = 0; i < n_cells; i++) {
@@ -317,87 +307,85 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
             continue;
         } else if (c == 11) {
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6);
             guint32 len;
-            g_input_stream_read_all (stream, &len, 4, &bytes_read, NULL, NULL);
-            buffer = g_malloc (344);
-            g_input_stream_read_all (stream, buffer, 344, &bytes_read, NULL, NULL);
-            g_free (buffer);
-            buffer = g_malloc (len);
-            g_input_stream_read_all (stream, buffer, len, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_read_uint32 (context, &len);
+            ghwp_context_v3_skip (context, 344);
+            ghwp_context_v3_skip (context, len);
             /* <캡션 문단 리스트> ::= <캡션 문단>+ <빈문단> */
             while(_ghwp_file_v3_parse_paragraph(doc)) {
             }
             continue;
         } else if (c == 13) { /* 글자들 끝 */
-            printf("\n");
-            fflush(stdout);
+            g_string_append (string, "\n");
             continue;
         } else if (c == 16) {
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
-            buffer = g_malloc (10);
-            g_input_stream_read_all (stream, buffer, 10, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6);
+            ghwp_context_v3_skip (context, 10);
             /* <문단 리스트> ::= <문단>+ <빈문단> */
             while(_ghwp_file_v3_parse_paragraph(doc)) {
             }
             continue;
         } else if (c == 17) { /* 각주/미주 */
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
-            buffer = g_malloc (14);
-            g_input_stream_read_all (stream, buffer, 14, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6);
+            ghwp_context_v3_skip (context, 14);
             while(_ghwp_file_v3_parse_paragraph(doc)) {
             }
             continue;
         } else if (c == 18 || c == 19 || c == 20 || c == 21) {
             n_chars_read += 3;
-            buffer = g_malloc (6);
-            g_input_stream_read_all (stream, buffer, 6, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 6);
             continue;
         } else if (c == 23) { /*글자 겹침 */
             n_chars_read += 4;
-            buffer = g_malloc (8);
-            g_input_stream_read_all (stream, buffer, 8, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 8);
             continue;
         } else if (c == 24 || c == 25) {
             n_chars_read += 2;
-            buffer = g_malloc (4);
-            g_input_stream_read_all (stream, buffer, 4, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 4);
             continue;
         } else if (c == 28) { /* 개요 모양/번호 */
             n_chars_read += 31;
-            buffer = g_malloc (62);
-            g_input_stream_read_all (stream, buffer, 62, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 62);
             continue;
         } else if (c == 30 || c == 31) {
             n_chars_read += 1;
-            buffer = g_malloc (2);
-            g_input_stream_read_all (stream, buffer, 2, &bytes_read, NULL, NULL);
-            g_free (buffer);
+            ghwp_context_v3_skip (context, 2);
             continue;
         } else if (c >= 0x0020 && c <= 0xffff) {
             gchar *tmp = hnchar_to_utf8 (c);
-            printf ("%s", tmp);
+            g_string_append (string, tmp);
             g_free (tmp);
             continue;
         } else {
             g_warning ("special character: %04x", c);
-        }
-    }
+        } /* if */
+    } /* while */
+    gchar *tmp = g_string_free(string, FALSE);
+    GHWPText *ghwp_text = ghwp_text_new (tmp);
+    g_free (tmp);
+    ghwp_paragraph_set_ghwp_text (paragraph, ghwp_text);
+
+    static gdouble    y    = 0.0;
+    static guint      len  = 0;
+
+
+    /* 높이 계산 */
+    len = g_utf8_strlen (ghwp_text->text, -1);
+    y += 18.0 * ceil (len / 33.0);
+
+    if (y > 842.0 - 80.0) {
+        g_array_append_val (doc->pages, GHWP_FILE_V3 (doc->file)->page);
+        GHWP_FILE_V3 (doc->file)->page = ghwp_page_new ();
+        g_array_append_val (GHWP_FILE_V3 (doc->file)->page->paragraphs, paragraph);
+        y = 0.0;
+    } else {
+        g_array_append_val (GHWP_FILE_V3 (doc->file)->page->paragraphs, paragraph);
+    } /* if */
+
+    g_object_unref (context);
     return TRUE;
 }
 
@@ -439,6 +427,7 @@ static void ghwp_file_v3_init (GHWPFileV3 *file)
 {
     file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V3,
                                                     GHWPFileV3Private);
+    file->page = ghwp_page_new ();
 }
 
 static void ghwp_file_v3_finalize (GObject *object)

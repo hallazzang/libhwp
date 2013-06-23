@@ -57,6 +57,7 @@ struct _GHWPFileV3
     guint8             is_compress;
     guint8             rev;
     guint16            info_block_len;
+    GHWPPage          *page;
 };
 
 struct _GHWPFileV3Private
