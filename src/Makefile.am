@@ -58,12 +58,12 @@ libghwp_la_LDFLAGS =                      \
 libghwp_la_LIBADD = $(GHWP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = ghwp-0.1.pc
+pkgconfig_DATA = ghwp-0.2.pc
 
 EXTRA_DIST =       \
-	ghwp-0.1.pc.in \
+	ghwp-0.2.pc.in \
 	ghwp-version.h.in
 
 DISTCLEANFILES = \
-	ghwp-0.1.pc  \
+	ghwp-0.2.pc  \
 	ghwp-version.h

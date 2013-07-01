@@ -3,8 +3,8 @@
 # *****************************************************************************
 
 m4_define([ghwp_major_version],[0])
-m4_define([ghwp_minor_version],[1])
-m4_define([ghwp_micro_version],[2])
+m4_define([ghwp_minor_version],[2])
+m4_define([ghwp_micro_version],[])
 m4_define([ghwp_extra_version],[])
 m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_version()ghwp_extra_version])
 
@@ -19,8 +19,8 @@ m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_versi
 
 # Libtool version
 m4_define([ghwp_lt_current], [1])
-m4_define([ghwp_lt_revision],[1])
-m4_define([ghwp_lt_age],     [1])
+m4_define([ghwp_lt_revision],[0])
+m4_define([ghwp_lt_age],     [0])
 m4_define([ghwp_lt_version_info],[ghwp_lt_current:ghwp_lt_revision:ghwp_lt_age])
 m4_define([ghwp_lt_current_minus_age],[m4_eval(ghwp_lt_current - ghwp_lt_age)])
 
@@ -77,7 +77,7 @@ AC_SUBST([GHWP_LT_CURRENT_MINUS_AGE],[ghwp_lt_current_minus_age])
 AC_OUTPUT([
     Makefile
     po/Makefile.in
-    src/ghwp-0.1.pc
+    src/ghwp-0.2.pc
     src/Makefile
     src/ghwp-version.h
 ])

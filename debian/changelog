@@ -1,10 +1,12 @@
-libghwp (0.1.2) UNRELEASED; urgency=low
+libghwp (0.2) UNRELEASED; urgency=low
 
-  * Non-maintainer upload.
+  [ Hodong Kim ]
+  * support hwp v3.0, hwpml(hml)
+  * fix order when reading ole entries (closes: #7)
 
- -- Hodong Kim <cogniti@gmail.com>  Fri, 28 Dec 2012 11:42:25 +0900
+ -- Hodong Kim <cogniti@gmail.com>  Tue, 02 Jul 2013 02:23:52 +0900
 
-libghwp (0.1.1) unstable; urgency=low
+libghwp (0.1.1) UNRELEASED; urgency=low
 
   [ Hodong Kim ]
   * fix memory leak
@@ -13,7 +15,7 @@ libghwp (0.1.1) unstable; urgency=low
 
  -- Hodong Kim <cogniti@gmail.com>  Mon, 24 Dec 2012 00:33:19 +0900
 
-libghwp (0.1) unstable; urgency=low
+libghwp (0.1) UNRELEASED; urgency=low
 
   [ Hodong Kim ]
   * render basic text
