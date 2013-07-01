@@ -85,7 +85,7 @@ static void _ghwp_file_v3_parse_signature (GHWPDocument *doc)
     g_free (signature);
     g_object_unref (context);
 }
-#include <stdio.h>
+
 static void _ghwp_file_v3_parse_doc_info (GHWPDocument *doc)
 {
     g_return_if_fail (doc != NULL);
@@ -207,22 +207,11 @@ static void _ghwp_file_v3_parse_styles (GHWPDocument *doc)
     g_free (buffer);
 }
 
-static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc);
-
-static void _ghwp_file_v3_parse_paragraphs (GHWPDocument *doc)
-{
-    /* <문단 리스트> ::= <문단>+ <빈문단> */
-    while(_ghwp_file_v3_parse_paragraph(doc)) {
-    }
-    /* 마지막 페이지 더하기 */
-    g_array_append_val (doc->pages, GHWP_FILE_V3 (doc->file)->page);
-}
-
 static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
 {
     g_return_val_if_fail (doc != NULL, FALSE);
 
-    GInputStream *stream = GHWP_FILE_V3 (doc->file)->priv->stream;
+    GInputStream  *stream  = GHWP_FILE_V3 (doc->file)->priv->stream;
     GHWPContextV3 *context = ghwp_context_v3_new (stream);
     /* 문단 정보 */
     guint8  prev_paragraph_shape;
@@ -368,9 +357,8 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
     g_free (tmp);
     ghwp_paragraph_set_ghwp_text (paragraph, ghwp_text);
 
-    static gdouble    y    = 0.0;
-    static guint      len  = 0;
-
+    static gdouble y   = 0.0;
+    static guint   len = 0;
 
     /* 높이 계산 */
     len = g_utf8_strlen (ghwp_text->text, -1);
@@ -387,6 +375,15 @@ static gboolean _ghwp_file_v3_parse_paragraph (GHWPDocument *doc)
 
     g_object_unref (context);
     return TRUE;
+}
+
+static void _ghwp_file_v3_parse_paragraphs (GHWPDocument *doc)
+{
+    /* <문단 리스트> ::= <문단>+ <빈문단> */
+    while(_ghwp_file_v3_parse_paragraph(doc)) {
+    }
+    /* 마지막 페이지 더하기 */
+    g_array_append_val (doc->pages, GHWP_FILE_V3 (doc->file)->page);
 }
 
 static void _ghwp_file_v3_parse_supplementary_info_block1 (GHWPDocument *doc)
