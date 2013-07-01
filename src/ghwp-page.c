@@ -135,11 +135,9 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
         x = 20.0;
         /* draw text */
         if ((ghwp_text != NULL) && !(g_str_equal(ghwp_text->text, "\n\r"))) {
-            printf("%s\n", ghwp_text->text);
             draw_text(cr, extents, glyphs, scaled_font, ghwp_text->text,
                       &x, &y);
         }
-        printf("%f %f after drawing text\n", x, y);
         /* draw table */
         table = ghwp_paragraph_get_table (paragraph);
         if (table != NULL) {
