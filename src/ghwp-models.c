@@ -43,6 +43,18 @@ GHWPText *ghwp_text_new (const gchar *text)
     return ghwp_text;
 }
 
+GHWPText *ghwp_text_append (GHWPText *ghwp_text, const gchar *text)
+{
+    g_return_val_if_fail (ghwp_text != NULL, NULL);
+
+    gchar *tmp;
+    tmp = g_strdup (ghwp_text->text);
+    g_free (ghwp_text->text);
+    ghwp_text->text = g_strconcat (tmp, text, NULL);
+    g_free (tmp);
+    return ghwp_text;
+}
+
 static void ghwp_text_finalize (GObject *obj)
 {
     GHWPText *ghwp_text = GHWP_TEXT(obj);

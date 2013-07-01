@@ -32,8 +32,21 @@
 #include "ghwp-file.h"
 #include "ghwp-file-v5.h"
 #include "ghwp-file-v3.h"
+#include "ghwp-file-ml.h"
 
-G_DEFINE_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
+
+/**
+ * ghwp_file_error_quark
+ *
+ * The error domain for GHWPFile
+ *
+ * Returns: The error domain
+ */
+GQuark ghwp_file_error_quark (void)
+{
+    return g_quark_from_string ("ghwp-file-error-quark");
+}
 
 void ghwp_file_get_hwp_version (GHWPFile *file,
                                 guint8   *major_version,
@@ -64,7 +77,7 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
     return GHWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
 }
 
-GHWPFile* ghwp_file_new_from_uri (const gchar* uri, GError** error)
+GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
@@ -75,18 +88,43 @@ GHWPFile* ghwp_file_new_from_uri (const gchar* uri, GError** error)
     return file;
 }
 
-GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error)
+static gboolean is_hwpml (gchar *haystack, gssize haystack_len)
+{
+    gchar *ptr1;
+    gchar *ptr2;
+    gchar *lowercase       = g_utf8_strdown (haystack, haystack_len);
+    gchar *signature_xml   = g_utf8_strdown ("<?xml version=\"", 15);
+    gchar *signature_hwpml = g_utf8_strdown ("<HWPML Version=\"", 16);
+
+    ptr1 = g_strstr_len (lowercase, haystack_len, signature_xml);
+    ptr2 = g_strstr_len (lowercase, haystack_len, signature_hwpml);
+
+    g_free (lowercase);
+    g_free (signature_xml);
+    g_free (signature_hwpml);
+
+    if (ptr1 && ptr2 && (ptr1 < ptr2))
+        return TRUE;
+    else
+        return FALSE;
+}
+
+GHWPFile *ghwp_file_new_from_filename (const gchar* filename, GError** error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
     /* check signature */
-	static guint8 const signature_ole[] =
-		{ 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1 };
+	static const guint8 const signature_ole[] = {
+        0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
+    };
 
-	static guint8 const signature_v3[] =
-        { 0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75, 0x6d, 0x65,
-          0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c, 0x65, 0x20, 0x56, 0x33,
-          0x2e, 0x30, 0x30, 0x20, 0x1a, 0x01, 0x02, 0x03, 0x04, 0x05 };
+	static const guint8 signature_v3[] = {
+        /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
+        0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
+        0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
+        0x65, 0x20, 0x56, 0x33, 0x2e, 0x30, 0x30, 0x20,
+        0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
+    };
 
     GFile            *file   = g_file_new_for_path (filename);
     GFileInputStream *stream = g_file_read(file, NULL, error);
@@ -95,14 +133,9 @@ GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error)
         return NULL;
 
     gsize bytes_read = 0;
-    guint8 *buffer = g_malloc((gsize)30);
-    g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, (gsize) 30,
+    guint8 *buffer = g_malloc0 (4096);
+    g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
                              &bytes_read, NULL, error);
-
-    if (bytes_read != 30) {
-        g_free(buffer);
-        return NULL;
-    }
 
     if ( memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
@@ -114,9 +147,15 @@ GHWPFile* ghwp_file_new_from_filename (const gchar* filename, GError** error)
         g_free(buffer);
         g_object_unref(stream);
         return GHWP_FILE (ghwp_file_v3_new_from_filename (filename, error));
+    } else if (is_hwpml((gchar *) buffer, bytes_read)) {
+        /* hwp ml */
+        g_free(buffer);
+        g_object_unref(stream);
+        return GHWP_FILE (ghwp_file_ml_new_from_filename (filename, error));
     } else {
-        /* not a valid hwp file */
-        *error = g_error_new (ghwp_error_quark(), 0, "not a valid hwp file");
+        /* invalid hwp file */
+        *error = g_error_new (ghwp_file_error_quark(), GHWP_FILE_ERROR_INVALID,
+                              "invalid hwp file");
         g_free(buffer);
         g_object_unref(stream);
         return NULL;

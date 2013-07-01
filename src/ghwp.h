@@ -135,6 +135,7 @@ const char *_ghwp_get_tag_name (guint tag_id);
 typedef struct _GHWPColor     GHWPColor;
 typedef struct _GHWPDocument  GHWPDocument;
 typedef struct _GHWPFile      GHWPFile;
+typedef struct _GHWPFileML    GHWPFileML;
 typedef struct _GHWPFileV5    GHWPFileV5;
 typedef struct _GHWPFileV3    GHWPFileV3;
 typedef struct _GHWPPage      GHWPPage;

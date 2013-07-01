@@ -96,7 +96,8 @@ struct _GHWPTextClass
 };
 
 GType     ghwp_text_get_type (void) G_GNUC_CONST;
-GHWPText *ghwp_text_new      (const gchar *text);
+GHWPText *ghwp_text_new      (const     gchar *text);
+GHWPText *ghwp_text_append   (GHWPText *ghwp_text, const gchar *text);
 
 /** GHWPTable ****************************************************************/
 
