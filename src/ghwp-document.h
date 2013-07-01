@@ -85,7 +85,6 @@ GHWPDocument *ghwp_document_new_from_filename  (const gchar  *filename,
                                                 GError      **error);
 guint     ghwp_document_get_n_pages            (GHWPDocument *doc);
 GHWPPage *ghwp_document_get_page               (GHWPDocument *doc, gint n_page);
-guint     ghwp_document_get_real_n_pages       (GHWPDocument *doc);
 /* meta data */
 gchar    *ghwp_document_get_title              (GHWPDocument *document);
 gchar    *ghwp_document_get_keywords           (GHWPDocument *document);
