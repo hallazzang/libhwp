@@ -53,7 +53,7 @@ static gssize gsf_input_stream_read (GInputStream *base,
                                      GCancellable *cancellable,
                                      GError      **error)
 {
-    GsfInputStream *gis = (GsfInputStream *) base;
+    GsfInputStream *gis = GSF_INPUT_STREAM (base);
     gint64    remaining = gsf_input_remaining (gis->priv->input);
 
     if (remaining < (gint64) buffer_len) {
@@ -93,15 +93,15 @@ gsf_input_stream_class_init (GsfInputStreamClass *klass)
 static void
 gsf_input_stream_finalize (GObject *obj)
 {
-    GsfInputStream *gis = GSF_INPUT_STREAM(obj);
+    GsfInputStream *gis = GSF_INPUT_STREAM (obj);
     g_object_unref (gis->priv->input);
     G_OBJECT_CLASS (gsf_input_stream_parent_class)->finalize (obj);
 }
 
 static void
-gsf_input_stream_init (GsfInputStream *gsf_input_stream)
+gsf_input_stream_init (GsfInputStream *stream)
 {
-    gsf_input_stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (gsf_input_stream,
-                                                      GSF_TYPE_INPUT_STREAM,
-                                                      GsfInputStreamPrivate);
+    stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream,
+                                                GSF_TYPE_INPUT_STREAM,
+                                                GsfInputStreamPrivate);
 }
