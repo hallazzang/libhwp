@@ -51,51 +51,73 @@ G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 
-static void _ghwp_file_v5_make_stream        (GHWPFileV5* file);
-static void  ghwp_file_v5_decode_file_header (GHWPFileV5 *file);
-static void  ghwp_file_v5_finalize           (GObject*    obj);
-
 static gpointer _g_object_ref0 (gpointer obj)
 {
     return obj ? g_object_ref (obj) : NULL;
 }
 
-static void _ghwp_file_v5_parse                 (GHWPDocument *doc,
-                                              GError      **error);
-static void _ghwp_file_v5_parse_doc_info        (GHWPDocument *doc,
-                                              GError      **error);
-static void _ghwp_file_v5_parse_body_text       (GHWPDocument *doc,
-                                              GError      **error);
-static void _ghwp_file_v5_parse_prv_text        (GHWPDocument *doc);
-static void _ghwp_file_v5_parse_summary_info    (GHWPDocument *doc);
+/*typedef enum {*/
+/*    ID_BINARY_DATA      = 0,*/
+/*    ID_KOREAN_FONTS     = 1,*/
+/*    ID_ENGLISH_FONTS    = 2,*/
+/*    ID_HANJA_FONTS      = 3,*/
+/*    ID_JAPANESE_FONTS   = 4,*/
+/*    ID_OTHERS_FONTS     = 5,*/
+/*    ID_SYMBOL_FONTS     = 6,*/
+/*    ID_USER_FONTS       = 7,*/
+/*    ID_BORDER_FILLS     = 8,*/
+/*    ID_CHAR_SHAPES      = 9,*/
+/*    ID_TAB_DEFS         = 10,*/
+/*    ID_PARA_NUMBERINGS  = 11,*/
+/*    ID_BULLETS          = 12,*/
+/*    ID_PARA_SHAPES      = 13,*/
+/*    ID_STYLES           = 14,*/
+    /*
+     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
+     * 한/글2007 이전 문서는 data_len <= 60,
+     * v5.0.0.6 : ID_MAPPINGS data_len: 60
+     * v5.0.1.7 : ID_MAPPINGS data_len: 64
+     * v5.0.2.4 : ID_MAPPINGS data_len: 64
+     */
+/*    ID_MEMO_SHAPES      = 15,*/
+    /* 한/글2010 에서 추가된 것으로 추정됨 */
+    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
+/*    ID_KNOWN_16         = 16,*/
+/*    ID_KNOWN_17         = 17,*/
+/*} IDMappingsID;*/
 
-static void _ghwp_file_v5_parse (GHWPDocument *doc, GError **error)
+static void _ghwp_file_v5_parse_doc_info (GHWPDocument *doc, GError **error)
 {
     g_return_if_fail (doc != NULL);
 
-    _ghwp_file_v5_parse_doc_info (doc, error);
-    if (*error) return;
-    _ghwp_file_v5_parse_body_text (doc, error);
-    if (*error) return;
-    _ghwp_file_v5_parse_prv_text (doc);
-    _ghwp_file_v5_parse_summary_info (doc);
+/*    guint32 id_mappings[16] = {0}; */ /* 반드시 초기화 해야 한다. */
+/*    int i;*/
+
+/*    GInputStream *stream  = doc->file->doc_info_stream;
+    GHWPContext  *context = ghwp_context_new (stream);
+    while (ghwp_context_pull (context, error)) {
+        switch (context->tag_id) {
+        case GHWP_TAG_DOCUMENT_PROPERTIES:*/
+            /* TODO */
+/*            break;
+        case GHWP_TAG_ID_MAPPINGS:*/
+/*            for (i = 0; i < sizeof(id_mappings); i = i + sizeof(guint32)) {*/
+/*                memcpy(&id_mappings[i], &(context->data[i]), sizeof(guint32));*/
+/*                id_mappings[i] = GUINT16_FROM_LE(id_mappings[i]);*/
+/*                printf("%d\n", id_mappings[i]);*/
+/*            }*/
+/*            break;
+        default:
+            printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
+                _ghwp_get_tag_name (context->tag_id));
+            break;
+        }
+    }
+
+    g_object_unref (context);*/
 }
 
-/* NOTE: LE 저장 방식이 아닌 점에 유의, 설계 실수 같음 */
-#define MAKE_CTRL_ID(a, b, c, d)      \
-    (guint32)((((guint8)(a)) << 24) | \
-              (((guint8)(b)) << 16) | \
-              (((guint8)(c)) <<  8) | \
-              (((guint8)(d)) <<  0))
-
-/* enum의 최대값은 ?? */
-typedef enum
-{
-    CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
-} CtrlID;
-
-static gchar *
-_ghwp_file_get_text_from_context (GHWPContext *context)
+static gchar *_ghwp_file_get_text_from_context (GHWPContext *context)
 {
     g_return_val_if_fail (context != NULL, NULL);
     gunichar2 ch; /* guint16 */
@@ -169,6 +191,18 @@ _ghwp_file_get_text_from_context (GHWPContext *context)
     return g_string_free(text, FALSE);
 }
 
+/* NOTE: LE 저장 방식이 아닌 점에 유의, 설계 실수 같음 */
+#define MAKE_CTRL_ID(a, b, c, d)      \
+    (guint32)((((guint8)(a)) << 24) | \
+              (((guint8)(b)) << 16) | \
+              (((guint8)(c)) <<  8) | \
+              (((guint8)(d)) <<  0))
+
+/* enum의 최대값은 ?? */
+typedef enum
+{
+    CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
+} CtrlID;
 
 /* TODO fsm parser, nautilus에서 파일 속성만 보는 경우가 있으므로 속도 문제
  * 때문에 get_n_pages 로 옮겨갈 필요가 있다. */
@@ -391,41 +425,6 @@ static void _ghwp_file_v5_parse_prv_text (GHWPDocument *doc)
     _g_object_unref0 (gis);
 }
 
-/*
-typedef enum {
-    INFO_ID_CREATOR,
-    INFO_ID_DATE_MODIFIED,
-    INFO_ID_DESCRIPTION,
-    INFO_ID_KEYWORDS,
-    INFO_ID_SUBJECT,
-    INFO_ID_TITLE,
-    INFO_ID_LAST_PRINTED,
-    INFO_ID_LAST_SAVED_BY,
-    INFO_ID_DATE_CREATED,
-    INFO_ID_REVISION_COUNT,
-    INFO_ID_PAGE_COUNT,
-} InfoID;
-
-typedef struct {
-    InfoID id;
-    const  gchar *name;
-} SummaryInfo;
-
-SummaryInfo info[]   = {
-        { INFO_ID_CREATOR,        GSF_META_NAME_CREATOR       },
-        { INFO_ID_DATE_MODIFIED,  GSF_META_NAME_DATE_MODIFIED },
-        { INFO_ID_DESCRIPTION,    GSF_META_NAME_DESCRIPTION   },
-        { INFO_ID_KEYWORDS,       GSF_META_NAME_KEYWORDS      },
-        { INFO_ID_SUBJECT,        GSF_META_NAME_SUBJECT       },
-        { INFO_ID_TITLE,          GSF_META_NAME_TITLE         },
-        { INFO_ID_LAST_PRINTED,   GSF_META_NAME_LAST_PRINTED  },
-        { INFO_ID_LAST_SAVED_BY,  GSF_META_NAME_LAST_SAVED_BY },
-        { INFO_ID_DATE_CREATED,   GSF_META_NAME_DATE_CREATED  },
-        { INFO_ID_REVISION_COUNT, GSF_META_NAME_REVISION_COUNT},
-        { INFO_ID_PAGE_COUNT,     GSF_META_NAME_PAGE_COUNT    }
-};
-*/
-
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
 static void
 _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
@@ -477,6 +476,41 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
         g_warning("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
     }
 }
+
+/*
+typedef enum {
+    INFO_ID_CREATOR,
+    INFO_ID_DATE_MODIFIED,
+    INFO_ID_DESCRIPTION,
+    INFO_ID_KEYWORDS,
+    INFO_ID_SUBJECT,
+    INFO_ID_TITLE,
+    INFO_ID_LAST_PRINTED,
+    INFO_ID_LAST_SAVED_BY,
+    INFO_ID_DATE_CREATED,
+    INFO_ID_REVISION_COUNT,
+    INFO_ID_PAGE_COUNT,
+} InfoID;
+
+typedef struct {
+    InfoID id;
+    const  gchar *name;
+} SummaryInfo;
+
+SummaryInfo info[]   = {
+        { INFO_ID_CREATOR,        GSF_META_NAME_CREATOR       },
+        { INFO_ID_DATE_MODIFIED,  GSF_META_NAME_DATE_MODIFIED },
+        { INFO_ID_DESCRIPTION,    GSF_META_NAME_DESCRIPTION   },
+        { INFO_ID_KEYWORDS,       GSF_META_NAME_KEYWORDS      },
+        { INFO_ID_SUBJECT,        GSF_META_NAME_SUBJECT       },
+        { INFO_ID_TITLE,          GSF_META_NAME_TITLE         },
+        { INFO_ID_LAST_PRINTED,   GSF_META_NAME_LAST_PRINTED  },
+        { INFO_ID_LAST_SAVED_BY,  GSF_META_NAME_LAST_SAVED_BY },
+        { INFO_ID_DATE_CREATED,   GSF_META_NAME_DATE_CREATED  },
+        { INFO_ID_REVISION_COUNT, GSF_META_NAME_REVISION_COUNT},
+        { INFO_ID_PAGE_COUNT,     GSF_META_NAME_PAGE_COUNT    }
+};
+*/
 
 static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
 {
@@ -546,66 +580,16 @@ static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
     _g_object_unref0 (gis);
 }
 
-/*typedef enum {*/
-/*    ID_BINARY_DATA      = 0,*/
-/*    ID_KOREAN_FONTS     = 1,*/
-/*    ID_ENGLISH_FONTS    = 2,*/
-/*    ID_HANJA_FONTS      = 3,*/
-/*    ID_JAPANESE_FONTS   = 4,*/
-/*    ID_OTHERS_FONTS     = 5,*/
-/*    ID_SYMBOL_FONTS     = 6,*/
-/*    ID_USER_FONTS       = 7,*/
-/*    ID_BORDER_FILLS     = 8,*/
-/*    ID_CHAR_SHAPES      = 9,*/
-/*    ID_TAB_DEFS         = 10,*/
-/*    ID_PARA_NUMBERINGS  = 11,*/
-/*    ID_BULLETS          = 12,*/
-/*    ID_PARA_SHAPES      = 13,*/
-/*    ID_STYLES           = 14,*/
-    /*
-     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
-     * 한/글2007 이전 문서는 data_len <= 60,
-     * v5.0.0.6 : ID_MAPPINGS data_len: 60
-     * v5.0.1.7 : ID_MAPPINGS data_len: 64
-     * v5.0.2.4 : ID_MAPPINGS data_len: 64
-     */
-/*    ID_MEMO_SHAPES      = 15,*/
-    /* 한/글2010 에서 추가된 것으로 추정됨 */
-    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
-/*    ID_KNOWN_16         = 16,*/
-/*    ID_KNOWN_17         = 17,*/
-/*} IDMappingsID;*/
-
-
-static void _ghwp_file_v5_parse_doc_info (GHWPDocument *doc, GError **error)
+static void _ghwp_file_v5_parse (GHWPDocument *doc, GError **error)
 {
     g_return_if_fail (doc != NULL);
 
-/*    guint32 id_mappings[16] = {0}; */ /* 반드시 초기화 해야 한다. */
-/*    int i;*/
-
-/*    GInputStream *stream  = doc->file->doc_info_stream;
-    GHWPContext  *context = ghwp_context_new (stream);
-    while (ghwp_context_pull (context, error)) {
-        switch (context->tag_id) {
-        case GHWP_TAG_DOCUMENT_PROPERTIES:*/
-            /* TODO */
-/*            break;
-        case GHWP_TAG_ID_MAPPINGS:*/
-/*            for (i = 0; i < sizeof(id_mappings); i = i + sizeof(guint32)) {*/
-/*                memcpy(&id_mappings[i], &(context->data[i]), sizeof(guint32));*/
-/*                id_mappings[i] = GUINT16_FROM_LE(id_mappings[i]);*/
-/*                printf("%d\n", id_mappings[i]);*/
-/*            }*/
-/*            break;
-        default:
-            printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
-                _ghwp_get_tag_name (context->tag_id));
-            break;
-        }
-    }
-
-    g_object_unref (context);*/
+    _ghwp_file_v5_parse_doc_info (doc, error);
+    if (*error) return;
+    _ghwp_file_v5_parse_body_text (doc, error);
+    if (*error) return;
+    _ghwp_file_v5_parse_prv_text (doc);
+    _ghwp_file_v5_parse_summary_info (doc);
 }
 
 GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
@@ -650,211 +634,6 @@ GHWPFileV5* ghwp_file_v5_new_from_uri (const gchar* uri, GError** error)
     GHWPFileV5 *file     = ghwp_file_v5_new_from_filename (filename, error);
     _g_free0 (filename);
     return file;
-}
-
-GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** error)
-{
-    g_return_val_if_fail (filename != NULL, NULL);
-    GFile *gfile = g_file_new_for_path (filename);
-
-    GsfInputStdio* input;
-    GsfInfileMSOle* olefile;
-
-    gchar *path = g_file_get_path(gfile);
-    _g_object_unref0 (gfile);
-    input = (GsfInputStdio*) gsf_input_stdio_new (path, error);
-    _g_free0 (path);
-
-    if (input == NULL) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
-        return NULL;
-    }
-
-    olefile = (GsfInfileMSOle*) gsf_infile_msole_new ((GsfInput*) input,
-                                                      error);
-
-    if (olefile == NULL) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
-        _g_object_unref0 (input);
-        return NULL;
-    }
-
-    GHWPFileV5 *file = g_object_new (GHWP_TYPE_FILE_V5, NULL);
-    file->priv->olefile = olefile;
-    _g_object_unref0 (input);
-    _ghwp_file_v5_make_stream (file);
-
-    return file;
-}
-
-/* FIXME streams 배열과 enum을 이용하여 코드 재적성 바람 */
-static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
-{
-    g_return_if_fail (file != NULL);
-
-    const gchar* name = NULL;
-    gint n_children;
-    n_children = gsf_infile_num_children ((GsfInfile*) file->priv->olefile);
-
-    if (n_children < 1) {
-        fprintf (stderr, "invalid hwp file\n");
-        return;
-    }
-
-    gint i;
-    for (i = 0; i < n_children; i++) {
-        /* do not free the name string */
-        name = gsf_infile_name_by_index ((GsfInfile*) file->priv->olefile, i);
-        GsfInput* input;
-        gint      num_children = 0;
-
-        if (g_str_equal (name, "PrvText")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              name);
-            input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (num_children > 0) {
-                fprintf (stderr, "invalid\n");
-            }
-
-            _g_object_unref0 (file->prv_text_stream);
-            file->prv_text_stream = (GInputStream *) gsf_input_stream_new (input);
-            _g_object_unref0 (input);
-        }
-        else if (g_str_equal (name, "PrvImage")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              name);
-            input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (num_children > 0) {
-                fprintf (stderr, "invalid\n");
-            }
-
-            _g_object_unref0 (file->prv_image_stream);
-            file->prv_image_stream = (GInputStream*) gsf_input_stream_new (input);
-            _g_object_unref0 (input);
-        }
-        else if (g_str_equal (name, "FileHeader")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              name);
-            input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (num_children > 0) {
-                fprintf (stderr, "invalid\n");
-            }
-
-            _g_object_unref0 (file->file_header_stream);
-            file->file_header_stream = (GInputStream*) gsf_input_stream_new (input);
-            _g_object_unref0 (input);
-            ghwp_file_v5_decode_file_header (file);
-        }
-        else if (g_str_equal (name, "DocInfo")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              name);
-            input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (num_children > 0) {
-                fprintf (stderr, "invalid\n");
-            }
-
-            if (file->is_compress) {
-                GsfInputStream    *gis;
-                GZlibDecompressor *zd;
-                GInputStream      *cis;
-
-                gis = gsf_input_stream_new (input);
-                zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-                cis = g_converter_input_stream_new ((GInputStream*) gis,
-                                                    (GConverter*) zd);
-                _g_object_unref0 (file->doc_info_stream);
-                file->doc_info_stream = cis;
-
-                _g_object_unref0 (zd);
-                _g_object_unref0 (gis);
-            } else {
-                _g_object_unref0 (file->doc_info_stream);
-                file->doc_info_stream = (GInputStream*) gsf_input_stream_new (input);
-            }
-            _g_object_unref0 (input);
-        }
-        else if ((g_str_equal (name, "BodyText")) |
-                 (g_str_equal (name, "VeiwText"))) {
-
-            GsfInfile* infile;
-
-            _g_array_free0 (file->section_streams);
-            file->section_streams = g_array_new (TRUE, TRUE,
-                                                 sizeof (GInputStream*));
-
-            infile = (GsfInfile*) gsf_infile_child_by_index (
-                                         (GsfInfile*) file->priv->olefile, i);
-            infile = _g_object_ref0 (infile);
-
-            num_children = gsf_infile_num_children (infile);
-
-            if (num_children == 0) {
-                fprintf (stderr, "nothing in BodyText\n");
-            }
-
-            gint j;
-            for (j = 0; j < num_children; j++) {
-                input = gsf_infile_child_by_index (infile, j);
-                GsfInfile *section = _g_object_ref0 (input);
-                num_children = gsf_infile_num_children (section);
-
-                if (num_children > 0) {
-                    fprintf (stderr, "invalid section\n");
-                }
-
-                if (file->is_compress) {
-                    GsfInputStream* gis;
-                    GZlibDecompressor* zd;
-                    GConverterInputStream* cis;
-
-                    gis = gsf_input_stream_new ((GsfInput*) section);
-                    zd = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-                    cis = (GConverterInputStream*) g_converter_input_stream_new ((GInputStream*) gis, (GConverter*) zd);
-
-                    _g_object_unref0 (file->priv->section_stream);
-                    file->priv->section_stream = (GInputStream*) cis;
-                    _g_object_unref0 (zd);
-                    _g_object_unref0 (gis);
-                } else {
-                    GsfInputStream* stream;
-                    stream = gsf_input_stream_new ((GsfInput*) section);
-                    _g_object_unref0 (file->priv->section_stream);
-                    file->priv->section_stream = (GInputStream*) stream;
-                }
-
-                GInputStream *_stream_ = file->priv->section_stream;
-                _stream_ = _g_object_ref0 (_stream_);
-                g_array_append_val (file->section_streams, _stream_);
-                _g_object_unref0 (section);
-            } /* for */
-            _g_object_unref0 (infile);
-        }
-        else if (g_str_equal (name, "\005HwpSummaryInformation")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              name);
-            input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (num_children > 0) {
-                fprintf (stderr, "invalid\n");
-            }
-
-            _g_object_unref0 (file->summary_info_stream);
-            file->summary_info_stream = (GInputStream*) gsf_input_stream_new (input);
-            _g_object_unref0 (input);
-        }
-        else {
-            g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, name);
-        } /* if */
-    } /* for */
 }
 
 /* TODO 에러 감지/전파 코드 있어야 한다. */
@@ -903,20 +682,248 @@ static void ghwp_file_v5_decode_file_header (GHWPFileV5 *file)
     buf = (g_free (buf), NULL);
 }
 
-static void ghwp_file_v5_class_init (GHWPFileV5Class * klass)
+
+static int get_order (char *a)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (GHWPFileV5Private));
-    GHWP_FILE_CLASS (klass)->get_document = ghwp_file_v5_get_document;
-    GHWP_FILE_CLASS (klass)->get_hwp_version_string = ghwp_file_v5_get_hwp_version_string;
-    GHWP_FILE_CLASS (klass)->get_hwp_version = ghwp_file_v5_get_hwp_version;
-    object_class->finalize = ghwp_file_v5_finalize;
+    if (g_str_equal (a, "FileHeader"))
+        return 0;
+    if (g_str_equal (a, "DocInfo"))
+        return 1;
+    if (g_str_equal (a, "BodyText"))
+        return 2;
+    if (g_str_equal (a, "ViewText"))
+        return 3;
+    if (g_str_equal (a, "\005HwpSummaryInformation"))
+        return 4;
+    if (g_str_equal (a, "BinData"))
+        return 5;
+    if (g_str_equal (a, "PrvText"))
+        return 6;
+    if (g_str_equal (a, "PrvImage"))
+        return 7;
+    if (g_str_equal (a, "DocOptions"))
+        return 8;
+    if (g_str_equal (a, "Scripts"))
+        return 9;
+    if (g_str_equal (a, "XMLTemplate"))
+        return 10;
+    if (g_str_equal (a, "DocHistory"))
+        return 11;
+
+    return 100;
 }
 
-static void ghwp_file_v5_init (GHWPFileV5 *file)
+static gint compare_entries (gconstpointer a, gconstpointer b)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V5,
-                                                    GHWPFileV5Private);
+    int i, j;
+    i = get_order (*(char **)a);
+    j = get_order (*(char **)b);
+    return i - j;
+}
+
+/* FIXME streams 배열과 enum을 이용하여 코드 재적성 바람 */
+static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
+{
+    g_return_if_fail (file != NULL);
+
+    const gchar *name = NULL;
+    gint  n_children;
+    n_children = gsf_infile_num_children ((GsfInfile*) file->priv->olefile);
+
+    if (n_children < 1) {
+        fprintf (stderr, "invalid hwp file\n");
+        return;
+    }
+
+    /* 스펙이 명확하지 않고, 추후 예고없이 스펙이 변할 수 있기 때문에
+     * 이를 감지하고자 코드를 이렇게 작성하였다. */
+    GArray *entries = g_array_new (TRUE, TRUE, sizeof(char *));
+    gint i;
+    for (i = 0; i < n_children; i++) {
+        name = gsf_infile_name_by_index ((GsfInfile*) file->priv->olefile, i);
+        g_array_append_val (entries, name);
+    }
+    g_array_sort(entries, compare_entries);
+
+    for (i = 0; i < n_children; i++) {
+        char     *entry = g_array_index (entries, char *, i);
+        GsfInput* input;
+        gint      num_children = 0;
+
+        if (g_str_equal (entry, "FileHeader")) {
+            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
+                                              entry);
+            num_children = gsf_infile_num_children ((GsfInfile*) input);
+
+            if (num_children > 0) {
+                fprintf (stderr, "invalid\n");
+            }
+
+            file->file_header_stream = G_INPUT_STREAM (gsf_input_stream_new (input));
+            ghwp_file_v5_decode_file_header (file);
+        } else if (g_str_equal (entry, "DocInfo")) {
+            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
+                                              entry);
+            input = _g_object_ref0 (input);
+            num_children = gsf_infile_num_children ((GsfInfile*) input);
+
+            if (num_children > 0) {
+                fprintf (stderr, "invalid\n");
+            }
+
+            if (file->is_compress) {
+                GsfInputStream    *gis;
+                GZlibDecompressor *zd;
+                GInputStream      *cis;
+
+                gis = gsf_input_stream_new (input);
+                zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+                cis = g_converter_input_stream_new ((GInputStream*) gis,
+                                                    (GConverter*) zd);
+                _g_object_unref0 (file->doc_info_stream);
+                file->doc_info_stream = cis;
+
+                _g_object_unref0 (zd);
+                _g_object_unref0 (gis);
+            } else {
+                _g_object_unref0 (file->doc_info_stream);
+                file->doc_info_stream = (GInputStream*) gsf_input_stream_new (input);
+            }
+            _g_object_unref0 (input);
+        } else if (g_str_equal(entry, "BodyText") ||
+                   g_str_equal(entry, "VeiwText")) {
+            GsfInfile* infile;
+
+            _g_array_free0 (file->section_streams);
+            file->section_streams = g_array_new (TRUE, TRUE,
+                                                 sizeof (GInputStream*));
+
+            infile = (GsfInfile*) gsf_infile_child_by_name (
+                                         (GsfInfile*) file->priv->olefile, entry);
+            infile = _g_object_ref0 (infile);
+
+            num_children = gsf_infile_num_children (infile);
+
+            if (num_children == 0) {
+                fprintf (stderr, "nothing in %s\n", entry);
+            }
+
+            gint j;
+            for (j = 0; j < num_children; j++) {
+                input = gsf_infile_child_by_index (infile, j);
+                GsfInfile *section = _g_object_ref0 (input);
+                num_children = gsf_infile_num_children (section);
+
+                if (num_children > 0) {
+                    fprintf (stderr, "invalid section\n");
+                }
+
+                if (file->is_compress) {
+                    GsfInputStream* gis;
+                    GZlibDecompressor* zd;
+                    GConverterInputStream* cis;
+
+                    gis = gsf_input_stream_new ((GsfInput*) section);
+                    zd = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+                    cis = (GConverterInputStream*) g_converter_input_stream_new ((GInputStream*) gis, (GConverter*) zd);
+
+                    _g_object_unref0 (file->priv->section_stream);
+                    file->priv->section_stream = G_INPUT_STREAM (cis);
+                    _g_object_unref0 (zd);
+                    _g_object_unref0 (gis);
+                } else {
+                    GsfInputStream* stream;
+                    stream = gsf_input_stream_new ((GsfInput*) section);
+                    _g_object_unref0 (file->priv->section_stream);
+                    file->priv->section_stream = G_INPUT_STREAM (stream);
+                }
+
+                GInputStream *_stream_ = file->priv->section_stream;
+                _stream_ = _g_object_ref0 (_stream_);
+                g_array_append_val (file->section_streams, _stream_);
+                _g_object_unref0 (section);
+            } /* for */
+            _g_object_unref0 (infile);
+        } else if (g_str_equal (entry, "\005HwpSummaryInformation")) {
+            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
+                                              entry);
+            input = _g_object_ref0 (input);
+            num_children = gsf_infile_num_children ((GsfInfile*) input);
+
+            if (num_children > 0) {
+                fprintf (stderr, "invalid\n");
+            }
+
+            _g_object_unref0 (file->summary_info_stream);
+            file->summary_info_stream = (GInputStream*) gsf_input_stream_new (input);
+            _g_object_unref0 (input);
+        } else if (g_str_equal (entry, "PrvText")) {
+            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
+                                              entry);
+            input = _g_object_ref0 (input);
+            num_children = gsf_infile_num_children ((GsfInfile*) input);
+
+            if (num_children > 0) {
+                fprintf (stderr, "invalid\n");
+            }
+
+            _g_object_unref0 (file->prv_text_stream);
+            file->prv_text_stream = (GInputStream *) gsf_input_stream_new (input);
+            _g_object_unref0 (input);
+        } else if (g_str_equal (entry, "PrvImage")) {
+            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
+                                              entry);
+            input = _g_object_ref0 (input);
+            num_children = gsf_infile_num_children ((GsfInfile*) input);
+
+            if (num_children > 0) {
+                fprintf (stderr, "invalid\n");
+            }
+
+            _g_object_unref0 (file->prv_image_stream);
+            file->prv_image_stream = (GInputStream*) gsf_input_stream_new (input);
+            _g_object_unref0 (input);
+        } else {
+            g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
+        } /* if */
+    } /* for */
+    g_array_free (entries, TRUE);
+    g_array_unref (entries);
+}
+
+GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** error)
+{
+    g_return_val_if_fail (filename != NULL, NULL);
+    GFile *gfile = g_file_new_for_path (filename);
+
+    GsfInputStdio* input;
+    GsfInfileMSOle* olefile;
+
+    gchar *path = g_file_get_path(gfile);
+    _g_object_unref0 (gfile);
+    input = (GsfInputStdio*) gsf_input_stdio_new (path, error);
+    _g_free0 (path);
+
+    if (input == NULL) {
+        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+        return NULL;
+    }
+
+    olefile = (GsfInfileMSOle*) gsf_infile_msole_new ((GsfInput*) input,
+                                                      error);
+
+    if (olefile == NULL) {
+        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+        _g_object_unref0 (input);
+        return NULL;
+    }
+
+    GHWPFileV5 *file = g_object_new (GHWP_TYPE_FILE_V5, NULL);
+    file->priv->olefile = olefile;
+    _g_object_unref0 (input);
+    _ghwp_file_v5_make_stream (file);
+
+    return file;
 }
 
 static void ghwp_file_v5_finalize (GObject* obj)
@@ -932,4 +939,20 @@ static void ghwp_file_v5_finalize (GObject* obj)
     _g_object_unref0 (file->summary_info_stream);
     g_free (file->signature);
     G_OBJECT_CLASS (ghwp_file_v5_parent_class)->finalize (obj);
+}
+
+static void ghwp_file_v5_class_init (GHWPFileV5Class * klass)
+{
+    GObjectClass *object_class = G_OBJECT_CLASS (klass);
+    g_type_class_add_private (klass, sizeof (GHWPFileV5Private));
+    GHWP_FILE_CLASS (klass)->get_document = ghwp_file_v5_get_document;
+    GHWP_FILE_CLASS (klass)->get_hwp_version_string = ghwp_file_v5_get_hwp_version_string;
+    GHWP_FILE_CLASS (klass)->get_hwp_version = ghwp_file_v5_get_hwp_version;
+    object_class->finalize = ghwp_file_v5_finalize;
+}
+
+static void ghwp_file_v5_init (GHWPFileV5 *file)
+{
+    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V5,
+                                                    GHWPFileV5Private);
 }
