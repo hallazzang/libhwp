@@ -42,6 +42,7 @@
 
 #include "gsf-input-stream.h"
 #include "ghwp-file-v5.h"
+#include "config.h"
 
 G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
 
