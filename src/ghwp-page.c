@@ -19,10 +19,10 @@
  */
 
 #include "ghwp-page.h"
+#include <pango/pango.h>
+#include <pango/pangocairo.h>
 
 G_DEFINE_TYPE (GHWPPage, ghwp_page, G_TYPE_OBJECT);
-
-#define _g_free0(var) (var = (g_free (var), NULL))
 
 void ghwp_page_get_size (GHWPPage *page,
                          gdouble  *width,
@@ -33,62 +33,46 @@ void ghwp_page_get_size (GHWPPage *page,
     *height = 842.0;
 }
 
-#include <cairo-ft.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-static FT_Library ft_lib;
-static FT_Face    ft_face;
-/*한 번만 초기화, 로드 */
-static void
-once_ft_init_and_new (void)
+PangoContext *
+ghwp_cairo_create_pango_context (cairo_t *cr)
 {
-    static gsize ft_init = 0;
+    PangoFontMap *fontmap;
+    PangoContext *context;
 
-    if (g_once_init_enter (&ft_init)) {
-
-        FT_Init_FreeType (&ft_lib);
-        FT_New_Face (ft_lib, "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-                     0, &ft_face);
-
-        g_once_init_leave (&ft_init, (gsize)1);
-    }
+    fontmap = pango_cairo_font_map_get_default ();
+    context = pango_font_map_create_context (fontmap);
+    pango_cairo_update_context (cr, context);
+    pango_cairo_context_set_resolution (context, 0);
+    return context;
 }
 
-static void draw_text(cairo_t             *cr,
-                      cairo_text_extents_t extents,
-                      cairo_glyph_t       *glyphs,
-                      cairo_scaled_font_t *scaled_font,
-                      const gchar         *text,
-                      double              *x,
-                      double              *y)
+static PangoLayout *
+ghwp_create_pango_layout (PangoContext * context)
 {
-    gchar *ch = NULL;
-    int    num_glyphs;
-    guint  j;
-    for (j = 0; j < g_utf8_strlen(text, -1); j++) {
-        ch = g_utf8_substring(text, j, j+1);
+    PangoFontDescription *desc;
+    PangoLayout *layout;
 
-        cairo_scaled_font_text_to_glyphs (scaled_font, *x, *y, ch, -1,
-                                          &glyphs, &num_glyphs,
-                                          NULL, NULL, NULL);
-        _g_free0 (ch);
-        cairo_glyph_extents(cr, glyphs, num_glyphs, &extents);
+    pango_context_set_language (context, pango_language_from_string ("ko-KR"));
+    pango_context_set_base_dir (context, PANGO_DIRECTION_LTR);
+    pango_context_set_base_gravity (context, PANGO_GRAVITY_SOUTH);
 
-        if (*x >= 595.0 - extents.x_advance - 20.0) {
-            glyphs[0].x  = 20.0;
-            glyphs[0].y += 16.0;
-            *x  = 20.0 + extents.x_advance;
-            *y += 16.0;
-        }
-        else {
-            *x += extents.x_advance;
-        }
+    desc = pango_font_description_copy (pango_context_get_font_description (context));
 
-        cairo_show_glyphs (cr, glyphs, num_glyphs);
-    }
+    pango_font_description_set_family_static (desc, "HCR Batang");
+    pango_font_description_set_style   (desc, PANGO_STYLE_NORMAL);
+    pango_font_description_set_variant (desc, PANGO_VARIANT_NORMAL);
+    pango_font_description_set_weight  (desc, PANGO_WEIGHT_NORMAL);
+    pango_font_description_set_stretch (desc, PANGO_STRETCH_NORMAL);
+    pango_font_description_set_size    (desc, 14 * PANGO_SCALE);
 
-    *y += 18.0;
+    layout = pango_layout_new (context);
+    pango_layout_set_font_description (layout, desc);
+    pango_font_description_free (desc);
+
+    pango_layout_set_text (layout, NULL, 0);
+    pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+
+    return layout;
 }
 
 gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
@@ -96,73 +80,28 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
     g_return_val_if_fail (page != NULL, FALSE);
     g_return_val_if_fail (cr   != NULL, FALSE);
     cairo_save (cr);
-
-    guint          i, j, k;
+    static double y = 0;
+    gint i;
+    PangoLayout *layout;
     GHWPParagraph *paragraph;
-    GHWPText      *ghwp_text;
-    GHWPTable     *table;
-    GHWPTableCell *cell;
+    PangoContext *context;
 
-    cairo_glyph_t        *glyphs = NULL; /* NULL로 지정하면 자동 할당됨 */
-    cairo_scaled_font_t  *scaled_font;
-    cairo_font_face_t    *font_face;
-    cairo_matrix_t        font_matrix;
-    cairo_matrix_t        ctm;
-    cairo_font_options_t *font_options;
-    cairo_text_extents_t  extents;
-
-    double x = 20.0;
-    double y = 40.0;
-
-    /* create scaled font */
-    once_ft_init_and_new(); /*한 번만 초기화, 로드*/
-    font_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
-    cairo_matrix_init_identity (&font_matrix);
-    cairo_matrix_scale (&font_matrix, 12.0, 12.0);
-    cairo_get_matrix (cr, &ctm);
-    font_options = cairo_font_options_create ();
-    cairo_get_font_options (cr, font_options);
-    scaled_font = cairo_scaled_font_create (font_face,
-                                           &font_matrix, &ctm, font_options);
-    cairo_font_options_destroy (font_options);
-
-    cairo_set_scaled_font(cr, scaled_font); /* 요 문장 없으면 fault 떨어짐 */
-    cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+    context = ghwp_cairo_create_pango_context (cr);
+    layout = ghwp_create_pango_layout (context);
 
     for (i = 0; i < page->paragraphs->len; i++) {
         paragraph = g_array_index (page->paragraphs, GHWPParagraph *, i);
-        ghwp_text = paragraph->ghwp_text;
-        x = 20.0;
-        /* draw text */
-        if ((ghwp_text != NULL) && !(g_str_equal(ghwp_text->text, "\n\r"))) {
-            draw_text(cr, extents, glyphs, scaled_font, ghwp_text->text,
-                      &x, &y);
-        }
-        /* draw table */
-        table = ghwp_paragraph_get_table (paragraph);
-        if (table != NULL) {
-            for (j = 0; j < table->cells->len; j++) {
-                cell = g_array_index(table->cells, GHWPTableCell *, j);
-                for (k = 0; k < cell->paragraphs->len; k++) {
-                    paragraph = g_array_index(cell->paragraphs,
-                                              GHWPParagraph *, k);
-                    if (paragraph->ghwp_text) {
-                        /* FIXME x, y 좌표 */
-                        x = 40.0 + (595.5 - 40.0) / table->n_cols * cell->col_addr;
-                        if (cell->col_addr != 0)
-                            y -= 16.0;
-                        draw_text(cr, extents, glyphs, scaled_font,
-                                  paragraph->ghwp_text->text, &x, &y);
-                    }
-                }
-            }
-        }
+        pango_layout_set_text (layout, paragraph->ghwp_text->text, -1);
+        pango_cairo_update_layout (cr, layout);
+        pango_cairo_show_layout   (cr, layout);
+        cairo_move_to(cr, 0, y);
+        y += 30;
     }
 
-    cairo_glyph_free (glyphs);
-    cairo_scaled_font_destroy (scaled_font);
-
+    g_object_unref (layout);
+    g_object_unref (context);
     cairo_restore (cr);
+
     return TRUE;
 }
 

@@ -43,6 +43,8 @@
 #include "gsf-input-stream.h"
 #include "ghwp-file-v5.h"
 #include "config.h"
+#include <pango/pango.h>
+#include <pango/pangocairo.h>
 
 G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
 
