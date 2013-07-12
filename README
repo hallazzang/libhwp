@@ -3,7 +3,7 @@ libghwp is a GObject based library for handling HWP documents.
 INSTALL
 -------
 sudo apt-get update
-sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libxml2-dev fonts-nanum
+sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libpango1.0-dev libxml2-dev fonts-nanum
 
 ./autogen.sh
 make
