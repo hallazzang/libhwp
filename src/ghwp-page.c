@@ -33,75 +33,54 @@ void ghwp_page_get_size (GHWPPage *page,
     *height = 842.0;
 }
 
-PangoContext *
-ghwp_cairo_create_pango_context (cairo_t *cr)
+#include <math.h>
+#include <pango/pangocairo.h>
+static void
+draw_text (cairo_t *cr)
 {
-    PangoFontMap *fontmap;
-    PangoContext *context;
-
-    fontmap = pango_cairo_font_map_get_default ();
-    context = pango_font_map_create_context (fontmap);
-    pango_cairo_update_context (cr, context);
-    pango_cairo_context_set_resolution (context, 0);
-    return context;
-}
-
-static PangoLayout *
-ghwp_create_pango_layout (PangoContext * context)
-{
-    PangoFontDescription *desc;
-    PangoLayout *layout;
-
-    pango_context_set_language (context, pango_language_from_string ("ko-KR"));
-    pango_context_set_base_dir (context, PANGO_DIRECTION_LTR);
-    pango_context_set_base_gravity (context, PANGO_GRAVITY_SOUTH);
-
-    desc = pango_font_description_copy (pango_context_get_font_description (context));
-
-    pango_font_description_set_family_static (desc, "HCR Batang");
-    pango_font_description_set_style   (desc, PANGO_STYLE_NORMAL);
-    pango_font_description_set_variant (desc, PANGO_VARIANT_NORMAL);
-    pango_font_description_set_weight  (desc, PANGO_WEIGHT_NORMAL);
-    pango_font_description_set_stretch (desc, PANGO_STRETCH_NORMAL);
-    pango_font_description_set_size    (desc, 14 * PANGO_SCALE);
-
-    layout = pango_layout_new (context);
-    pango_layout_set_font_description (layout, desc);
-    pango_font_description_free (desc);
-
-    pango_layout_set_text (layout, NULL, 0);
-    pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
-
-    return layout;
+#define RADIUS 150
+#define N_WORDS 10
+#define FONT "Sans Bold 27"
+  PangoLayout *layout;
+  PangoFontDescription *desc;
+  int i;
+  /* Center coordinates on the middle of the region we are drawing
+   */
+  cairo_translate (cr, RADIUS, RADIUS);
+  /* Create a PangoLayout, set the font and text */
+  layout = pango_cairo_create_layout (cr);
+  pango_layout_set_text (layout, "Text", -1);
+  desc = pango_font_description_from_string (FONT);
+  pango_layout_set_font_description (layout, desc);
+  pango_font_description_free (desc);
+  /* Draw the layout N_WORDS times in a circle */
+  for (i = 0; i < N_WORDS; i++)
+    {
+      int width, height;
+      double angle = (360. * i) / N_WORDS;
+      double red;
+      cairo_save (cr);
+      /* Gradient from red at angle == 60 to blue at angle == 240 */
+      red   = (1 + cos ((angle - 60) * G_PI / 180.)) / 2;
+      cairo_set_source_rgb (cr, red, 0, 1.0 - red);
+      cairo_rotate (cr, angle * G_PI / 180.);
+      /* Inform Pango to re-layout the text with the new transformation */
+      pango_cairo_update_layout (cr, layout);
+      pango_layout_get_size (layout, &width, &height);
+      cairo_move_to (cr, - ((double)width / PANGO_SCALE) / 2, - RADIUS);
+      pango_cairo_show_layout (cr, layout);
+      cairo_restore (cr);
+    }
+  /* free the layout object */
+  g_object_unref (layout);
 }
 
 gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
 {
     g_return_val_if_fail (page != NULL, FALSE);
     g_return_val_if_fail (cr   != NULL, FALSE);
-    cairo_save (cr);
-    static double y = 0;
-    gint i;
-    PangoLayout *layout;
-    GHWPParagraph *paragraph;
-    PangoContext *context;
 
-    context = ghwp_cairo_create_pango_context (cr);
-    layout = ghwp_create_pango_layout (context);
-
-    for (i = 0; i < page->paragraphs->len; i++) {
-        paragraph = g_array_index (page->paragraphs, GHWPParagraph *, i);
-        pango_layout_set_text (layout, paragraph->ghwp_text->text, -1);
-        pango_cairo_update_layout (cr, layout);
-        pango_cairo_show_layout   (cr, layout);
-        cairo_move_to(cr, 0, y);
-        y += 30;
-    }
-
-    g_object_unref (layout);
-    g_object_unref (context);
-    cairo_restore (cr);
-
+    draw_text (cr);
     return TRUE;
 }
 
