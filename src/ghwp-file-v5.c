@@ -355,10 +355,12 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
 
                     table = ghwp_paragraph_get_table (paragraph);
                     cell  = ghwp_table_cell_new_from_context(context);
-                    ghwp_table_add_cell (table, cell);
-                    /* TODO 높이 계산 cell_spacing 고려할 것 FIXME 소수점 */
-                    y += cell->height / 7200.0 * 25.4 *
-                            cell->col_span / table->n_cols;
+                    if (GHWP_IS_TABLE(table)) {
+                        ghwp_table_add_cell (table, cell);
+                        /* TODO 높이 계산 cell_spacing 고려할 것 FIXME 소수점 */
+                        y += cell->height / 7200.0 * 25.4 *
+                                cell->col_span / table->n_cols;
+                    }
 
                     if (y > 842.0 - 80.0) {
                         g_array_append_val (doc->pages, page);
