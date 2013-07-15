@@ -37,6 +37,7 @@ stamp-it
 *.pc
 *.o
 ghwp-version.h
+src/hwp2pdf
 
 # output files of dpkg-buildpackage
 debian/autoreconf.*
