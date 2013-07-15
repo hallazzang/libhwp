@@ -58,6 +58,6 @@ int main (int argc, char **argv)
     cairo_surface_destroy (surface);
 /* TODO 
     g_object_unref (document);
-/*    g_object_unref (file);*/
+    g_object_unref (file);*/
     return 1;
 }
