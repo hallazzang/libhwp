@@ -67,3 +67,8 @@ EXTRA_DIST =       \
 DISTCLEANFILES = \
 	ghwp-0.2.pc  \
 	ghwp-version.h
+
+bin_PROGRAMS    = hwp2pdf
+hwp2pdf_SOURCES = hwp2pdf.c
+hwp2pdf_CFLAGS  = $(GHWP_CFLAGS)
+hwp2pdf_LDADD   = libghwp.la
