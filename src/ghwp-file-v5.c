@@ -468,9 +468,9 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     } else if ( g_str_equal(name, GSF_META_NAME_DATE_CREATED) ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->creation_date  = (GTime) ts->timet;
-
+    /* hwp 문서를 저장할 때 사용된 한컴 워드프로세서의 내부 버전 */
     } else if ( g_str_equal(name, GSF_META_NAME_REVISION_COUNT) ) {
-        doc->revision_count = g_value_get_string (value);
+        doc->hanword_version = g_value_get_string (value);
 
     } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
         /* not correct n_pages == 0 ?? */

@@ -70,7 +70,8 @@ struct _GHWPDocument {
     const gchar         *desc;
     GTime                last_printed;
     const gchar         *last_saved_by;
-    const gchar         *revision_count;
+    /* version of hanword */
+    const gchar         *hanword_version;
 };
 
 struct _GHWPDocumentClass {
