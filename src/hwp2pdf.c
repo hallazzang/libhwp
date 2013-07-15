@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <glib-object.h>
 #include <cairo-pdf.h>
-#include <ghwp/ghwp.h>
+#include "ghwp.h"
 
 int main (int argc, char **argv)
 {
@@ -32,6 +32,7 @@ int main (int argc, char **argv)
     
     if (argc < 3) {
         puts ("Usage: hwp2pdf file.hwp file.pdf");
+        return 0;
     }
     GHWPFile *file = ghwp_file_new_from_filename (argv[1], &error);
     GHWPDocument *document = ghwp_file_get_document (file, &error);
