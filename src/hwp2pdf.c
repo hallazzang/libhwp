@@ -25,7 +25,7 @@
 
 int main (int argc, char **argv)
 {
-    GError *error;
+    GError *error = NULL;
     GHWPPage *page;
     gdouble width = 0.0, height = 0.0;
     guint i;
