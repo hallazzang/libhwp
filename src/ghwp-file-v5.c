@@ -206,8 +206,10 @@ typedef enum
     CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
 } CtrlID;
 
-/* TODO fsm parser, nautilus에서 파일 속성만 보는 경우가 있으므로 속도 문제
- * 때문에 get_n_pages 로 옮겨갈 필요가 있다. */
+/* TODO nautilus에서 파일 속성만 보는 경우가 있으므로 속도 문제
+ * 때문에 get_n_pages 로 옮겨갈 필요가 있다. DocInfo도 마찬가지
+ * get_page, get_n_pages 등의 함수 상단에 g_once를 넣으면 되는데,
+ * 득실을 잘 따져야할 것이다. 일단 보류 */
 static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
 {
     g_return_if_fail (doc != NULL);
