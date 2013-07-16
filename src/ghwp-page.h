@@ -40,6 +40,7 @@ struct _GHWPPage
 {
     GObject  parent_instance;
     GArray  *paragraphs;
+    GArray  *layouts;
 };
 
 struct _GHWPPageClass

@@ -91,8 +91,9 @@ GHWPPage *ghwp_page_new (void)
 
 static void ghwp_page_finalize (GObject *obj)
 {
-    GHWPPage *page = GHWP_PAGE(obj);
+    GHWPPage *page = GHWP_PAGE (obj);
     g_array_free (page->paragraphs, TRUE);
+    g_array_free (page->layouts,    TRUE);
     G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
 }
 
@@ -105,6 +106,7 @@ static void ghwp_page_class_init (GHWPPageClass * klass)
 static void ghwp_page_init (GHWPPage *page)
 {
     page->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
+    page->layouts    = g_array_new (TRUE, TRUE, sizeof (PangoLayout   *));
 }
 
 /* experimental */
