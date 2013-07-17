@@ -23,6 +23,7 @@
 #include <glib-object.h>
 
 #include <cairo.h>
+#include <pango/pango-layout.h>
 #include "ghwp.h"
 
 G_BEGIN_DECLS
@@ -89,6 +90,14 @@ struct _GHWPRectangle
     gdouble x2;
     gdouble y2;
 };
+
+typedef struct _GHWPLayout GHWPLayout;
+struct _GHWPLayout {
+    gdouble x;
+    gdouble y;
+    PangoLayout *pango_layout;
+};
+
 
 G_END_DECLS
 

@@ -33,46 +33,10 @@ void ghwp_page_get_size (GHWPPage *page,
     *height = 842.0;
 }
 
-#include <math.h>
-#include <pango/pangocairo.h>
-static void
-draw_text (cairo_t *cr)
+static void ghwp_show_layout (cairo_t *cr, GHWPLayout *layout)
 {
-#define RADIUS 150
-#define N_WORDS 10
-#define FONT "Sans Bold 27"
-  PangoLayout *layout;
-  PangoFontDescription *desc;
-  int i;
-  /* Center coordinates on the middle of the region we are drawing
-   */
-  cairo_translate (cr, RADIUS, RADIUS);
-  /* Create a PangoLayout, set the font and text */
-  layout = pango_cairo_create_layout (cr);
-  pango_layout_set_text (layout, "Text", -1);
-  desc = pango_font_description_from_string (FONT);
-  pango_layout_set_font_description (layout, desc);
-  pango_font_description_free (desc);
-  /* Draw the layout N_WORDS times in a circle */
-  for (i = 0; i < N_WORDS; i++)
-    {
-      int width, height;
-      double angle = (360. * i) / N_WORDS;
-      double red;
-      cairo_save (cr);
-      /* Gradient from red at angle == 60 to blue at angle == 240 */
-      red   = (1 + cos ((angle - 60) * G_PI / 180.)) / 2;
-      cairo_set_source_rgb (cr, red, 0, 1.0 - red);
-      cairo_rotate (cr, angle * G_PI / 180.);
-      /* Inform Pango to re-layout the text with the new transformation */
-      pango_cairo_update_layout (cr, layout);
-      pango_layout_get_size (layout, &width, &height);
-      cairo_move_to (cr, - ((double)width / PANGO_SCALE) / 2, - RADIUS);
-      pango_cairo_show_layout (cr, layout);
-      cairo_restore (cr);
-    }
-  /* free the layout object */
-  g_object_unref (layout);
+    cairo_move_to (cr, layout->x, layout->y);
+    pango_cairo_show_layout (cr, layout->pango_layout);
 }
 
 gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
@@ -80,7 +44,14 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
     g_return_val_if_fail (page != NULL, FALSE);
     g_return_val_if_fail (cr   != NULL, FALSE);
 
-    draw_text (cr);
+    int i;
+    GHWPLayout *layout;
+
+    for (i = 0; i < page->layouts->len; i++) {
+        layout = g_array_index (page->layouts, GHWPLayout *, i);
+        ghwp_show_layout (cr, layout);
+    }
+
     return TRUE;
 }
 
@@ -106,7 +77,7 @@ static void ghwp_page_class_init (GHWPPageClass * klass)
 static void ghwp_page_init (GHWPPage *page)
 {
     page->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
-    page->layouts    = g_array_new (TRUE, TRUE, sizeof (PangoLayout   *));
+    page->layouts    = g_array_new (TRUE, TRUE, sizeof (GHWPLayout   *));
 }
 
 /* experimental */

@@ -206,190 +206,42 @@ typedef enum
     CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
 } CtrlID;
 
-/* TODO nautilus에서 파일 속성만 보는 경우가 있으므로 속도 문제
- * 때문에 get_n_pages 로 옮겨갈 필요가 있다. DocInfo도 마찬가지
- * get_page, get_n_pages 등의 함수 상단에 g_once를 넣으면 되는데,
- * 득실을 잘 따져야할 것이다. 일단 보류 */
 static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
 {
     g_return_if_fail (doc != NULL);
-    guint32 ctrl_id = 0;
-    guint16 ctrl_lv = 0;
-    guint16 curr_lv = 0;
-    guint   index;
-    GHWPFileV5 *file = GHWP_FILE_V5(doc->file);
-    gdouble    y    = 0.0;
-    guint      len  = 0;
-    GHWPPage  *page = ghwp_page_new ();
+    guint i;
+    GHWPFileV5 *file = GHWP_FILE_V5 (doc->file);
 
-    for (index = 0; index < file->section_streams->len; index++) {
-        GInputStream *section_stream;
-        GHWPContext  *context;
-        section_stream = g_array_index (file->section_streams,
-                                        GInputStream *,
-                                        index);
-        section_stream = _g_object_ref0 (section_stream);
-
-        context = ghwp_context_new (section_stream);
-
-        while (ghwp_context_pull(context, error)) {
-            curr_lv = (guint) context->level;
-            /* 상태 변화 */
-            if (curr_lv <= ctrl_lv)
-                context->status = STATE_NORMAL;
-
-            switch (context->tag_id) {
-            case GHWP_TAG_PARA_HEADER:
-                if (context->status != STATE_INSIDE_TABLE) {
-                    GHWPParagraph *paragraph = ghwp_paragraph_new ();
-                    g_array_append_val (doc->paragraphs, paragraph);
-                } else if (context->status == STATE_INSIDE_TABLE) {
-                    GHWPParagraph *paragraph;
-                    GHWPTable     *table;
-                    GHWPTableCell *cell;
-                    paragraph = g_array_index (doc->paragraphs,
-                                               GHWPParagraph *,
-                                               doc->paragraphs->len - 1);
-                    table = ghwp_paragraph_get_table (paragraph);
-                    cell  = ghwp_table_get_last_cell (table);
-                    GHWPParagraph *c_paragraph = ghwp_paragraph_new ();
-                    ghwp_table_cell_add_paragraph (cell, c_paragraph);
-                }
-                break;
+    for (i = 0; i < file->section_streams->len; i++) {
+        GInputStream *stream;
+        GHWPContext  *ghwp_context;
+        stream = g_array_index (file->section_streams, GInputStream *, i);
+        ghwp_context = ghwp_context_new (stream);
+        PangoFontMap *fontmap;
+        PangoContext *context;
+                fontmap = pango_cairo_font_map_get_default ();
+        while (ghwp_context_pull(ghwp_context, error)) {
+            switch (ghwp_context->tag_id) {
             case GHWP_TAG_PARA_TEXT:
-            {
-                GHWPParagraph *paragraph;
-                GHWPText      *ghwp_text;
-                paragraph    = g_array_index (doc->paragraphs, GHWPParagraph *,
-                                              doc->paragraphs->len - 1);
-                gchar *text  = _ghwp_file_get_text_from_context (context);
-                ghwp_text    = ghwp_text_new (text);
+                context = pango_font_map_create_context (fontmap);
+                PangoLayout  *layout  = pango_layout_new (context);
+                gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
+                if (text)
+                    pango_layout_set_text (layout, text, -1);
                 g_free (text);
-
-                if (context->status != STATE_INSIDE_TABLE) {
-                    ghwp_paragraph_set_ghwp_text (paragraph, ghwp_text);
-                    /* 높이 계산 */
-                    len = g_utf8_strlen (ghwp_text->text, -1);
-                    y += 18.0 * ceil (len / 33.0);
-
-                    if (y > 842.0 - 80.0) {
-                        g_array_append_val (doc->pages, page);
-                        page = ghwp_page_new ();
-                        g_array_append_val (page->paragraphs, paragraph);
-                        y = 0.0;
-                    } else {
-                        g_array_append_val (page->paragraphs, paragraph);
-                    } /* if */
-                    paragraph = NULL;
-                } else if (context->status == STATE_INSIDE_TABLE) {
-                    GHWPTable     *table;
-                    GHWPTableCell *cell;
-                    GHWPParagraph *c_paragraph;
-                    table       = ghwp_paragraph_get_table (paragraph);
-                    cell        = ghwp_table_get_last_cell (table);
-                    c_paragraph = ghwp_table_cell_get_last_paragraph (cell);
-                    ghwp_paragraph_set_ghwp_text (c_paragraph, ghwp_text);
-                }
-            }
-                break;
-            case GHWP_TAG_CTRL_HEADER:
-                context_read_uint32 (context, &ctrl_id);
-                ctrl_lv = context->level;
-                switch (ctrl_id) {
-                case CTRL_ID_TABLE:
-                    context->status = STATE_INSIDE_TABLE;
-                    break;
-                default:
-                    context->status = STATE_NORMAL;
-                    break;
-                }
-                break;
-            case GHWP_TAG_TABLE:
-            /*
-                  \  col 0   col 1
-                   +-------+-------+
-            row 0  |  00   |   01  |
-                   +-------+-------+
-            row 1  |  10   |   11  |
-                   +-------+-------+
-            row 2  |  20   |   21  |
-                   +-------+-------+
-
-            <table> ::= { <list-header> <para-header>+ }+
-
-            para-header
-                ...
-                ctrl-header (id:tbl)
-                    table: row-count, col-count
-                    list-header (00)
-                    ...
-                    list-header (01)
-                    ...
-                    list-header (10)
-                    ...
-                    list-header (11)
-                    ...
-                    list-header (20)
-                    ...
-                    list-header (21)
-            */
-            {
-                GHWPTable     *table;
-                GHWPParagraph *paragraph;
-                table = ghwp_table_new_from_context (context);
-                paragraph = g_array_index (doc->paragraphs, GHWPParagraph *,
-                                           doc->paragraphs->len - 1);
-                ghwp_paragraph_set_table (paragraph, table);
-            }
-                break;
-            case GHWP_TAG_LIST_HEADER:
-                /* TODO ctrl_id 에 따른 객체를 생성한다 */
-                switch (context->status) {
-                /* table에 cell을 추가한다 */
-                case STATE_INSIDE_TABLE:
-                {
-                    GHWPParagraph *paragraph;
-                    GHWPTable     *table;
-                    GHWPTableCell *cell;
-
-                    paragraph = g_array_index (doc->paragraphs, GHWPParagraph *,
-                                               doc->paragraphs->len - 1);
-
-                    table = ghwp_paragraph_get_table (paragraph);
-                    cell  = ghwp_table_cell_new_from_context(context);
-                    if (GHWP_IS_TABLE(table)) {
-                        ghwp_table_add_cell (table, cell);
-                        /* TODO 높이 계산 cell_spacing 고려할 것 FIXME 소수점 */
-                        y += cell->height / 7200.0 * 25.4 *
-                                cell->col_span / table->n_cols;
-                    }
-
-                    if (y > 842.0 - 80.0) {
-                        g_array_append_val (doc->pages, page);
-                        page = ghwp_page_new ();
-                        /* FIXME 중복 저장 */
-                        g_array_append_val (page->paragraphs, paragraph);
-                        y = 0.0;
-                    } else {
-                        /* FIXME 중복 저장 */
-                        g_array_append_val (page->paragraphs, paragraph);
-                    }
-                }
-                    break;
-                default:
-                    break;
-                }
+                GHWPLayout *ghwp_layout = g_new0 (GHWPLayout, 1);
+                ghwp_layout->pango_layout = layout;
+                ghwp_layout->x += 20;
+                ghwp_layout->y += 20;
+                GHWPPage *page = ghwp_page_new ();
+                g_array_append_val (page->layouts, ghwp_layout);
+                g_array_append_val (doc->pages, page);
                 break;
             default:
-/*                printf ("%s:%d: %s not implemented\n", __FILE__, __LINE__,*/
-/*                    _ghwp_get_tag_name(context->tag_id));*/
                 break;
             } /* switch */
         } /* while */
-        /* add last page */
-        g_array_append_val (doc->pages, page);
-        _g_object_unref0 (context);
-        _g_object_unref0 (section_stream);
+        g_object_unref (ghwp_context);
     } /* for */
 }
 
