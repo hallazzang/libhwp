@@ -77,6 +77,17 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
     return GHWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
 }
 
+/**
+ * ghwp_file_new_from_uri:
+ * @uri: uri of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #GHWPFile.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #GHWPFile, or %NULL
+ **/
 GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);

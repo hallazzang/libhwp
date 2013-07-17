@@ -32,6 +32,17 @@
 
 G_DEFINE_TYPE (GHWPFileV3, ghwp_file_v3, GHWP_TYPE_FILE);
 
+/**
+ * ghwp_file_v3_new_from_uri:
+ * @uri: uri of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #GHWPFileV3.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #GHWPFileV3, or %NULL
+ **/
 GHWPFileV3 *ghwp_file_v3_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);

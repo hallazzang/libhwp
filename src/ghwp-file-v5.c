@@ -484,13 +484,24 @@ gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
                                            GHWP_FILE_V5(file)->extra_version);
 }
 
+/**
+ * ghwp_file_v5_new_from_uri:
+ * @uri: uri of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #GHWPFileV5.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #GHWPFileV5, or %NULL
+ **/
 GHWPFileV5* ghwp_file_v5_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     gchar      *filename = g_filename_from_uri (uri, NULL, error);
     GHWPFileV5 *file     = ghwp_file_v5_new_from_filename (filename, error);
-    _g_free0 (filename);
+    g_free (filename);
     return file;
 }
 

@@ -25,6 +25,17 @@
 
 G_DEFINE_TYPE (GHWPFileML, ghwp_file_ml, GHWP_TYPE_FILE);
 
+/**
+ * ghwp_file_ml_new_from_uri:
+ * @uri: uri of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #GHWPFileML.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #GHWPFileML, or %NULL
+ **/
 GHWPFileML *ghwp_file_ml_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
