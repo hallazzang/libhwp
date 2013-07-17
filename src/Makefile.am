@@ -68,11 +68,15 @@ DISTCLEANFILES = \
 	ghwp-0.2.pc  \
 	ghwp-version.h
 
-bin_PROGRAMS    = hwp2pdf unhwp
+bin_PROGRAMS = hwp2pdf hwp2svg unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
 hwp2pdf_CFLAGS  = $(GHWP_CFLAGS)
 hwp2pdf_LDADD   = libghwp.la
+
+hwp2svg_SOURCES = hwp2svg.c
+hwp2svg_CFLAGS  = $(GHWP_CFLAGS)
+hwp2svg_LDADD   = libghwp.la
 
 unhwp_SOURCES = unhwp.c
 unhwp_CFLAGS  = $(GHWP_CFLAGS)

@@ -38,6 +38,7 @@ stamp-it
 *.o
 ghwp-version.h
 src/hwp2pdf
+src/hwp2svg
 src/unhwp
 
 # output files of dpkg-buildpackage
