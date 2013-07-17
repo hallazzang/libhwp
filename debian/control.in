@@ -27,7 +27,6 @@ Description: handling and rendering HWP documents (development files)
 Package: libghwp1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
-         fonts-nanum
 Pre-Depends: ${misc:Pre-Depends}
 Multi-Arch: same
 Description: handling and rendering HWP documents (library)
