@@ -211,6 +211,8 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
     g_return_if_fail (doc != NULL);
     guint i;
     GHWPFileV5 *file = GHWP_FILE_V5 (doc->file);
+    gdouble y = 0.0;
+    GHWPPage *page = ghwp_page_new ();
 
     for (i = 0; i < file->section_streams->len; i++) {
         GInputStream *stream;
@@ -219,28 +221,44 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
         ghwp_context = ghwp_context_new (stream);
         PangoFontMap *fontmap;
         PangoContext *context;
-                fontmap = pango_cairo_font_map_get_default ();
+        fontmap = pango_cairo_font_map_get_default ();
+
         while (ghwp_context_pull(ghwp_context, error)) {
             switch (ghwp_context->tag_id) {
             case GHWP_TAG_PARA_TEXT:
                 context = pango_font_map_create_context (fontmap);
-                PangoLayout  *layout  = pango_layout_new (context);
+                PangoLayout *layout = pango_layout_new (context);
+                pango_layout_set_width (layout, 595 * PANGO_SCALE);
+                pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
                 gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
                 if (text)
                     pango_layout_set_text (layout, text, -1);
                 g_free (text);
                 GHWPLayout *ghwp_layout = g_new0 (GHWPLayout, 1);
                 ghwp_layout->pango_layout = layout;
-                ghwp_layout->x += 20;
-                ghwp_layout->y += 20;
-                GHWPPage *page = ghwp_page_new ();
+                ghwp_layout->x = 0;
+                ghwp_layout->y = y;
+
+                PangoRectangle ink_rect;
+                PangoRectangle logical_rect;
+                pango_layout_get_extents (layout, &ink_rect, &logical_rect);
+                printf("%d %d\n", ink_rect.height, logical_rect.height);
+
+                y += ((gdouble) logical_rect.height / (gdouble) PANGO_SCALE);
+
+                if (y >= 842.0) {
+                    y = 0;
+                    g_array_append_val (doc->pages, page);
+                    page = ghwp_page_new ();
+                }
                 g_array_append_val (page->layouts, ghwp_layout);
-                g_array_append_val (doc->pages, page);
                 break;
             default:
                 break;
             } /* switch */
         } /* while */
+        /* add last page */
+        g_array_append_val (doc->pages, page);
         g_object_unref (ghwp_context);
     } /* for */
 }
