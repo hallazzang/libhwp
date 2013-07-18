@@ -211,7 +211,7 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
     g_return_if_fail (doc != NULL);
     guint i;
     GHWPFileV5 *file = GHWP_FILE_V5 (doc->file);
-    gdouble y = 0.0;
+    gdouble y = 0.0, dy = 0.0;
     GHWPPage *page = ghwp_page_new ();
 
     for (i = 0; i < file->section_streams->len; i++) {
@@ -234,30 +234,37 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
                 if (text)
                     pango_layout_set_text (layout, text, -1);
                 g_free (text);
+
                 GHWPLayout *ghwp_layout = g_new0 (GHWPLayout, 1);
                 ghwp_layout->pango_layout = layout;
+
                 ghwp_layout->x = 0;
                 ghwp_layout->y = y;
 
                 PangoRectangle ink_rect;
                 PangoRectangle logical_rect;
                 pango_layout_get_extents (layout, &ink_rect, &logical_rect);
-                printf("%d %d\n", ink_rect.height, logical_rect.height);
 
-                y += ((gdouble) logical_rect.height / (gdouble) PANGO_SCALE);
-
+                dy = logical_rect.height / (gdouble) PANGO_SCALE;
+                y += dy;
                 if (y >= 842.0) {
                     y = 0;
                     g_array_append_val (doc->pages, page);
                     page = ghwp_page_new ();
+                    ghwp_layout->y = y;
+                    g_array_append_val (page->layouts, ghwp_layout);
+                    y = dy;
+                } else {
+                    g_array_append_val (page->layouts, ghwp_layout);
                 }
-                g_array_append_val (page->layouts, ghwp_layout);
                 break;
             default:
                 break;
             } /* switch */
         } /* while */
         /* add last page */
+        /* FIXME: problem that a page is appended
+         even if there is no page in document. */
         g_array_append_val (doc->pages, page);
         g_object_unref (ghwp_context);
     } /* for */
