@@ -208,13 +208,13 @@ typedef enum
 
 static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
 {
-    g_return_if_fail (doc != NULL);
-    guint i;
+    g_return_if_fail (GHWP_IS_DOCUMENT (doc));
+
     GHWPFileV5 *file = GHWP_FILE_V5 (doc->file);
     gdouble y = 0.0, dy = 0.0;
     GHWPPage *page = ghwp_page_new ();
 
-    for (i = 0; i < file->section_streams->len; i++) {
+    for (guint i = 0; i < file->section_streams->len; i++) {
         GInputStream  *stream       = g_array_index (file->section_streams,
                                                      GInputStream *, i);
         GHWPContext   *ghwp_context = ghwp_context_new (stream);
@@ -602,42 +602,37 @@ static void ghwp_file_v5_decode_file_header (GHWPFileV5 *file)
     buf = (g_free (buf), NULL);
 }
 
+/* FIXME: should be freed */
+gchar *ordered_entry[] = {
+    "FileHeader",
+    "DocInfo",
+    "BodyText",
+    "ViewText",
+    "\005HwpSummaryInformation",
+    "BinData",
+    "PrvText",
+    "PrvImage",
+    "DocOptions",
+    "Scripts",
+    "XMLTemplate",
+    "DocHistory"
+};
 
-static int get_order (char *a)
+static gint get_entry_order (char *a)
 {
-    if (g_str_equal (a, "FileHeader"))
-        return 0;
-    if (g_str_equal (a, "DocInfo"))
-        return 1;
-    if (g_str_equal (a, "BodyText"))
-        return 2;
-    if (g_str_equal (a, "ViewText"))
-        return 3;
-    if (g_str_equal (a, "\005HwpSummaryInformation"))
-        return 4;
-    if (g_str_equal (a, "BinData"))
-        return 5;
-    if (g_str_equal (a, "PrvText"))
-        return 6;
-    if (g_str_equal (a, "PrvImage"))
-        return 7;
-    if (g_str_equal (a, "DocOptions"))
-        return 8;
-    if (g_str_equal (a, "Scripts"))
-        return 9;
-    if (g_str_equal (a, "XMLTemplate"))
-        return 10;
-    if (g_str_equal (a, "DocHistory"))
-        return 11;
+    for (int i = 0; i < sizeof(ordered_entry) / sizeof(*ordered_entry); i++) {
+        if (g_str_equal (a, ordered_entry[i])) {
+            return i;
+        }
+    }
 
-    return 100;
+    return G_MAXINT;
 }
 
-static gint compare_entries (gconstpointer a, gconstpointer b)
+static gint compare_entry_names (gconstpointer a, gconstpointer b)
 {
-    int i, j;
-    i = get_order (*(char **)a);
-    j = get_order (*(char **)b);
+    gint i = get_entry_order (*(char **)a);
+    gint j = get_entry_order (*(char **)b);
     return i - j;
 }
 
@@ -646,9 +641,9 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
 {
     g_return_if_fail (file != NULL);
 
-    const gchar *name = NULL;
-    gint  n_children;
-    n_children = gsf_infile_num_children ((GsfInfile*) file->priv->olefile);
+    const gchar *name       = NULL;
+    GsfInfile   *oleinfile  = GSF_INFILE (file->priv->olefile);
+    gint         n_children = gsf_infile_num_children (oleinfile);
 
     if (n_children < 1) {
         fprintf (stderr, "invalid hwp file\n");
@@ -657,37 +652,35 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
 
     /* 스펙이 명확하지 않고, 추후 예고없이 스펙이 변할 수 있기 때문에
      * 이를 감지하고자 코드를 이렇게 작성하였다. */
-    GArray *entries = g_array_new (TRUE, TRUE, sizeof(char *));
-    gint i;
-    for (i = 0; i < n_children; i++) {
-        name = gsf_infile_name_by_index ((GsfInfile*) file->priv->olefile, i);
-        g_array_append_val (entries, name);
-    }
-    g_array_sort(entries, compare_entries);
+    GArray *entry_names = g_array_new (TRUE, TRUE, sizeof(char *));
 
-    for (i = 0; i < n_children; i++) {
-        char     *entry = g_array_index (entries, char *, i);
+    for (gint i = 0; i < n_children; i++) {
+        name = gsf_infile_name_by_index (oleinfile, i);
+        g_array_append_val (entry_names, name);
+    }
+    g_array_sort(entry_names, compare_entry_names);
+
+    for (gint i = 0; i < n_children; i++) {
+        char     *entry = g_array_index (entry_names, char *, i);
         GsfInput* input;
-        gint      num_children = 0;
+        gint      n_children = 0;
 
         if (g_str_equal (entry, "FileHeader")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              entry);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
+            input = gsf_infile_child_by_name (oleinfile, entry);
+            n_children = gsf_infile_num_children ((GsfInfile*) input);
 
-            if (num_children > 0) {
+            if (n_children > 0) {
                 fprintf (stderr, "invalid\n");
             }
 
             file->file_header_stream = G_INPUT_STREAM (gsf_input_stream_new (input));
             ghwp_file_v5_decode_file_header (file);
         } else if (g_str_equal (entry, "DocInfo")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              entry);
+            input = gsf_infile_child_by_name (oleinfile, entry);
             input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
+            n_children = gsf_infile_num_children ((GsfInfile*) input);
 
-            if (num_children > 0) {
+            if (n_children > 0) {
                 fprintf (stderr, "invalid\n");
             }
 
@@ -718,34 +711,34 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
             file->section_streams = g_array_new (TRUE, TRUE,
                                                  sizeof (GInputStream*));
 
-            infile = (GsfInfile*) gsf_infile_child_by_name (
-                                         (GsfInfile*) file->priv->olefile, entry);
+            infile = (GsfInfile*) gsf_infile_child_by_name (oleinfile, entry);
             infile = _g_object_ref0 (infile);
 
-            num_children = gsf_infile_num_children (infile);
+            n_children = gsf_infile_num_children (infile);
 
-            if (num_children == 0) {
+            if (n_children == 0) {
                 fprintf (stderr, "nothing in %s\n", entry);
             }
 
             gint j;
-            for (j = 0; j < num_children; j++) {
+            for (j = 0; j < n_children; j++) {
                 input = gsf_infile_child_by_index (infile, j);
                 GsfInfile *section = _g_object_ref0 (input);
-                num_children = gsf_infile_num_children (section);
+                n_children = gsf_infile_num_children (section);
 
-                if (num_children > 0) {
+                if (n_children > 0) {
                     fprintf (stderr, "invalid section\n");
                 }
 
                 if (file->is_compress) {
                     GsfInputStream* gis;
                     GZlibDecompressor* zd;
-                    GConverterInputStream* cis;
+                    GInputStream* cis;
 
                     gis = gsf_input_stream_new ((GsfInput*) section);
-                    zd = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-                    cis = (GConverterInputStream*) g_converter_input_stream_new ((GInputStream*) gis, (GConverter*) zd);
+                    zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+                    cis = g_converter_input_stream_new ((GInputStream *) gis,
+                                                        (GConverter *) zd);
 
                     _g_object_unref0 (file->priv->section_stream);
                     file->priv->section_stream = G_INPUT_STREAM (cis);
@@ -765,12 +758,11 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
             } /* for */
             _g_object_unref0 (infile);
         } else if (g_str_equal (entry, "\005HwpSummaryInformation")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              entry);
+            input = gsf_infile_child_by_name (oleinfile, entry);
             input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
+            n_children = gsf_infile_num_children ((GsfInfile*) input);
 
-            if (num_children > 0) {
+            if (n_children > 0) {
                 fprintf (stderr, "invalid\n");
             }
 
@@ -778,12 +770,11 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
             file->summary_info_stream = (GInputStream*) gsf_input_stream_new (input);
             _g_object_unref0 (input);
         } else if (g_str_equal (entry, "PrvText")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              entry);
+            input = gsf_infile_child_by_name (oleinfile, entry);
             input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
+            n_children = gsf_infile_num_children ((GsfInfile*) input);
 
-            if (num_children > 0) {
+            if (n_children > 0) {
                 fprintf (stderr, "invalid\n");
             }
 
@@ -791,12 +782,11 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
             file->prv_text_stream = (GInputStream *) gsf_input_stream_new (input);
             _g_object_unref0 (input);
         } else if (g_str_equal (entry, "PrvImage")) {
-            input = gsf_infile_child_by_name ((GsfInfile*) file->priv->olefile,
-                                              entry);
+            input = gsf_infile_child_by_name (oleinfile, entry);
             input = _g_object_ref0 (input);
-            num_children = gsf_infile_num_children ((GsfInfile*) input);
+            n_children = gsf_infile_num_children ((GsfInfile*) input);
 
-            if (num_children > 0) {
+            if (n_children > 0) {
                 fprintf (stderr, "invalid\n");
             }
 
@@ -807,8 +797,8 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
             g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
         } /* if */
     } /* for */
-    g_array_free (entries, TRUE);
-    g_array_unref (entries);
+    g_array_free (entry_names, TRUE);
+    g_array_unref (entry_names);
 }
 
 /**
