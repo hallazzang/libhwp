@@ -215,19 +215,23 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
     GHWPPage *page = ghwp_page_new ();
 
     for (i = 0; i < file->section_streams->len; i++) {
-        GInputStream *stream;
-        GHWPContext  *ghwp_context;
-        stream = g_array_index (file->section_streams, GInputStream *, i);
-        ghwp_context = ghwp_context_new (stream);
-        PangoFontMap *fontmap;
-        PangoContext *context;
-        fontmap = pango_cairo_font_map_get_default ();
+        GInputStream  *stream       = g_array_index (file->section_streams,
+                                                     GInputStream *, i);
+        GHWPContext   *ghwp_context = ghwp_context_new (stream);
+        PangoFontMap  *fontmap      = pango_cairo_font_map_get_default ();
+        PangoContext  *context      = pango_font_map_create_context (fontmap);
+        PangoLanguage *lang         = pango_language_from_string ("ko_KR");
+        guint32        ctrl_id      = 0;
+        guint16        ctrl_lv      = 0;
+        guint16        curr_lv      = 0;
+        PangoLayout   *layout;
+
+        pango_context_set_language (context, lang);
 
         while (ghwp_context_pull(ghwp_context, error)) {
             switch (ghwp_context->tag_id) {
             case GHWP_TAG_PARA_TEXT:
-                context = pango_font_map_create_context (fontmap);
-                PangoLayout *layout = pango_layout_new (context);
+                layout = pango_layout_new (context);
                 pango_layout_set_width (layout, 595 * PANGO_SCALE);
                 pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
                 gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
@@ -235,18 +239,18 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
                     pango_layout_set_text (layout, text, -1);
                 g_free (text);
 
-                GHWPLayout *ghwp_layout = g_new0 (GHWPLayout, 1);
+                GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
                 ghwp_layout->pango_layout = layout;
 
                 ghwp_layout->x = 0;
                 ghwp_layout->y = y;
 
-                PangoRectangle ink_rect;
-                PangoRectangle logical_rect;
-                pango_layout_get_extents (layout, &ink_rect, &logical_rect);
-
-                dy = logical_rect.height / (gdouble) PANGO_SCALE;
+                int height;
+                pango_layout_get_size (layout, NULL, &height);
+                dy = height / (gdouble) PANGO_SCALE;
                 y += dy;
+
+                /* pagination */
                 if (y >= 842.0) {
                     y = 0;
                     g_array_append_val (doc->pages, page);
@@ -256,6 +260,18 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
                     y = dy;
                 } else {
                     g_array_append_val (page->layouts, ghwp_layout);
+                }
+                break;
+            case GHWP_TAG_CTRL_HEADER:
+                context_read_uint32 (ghwp_context, &ctrl_id);
+                ctrl_lv = ghwp_context->level;
+                switch (ctrl_id) {
+                case CTRL_ID_TABLE:
+                    ghwp_context->status = STATE_INSIDE_TABLE;
+                    break;
+                default:
+                    ghwp_context->status = STATE_NORMAL;
+                    break;
                 }
                 break;
             default:
@@ -475,6 +491,9 @@ static void _ghwp_file_v5_parse (GHWPDocument *doc, GError **error)
     _ghwp_file_v5_parse_summary_info (doc);
 }
 
+/**
+ * Since: 0.2
+ **/
 GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
@@ -484,12 +503,14 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
     return doc;
 }
 
-void
-ghwp_file_v5_get_hwp_version (GHWPFile *file,
-                              guint8   *major_version,
-                              guint8   *minor_version,
-                              guint8   *micro_version,
-                              guint8   *extra_version)
+/**
+ * Since: 0.2
+ **/
+void ghwp_file_v5_get_hwp_version (GHWPFile *file,
+                                   guint8   *major_version,
+                                   guint8   *minor_version,
+                                   guint8   *micro_version,
+                                   guint8   *extra_version)
 {
     g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
@@ -499,6 +520,9 @@ ghwp_file_v5_get_hwp_version (GHWPFile *file,
     if (extra_version) *extra_version = GHWP_FILE_V5(file)->extra_version;
 }
 
+/**
+ * Since: 0.2
+ **/
 gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
 {
     g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
@@ -513,12 +537,14 @@ gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
  * ghwp_file_v5_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
- * 
+ *
  * Creates a new #GHWPFileV5.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
  * domains.
- * 
+ *
  * Return value: A newly created #GHWPFileV5, or %NULL
+ *
+ * Since: 0.2
  **/
 GHWPFileV5* ghwp_file_v5_new_from_uri (const gchar* uri, GError** error)
 {
@@ -785,6 +811,9 @@ static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
     g_array_unref (entries);
 }
 
+/**
+ * Since: 0.2
+ **/
 GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
