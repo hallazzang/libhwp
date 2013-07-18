@@ -1,5 +1,10 @@
 libghwp is a GObject based library for handling HWP documents.
 
+What is HWP?
+------------
+HWP is a proprietary document file format developed by Hancom for word
+processing documents.
+
 INSTALL
 -------
 sudo apt-get update

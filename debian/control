@@ -27,6 +27,9 @@ Depends: ${misc:Depends},
          libcairo2-dev,
          libglib2.0-dev
 Description: handling and rendering HWP documents (development files)
+ HWP is a proprietary document file format developed by Hancom for word
+ processing documents.
+ .
  This package contains the development files.
 
 Package: libghwp1
@@ -35,5 +38,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 Pre-Depends: ${misc:Pre-Depends}
 Multi-Arch: same
 Description: handling and rendering HWP documents (library)
+ HWP is a proprietary document file format developed by Hancom for word
+ processing documents.
+ .
  This package contains the library. It is being used by evince to read HWP 
  documents.
