@@ -51,8 +51,7 @@ ghwp_get_version (void)
     return ghwp_version;
 }
 
-const char *
-_ghwp_get_tag_name (guint tag_id)
+const char *ghwp_get_tag_name (guint tag_id)
 {
     GEnumClass *tag_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_TAG);
     GEnumValue *tag       = g_enum_get_value (tag_class, tag_id);
