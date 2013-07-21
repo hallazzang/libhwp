@@ -159,11 +159,11 @@ typedef struct _GHWPTableCellClass GHWPTableCellClass;
 struct _GHWPTableCell
 {
     GObject parent_instance;
-    /* 표 60 */
+    /* 표 60 list header */
     guint16 n_paragraphs;
     guint32 flags;
-    guint16 unknown;
-    /* 표 75 */
+    guint16 unknown1;
+    /* 표 75 cell property */
     guint16 col_addr;
     guint16 row_addr;
     guint16 col_span;
@@ -179,6 +179,10 @@ struct _GHWPTableCell
 
     guint16 border_fill_id;
 
+    guint32 unknown2;
+
+    /* private use */
+    gdouble _y;
     GArray *paragraphs;
 };
 

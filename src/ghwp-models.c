@@ -260,7 +260,7 @@ ghwp_table_cell_class_init (GHWPTableCellClass *klass)
 
 GHWPTableCell *ghwp_table_cell_new (void)
 {
-    return (GHWPTableCell *) g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
+    return g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
 }
 
 GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
@@ -268,11 +268,11 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
     g_return_val_if_fail (context != NULL, NULL);
 
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
-    /* 표 60 */
+    /* 표 60 LIST_HEADER */
     context_read_uint16 (context, &table_cell->n_paragraphs);
     context_read_uint32 (context, &table_cell->flags);
-    context_read_uint16 (context, &table_cell->unknown);
-    /* 표 75 */
+    context_read_uint16 (context, &table_cell->unknown1);
+    /* 표 75 cell property */
     context_read_uint16 (context, &table_cell->col_addr);
     context_read_uint16 (context, &table_cell->row_addr);
     context_read_uint16 (context, &table_cell->col_span);
@@ -287,7 +287,8 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
     context_read_uint16 (context, &table_cell->bottom_margin);
 
     context_read_uint16 (context, &table_cell->border_fill_id);
-
+    /* unknown */
+    context_read_uint32 (context, &table_cell->unknown2);
 /*    printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",*/
 /*        table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,*/
 
@@ -306,8 +307,9 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
 /*        table_cell->border_fill_id);*/
 
     if (context->data_count != context->data_len) {
-        g_printf ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
+        g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
     }
+
     return table_cell;
 }
 

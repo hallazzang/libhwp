@@ -203,8 +203,38 @@ static gchar *_ghwp_file_get_text_from_context (GHWPContext *context)
 /* enum의 최대값은 ?? */
 typedef enum
 {
-    CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' '))
+    CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' ')),
+    CTRL_ID_SECTION_DEFINITION  = GUINT32_FROM_LE(MAKE_CTRL_ID('s', 'e', 'c', 'd'))
 } CtrlID;
+
+    /*
+          \  col 0   col 1
+           +-------+-------+
+    row 0  |  00   |   01  |
+           +-------+-------+
+    row 1  |  10   |   11  |
+           +-------+-------+
+    row 2  |  20   |   21  |
+           +-------+-------+
+
+    <table> ::= { <list-header> <para-header>+ }+
+
+    para-header
+        ...
+        ctrl-header (id:tbl)
+            table: row-count, col-count
+            list-header (00)
+            ...
+            list-header (01)
+            ...
+            list-header (10)
+            ...
+            list-header (11)
+            ...
+            list-header (20)
+            ...
+            list-header (21)
+    */
 
 static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
 {
@@ -224,57 +254,116 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
         guint32        ctrl_id      = 0;
         guint16        ctrl_lv      = 0;
         guint16        curr_lv      = 0;
-        PangoLayout   *layout;
-
+        PangoLayout   *layout       = NULL;
+        GHWPTable     *table        = NULL;
+        GHWPTableCell *cell         = NULL;
         pango_context_set_language (context, lang);
 
         while (ghwp_context_pull(ghwp_context, error)) {
+            curr_lv = ghwp_context->level;
+            /* 상태 변화 */
+            if (curr_lv <= ctrl_lv)
+                ghwp_context->status = STATE_NORMAL;
+
             switch (ghwp_context->tag_id) {
             case GHWP_TAG_PARA_TEXT:
-                layout = pango_layout_new (context);
-                pango_layout_set_width (layout, 595 * PANGO_SCALE);
-                pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-                gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
-                if (text)
-                    pango_layout_set_text (layout, text, -1);
-                g_free (text);
+                if (ghwp_context->status == STATE_NORMAL) {
+                    layout = pango_layout_new (context);
+                    pango_layout_set_width (layout, 595 * PANGO_SCALE);
+                    pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
+                    gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
+                    if (text)
+                        pango_layout_set_text (layout, text, -1);
+                    g_free (text);
 
-                GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
-                ghwp_layout->pango_layout = layout;
+                    GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
+                    ghwp_layout->pango_layout = layout;
 
-                ghwp_layout->x = 0;
-                ghwp_layout->y = y;
-
-                int height;
-                pango_layout_get_size (layout, NULL, &height);
-                dy = height / (gdouble) PANGO_SCALE;
-                y += dy;
-
-                /* pagination */
-                if (y >= 842.0) {
-                    y = 0;
-                    g_array_append_val (doc->pages, page);
-                    page = ghwp_page_new ();
+                    ghwp_layout->x = 0;
                     ghwp_layout->y = y;
-                    g_array_append_val (page->layouts, ghwp_layout);
-                    y = dy;
-                } else {
-                    g_array_append_val (page->layouts, ghwp_layout);
-                }
+
+                    int height;
+                    pango_layout_get_size (layout, NULL, &height);
+                    dy = height / (gdouble) PANGO_SCALE;
+                    y += dy;
+
+                    /* pagination */
+                    if (y >= 842.0) {
+                        y = 0;
+                        g_array_append_val (doc->pages, page);
+                        page = ghwp_page_new ();
+                        ghwp_layout->y = y;
+                        g_array_append_val (page->layouts, ghwp_layout);
+                        y = dy;
+                    } else {
+                        g_array_append_val (page->layouts, ghwp_layout);
+                    }
+                /* table cell */
+                } else if (ghwp_context->status == STATE_INSIDE_TABLE) {
+                    layout = pango_layout_new (context);
+                    pango_layout_set_width (layout, cell->width / 100.0 * PANGO_SCALE);
+                    pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
+                    gchar *text =_ghwp_file_get_text_from_context (ghwp_context);
+                    if (text)
+                        pango_layout_set_text (layout, text, -1);
+                    g_free (text);
+
+                    GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
+                    ghwp_layout->pango_layout = layout;
+                    /* TODO x, y coordinate */
+                    ghwp_layout->x = cell->width / 100.0 * cell->col_addr;
+                    ghwp_layout->y = y;
+
+                    int height;
+                    pango_layout_get_size (layout, NULL, &height);
+                    y += dy;
+
+                    /* pagination */
+                    if (y >= 842.0) {
+                        y = 0;
+                        g_array_append_val (doc->pages, page);
+                        page = ghwp_page_new ();
+                        ghwp_layout->y = y;
+                        g_array_append_val (page->layouts, ghwp_layout);
+                        y = dy;
+                    } else {
+                        g_array_append_val (page->layouts, ghwp_layout);
+                    }
+                } /* if */
                 break;
             case GHWP_TAG_CTRL_HEADER:
                 context_read_uint32 (ghwp_context, &ctrl_id);
-                ctrl_lv = ghwp_context->level;
                 switch (ctrl_id) {
                 case CTRL_ID_TABLE:
                     ghwp_context->status = STATE_INSIDE_TABLE;
                     break;
                 default:
-                    ghwp_context->status = STATE_NORMAL;
+/*                    g_warning ("%s:%d:%s not implemented",
+                               __FILE__, __LINE__, ghwp_get_tag_name (ctrl_id));*/
                     break;
                 }
                 break;
+            case GHWP_TAG_TABLE:
+                table = ghwp_table_new_from_context (ghwp_context);
+                break;
+            case GHWP_TAG_LIST_HEADER:
+                if (ghwp_context->status == STATE_INSIDE_TABLE) {
+                    cell = ghwp_table_cell_new_from_context (ghwp_context);
+                    printf ("row_addr:%d, col_addr:%d, y = %f\n",
+                            cell->row_addr,
+                            cell->col_addr,
+                            y);
+/*                    if (cell->col_addr == 0) {
+                        cell->_y = y;
+                        printf ("%f\n", y);
+                    } else {
+                        y = cell->_y;
+                    }*/
+                }
+                break;
             default:
+/*                g_warning ("%s:%d:%s not implemented",
+                           __FILE__, __LINE__, ghwp_get_tag_name (ghwp_context->tag_id));*/
                 break;
             } /* switch */
         } /* while */
@@ -602,29 +691,32 @@ static void ghwp_file_v5_decode_file_header (GHWPFileV5 *file)
     buf = (g_free (buf), NULL);
 }
 
-/* FIXME: should be freed */
-gchar *ordered_entry[] = {
-    "FileHeader",
-    "DocInfo",
-    "BodyText",
-    "ViewText",
-    "\005HwpSummaryInformation",
-    "BinData",
-    "PrvText",
-    "PrvImage",
-    "DocOptions",
-    "Scripts",
-    "XMLTemplate",
-    "DocHistory"
-};
-
 static gint get_entry_order (char *a)
 {
-    for (int i = 0; i < sizeof(ordered_entry) / sizeof(*ordered_entry); i++) {
-        if (g_str_equal (a, ordered_entry[i])) {
-            return i;
-        }
-    }
+    if (g_str_equal (a, "FileHeader"))
+        return 0;
+    if (g_str_equal (a, "DocInfo"))
+        return 1;
+    if (g_str_equal (a, "BodyText"))
+        return 2;
+    if (g_str_equal (a, "ViewText"))
+        return 3;
+    if (g_str_equal (a, "\005HwpSummaryInformation"))
+        return 4;
+    if (g_str_equal (a, "BinData"))
+        return 5;
+    if (g_str_equal (a, "PrvText"))
+        return 6;
+    if (g_str_equal (a, "PrvImage"))
+        return 7;
+    if (g_str_equal (a, "DocOptions"))
+        return 8;
+    if (g_str_equal (a, "Scripts"))
+        return 9;
+    if (g_str_equal (a, "XMLTemplate"))
+        return 10;
+    if (g_str_equal (a, "DocHistory"))
+        return 11;
 
     return G_MAXINT;
 }
