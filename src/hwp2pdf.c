@@ -34,6 +34,11 @@ int main (int argc, char **argv)
         puts ("Usage: hwp2pdf file.hwp file.pdf");
         return 0;
     }
+
+#if (!GLIB_CHECK_VERSION(2, 35, 0))
+    g_type_init();
+#endif
+
     GHWPFile *file = ghwp_file_new_from_filename (argv[1], &error);
     GHWPDocument *document = ghwp_file_get_document (file, &error);
 
