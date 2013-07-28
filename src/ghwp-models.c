@@ -129,7 +129,7 @@ G_DEFINE_TYPE (GHWPTable, ghwp_table, G_TYPE_OBJECT);
 
 GHWPTable *ghwp_table_new (void)
 {
-    return (GHWPTable *) g_object_new (GHWP_TYPE_TABLE, NULL);
+    return g_object_new (GHWP_TYPE_TABLE, NULL);
 }
 
 #include <stdio.h>
@@ -155,7 +155,6 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
 {
     g_return_val_if_fail (context != NULL, NULL);
     GHWPTable *table = ghwp_table_new ();
-    int        i;
 
     context_read_uint32 (context, &table->flags);
     context_read_uint16 (context, &table->n_rows);
@@ -166,32 +165,28 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
     context_read_uint16 (context, &table->top_margin);
     context_read_uint16 (context, &table->bottom_margin);
 
-/*    printf("%d %d %d %d %d %d %d %d\n", table->flags,*/
-/*                                        table->n_rows,*/
-/*                                        table->n_cols,*/
-/*                                        table->cell_spacing,*/
-/*                                        table->left_margin,*/
-/*                                        table->right_margin,*/
-/*                                        table->top_margin,*/
-/*                                        table->bottom_margin);*/
-
     table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
-    for (i = 0; i < table->n_rows; i++) {
+    for (guint i = 0; i < table->n_rows; i++) {
         context_read_uint16 (context, &(table->row_sizes[i]));
     }
 
     context_read_uint16 (context, &table->border_fill_id);
-    context_read_uint16 (context, &table->valid_zone_info_size);
 
-    table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
+    if (ghwp_document_check_version (context->document, 5, 0, 0, 7)) {
+        context_read_uint16 (context, &table->valid_zone_info_size);
 
-    for (i = 0; i < table->valid_zone_info_size; i++) {
-        context_read_uint16 (context, &(table->zones[i]));
+        table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
+
+        for (guint i = 0; i < table->valid_zone_info_size; i++) {
+            context_read_uint16 (context, &(table->zones[i]));
+        }
     }
 
     if (context->data_count != context->data_len) {
-        g_warning ("%s:%d: table size mismatch\n", __FILE__, __LINE__);
+        g_warning ("%s:%d: TABLE data size mismatch at %s\n",
+            __FILE__, __LINE__,
+            ghwp_document_get_hwp_version_string(context->document));
     }
     return table;
 }

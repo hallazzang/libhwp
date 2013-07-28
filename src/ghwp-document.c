@@ -43,6 +43,49 @@ static gpointer _g_object_ref0 (gpointer obj)
 }
 
 /**
+ * ghwp_document_check_version:
+ * @document: a #GHWPDocument
+ * @major: the major version to check for
+ * @minor: the minor version to check for
+ * @micro: the micro version to check for
+ * @extra: the extra version to check for
+ *
+ * Checks the version of the HWP document
+ *
+ * <example>
+ * <title>Checking the version of the HWP document</title>
+ * <programlisting>
+ *   if (ghwp_document_check_version (doc, 5, 0, 0, 7))
+ *     g_print ("HWP document version is 5.0.0.7 or above");
+ * </programlisting>
+ * </example>
+ *
+ * Returns: %TRUE if the version of the HWP document
+ * is the same as or newer than the passed-in version.
+ *
+ * Since: FIXME
+ **/
+gboolean ghwp_document_check_version (GHWPDocument *document,
+                                      guint8        major,
+                                      guint8        minor,
+                                      guint8        micro,
+                                      guint8        extra)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT(document), FALSE);
+
+    return (document->major_version >  major)   ||
+           (document->major_version == major &&
+            document->minor_version >  minor)   ||
+           (document->major_version == major &&
+            document->minor_version == minor &&
+            document->micro_version >  micro)   ||
+           (document->major_version == major &&
+            document->minor_version == minor &&
+            document->micro_version == micro &&
+            document->extra_version >= extra);
+}
+
+/**
  * ghwp_document_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
@@ -52,6 +95,8 @@ static gpointer _g_object_ref0 (gpointer obj)
  * domains.
  * 
  * Return value: A newly created #GHWPDocument, or %NULL
+ *
+ * Since: 0.1
  **/
 GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 {
@@ -63,6 +108,9 @@ GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
     return document;
 }
 
+/**
+ * Since: 0.1
+ **/
 GHWPDocument *
 ghwp_document_new_from_filename (const gchar *filename, GError **error)
 {
@@ -77,9 +125,12 @@ ghwp_document_new_from_filename (const gchar *filename, GError **error)
     return ghwp_file_get_document (file, error);
 }
 
+/**
+ * Since: 0.1
+ **/
 guint ghwp_document_get_n_pages (GHWPDocument *doc)
 {
-    g_return_val_if_fail (doc != NULL, 0U);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), 0U);
     return doc->pages->len;
 }
 
@@ -92,7 +143,9 @@ guint ghwp_document_get_n_pages (GHWPDocument *doc)
  *
  * Returns: (transfer none): a #GHWPPage
  *     DO NOT FREE the page.
- */
+ *
+ * Since: 0.1
+ **/
 GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), NULL);
@@ -106,6 +159,8 @@ GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
  * Creates a new #GHWPDocument.
  * 
  * Return value: A newly created #GHWPDocument
+ *
+ * Since: 0.1
  **/
 GHWPDocument *ghwp_document_new (void)
 {
