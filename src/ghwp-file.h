@@ -63,11 +63,9 @@ typedef enum {
 } GHWPFileError;
 
 typedef struct _GHWPFileClass   GHWPFileClass;
-typedef struct _GHWPFilePrivate GHWPFilePrivate;
 
 struct _GHWPFile {
-    GObject          parent_instance;
-    GHWPFilePrivate *priv;
+    GObject parent_instance;
 };
 
 struct _GHWPFileClass {
@@ -79,11 +77,6 @@ struct _GHWPFileClass {
                                guint8   *minor_version,
                                guint8   *micro_version,
                                guint8   *extra_version);
-};
-
-struct _GHWPFilePrivate {
-    GsfInfileMSOle *olefile;
-    GInputStream   *section_stream;
 };
 
 GType         ghwp_file_get_type          (void) G_GNUC_CONST;

@@ -37,16 +37,18 @@ G_BEGIN_DECLS
 
 typedef struct _GHWPDocument        GHWPDocument;
 typedef struct _GHWPDocumentClass   GHWPDocumentClass;
-typedef struct _GHWPDocumentPrivate GHWPDocumentPrivate;
 
 struct _GHWPDocument {
     GObject              parent_instance;
-    GHWPDocumentPrivate *priv;
-    GHWPFile            *file;
     gchar               *prv_text;
     GArray              *paragraphs;
     GArray              *pages;
     GsfDocMetaData      *summary_info;
+    /* hwp version */
+    guint8               major_version;
+    guint8               minor_version;
+    guint8               micro_version;
+    guint8               extra_version;
     /* ev info */
     const gchar         *title;
     gchar               *format;
@@ -62,7 +64,6 @@ struct _GHWPDocument {
     GTime                creation_date;
     GTime                mod_date;
     gchar               *linearized;
-    guint                n_pages; /* FIXME duplicate */
     gchar               *security;
     gchar               *paper_size;
     gchar               *license;
@@ -84,8 +85,8 @@ GHWPDocument *ghwp_document_new_from_uri       (const gchar  *uri,
                                                 GError      **error);
 GHWPDocument *ghwp_document_new_from_filename  (const gchar  *filename,
                                                 GError      **error);
-guint     ghwp_document_get_n_pages            (GHWPDocument *doc);
-GHWPPage *ghwp_document_get_page               (GHWPDocument *doc, gint n_page);
+guint         ghwp_document_get_n_pages        (GHWPDocument *doc);
+GHWPPage     *ghwp_document_get_page           (GHWPDocument *doc, gint n_page);
 /* meta data */
 gchar    *ghwp_document_get_title              (GHWPDocument *document);
 gchar    *ghwp_document_get_keywords           (GHWPDocument *document);

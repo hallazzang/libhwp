@@ -115,7 +115,6 @@ GHWPDocument *ghwp_document_new (void)
 static void ghwp_document_finalize (GObject *obj)
 {
     GHWPDocument *doc = GHWP_DOCUMENT(obj);
-    _g_object_unref0 (doc->file);
     _g_free0 (doc->prv_text);
     _g_array_free0 (doc->paragraphs);
     _g_array_free0 (doc->pages);
@@ -271,7 +270,10 @@ gchar *ghwp_document_get_format (GHWPDocument *document)
 gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return ghwp_file_get_hwp_version_string(document->file);
+    return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
+                                           document->minor_version,
+                                           document->micro_version,
+                                           document->extra_version);
 }
 
 /**
@@ -293,10 +295,8 @@ void ghwp_document_get_hwp_version (GHWPDocument *document,
                                     guint8       *extra_version)
 {
     g_return_if_fail (GHWP_IS_DOCUMENT (document));
-
-    ghwp_file_get_hwp_version (document->file,
-                               major_version,
-                               minor_version,
-                               micro_version,
-                               extra_version);
+    if (major_version) *major_version = document->major_version;
+    if (minor_version) *minor_version = document->minor_version;
+    if (micro_version) *micro_version = document->micro_version;
+    if (extra_version) *extra_version = document->extra_version;
 }

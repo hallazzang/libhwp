@@ -27,6 +27,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
+#include <glib/gstdio.h>
 #include <string.h>
 
 #include "ghwp-file.h"
@@ -37,17 +38,22 @@
 G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
 
 /**
- * ghwp_file_error_quark
+ * ghwp_file_error_quark:
  *
  * The error domain for GHWPFile
  *
  * Returns: The error domain
- */
+ *
+ * Since: 0.2
+ **/
 GQuark ghwp_file_error_quark (void)
 {
     return g_quark_from_string ("ghwp-file-error-quark");
 }
 
+/**
+ * Since: 0.2
+ **/
 void ghwp_file_get_hwp_version (GHWPFile *file,
                                 guint8   *major_version,
                                 guint8   *minor_version,
@@ -63,6 +69,9 @@ void ghwp_file_get_hwp_version (GHWPFile *file,
                                                         extra_version);
 }
 
+/**
+ * Since: 0.2
+ **/
 GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
@@ -70,6 +79,9 @@ GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
     return GHWP_FILE_GET_CLASS (file)->get_document (file, error);
 }
 
+/**
+ * Since: 0.2
+ **/
 gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
@@ -87,6 +99,8 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
  * domains.
  * 
  * Return value: A newly created #GHWPFile, or %NULL
+ *
+ * Since: 0.1
  **/
 GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
 {
@@ -99,7 +113,7 @@ GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
     return file;
 }
 
-static gboolean is_hwpml (gchar *haystack, gssize haystack_len)
+static gboolean is_hwpml (gchar *haystack, size_t haystack_len)
 {
     gchar *ptr1;
     gchar *ptr2;
@@ -120,16 +134,19 @@ static gboolean is_hwpml (gchar *haystack, gssize haystack_len)
         return FALSE;
 }
 
+/**
+ * Since: 0.1
+ **/
 GHWPFile *ghwp_file_new_from_filename (const gchar* filename, GError** error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
     /* check signature */
-	static const guint8 const signature_ole[] = {
+    static const guint8 const signature_ole[] = {
         0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
     };
 
-	static const guint8 signature_v3[] = {
+    static const guint8 signature_v3[] = {
         /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
         0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
         0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
@@ -137,38 +154,33 @@ GHWPFile *ghwp_file_new_from_filename (const gchar* filename, GError** error)
         0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
     };
 
-    GFile            *file   = g_file_new_for_path (filename);
-    GFileInputStream *stream = g_file_read(file, NULL, error);
+    size_t bytes_read;
+    FILE *file = g_fopen (filename, "rb");
 
-    if (!stream)
+    if (!file)
         return NULL;
 
-    gsize bytes_read = 0;
     guint8 *buffer = g_malloc0 (4096);
-    g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
-                             &bytes_read, NULL, error);
+    bytes_read = fread(buffer, sizeof(guint8), 4096, file);
+    fclose (file);
 
     if ( memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
         g_free(buffer);
-        g_object_unref(stream);
         return GHWP_FILE (ghwp_file_v5_new_from_filename (filename, error));
     } else if ( memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
         g_free(buffer);
-        g_object_unref(stream);
         return GHWP_FILE (ghwp_file_v3_new_from_filename (filename, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
         g_free(buffer);
-        g_object_unref(stream);
         return GHWP_FILE (ghwp_file_ml_new_from_filename (filename, error));
     } else {
         /* invalid hwp file */
         *error = g_error_new (ghwp_file_error_quark(), GHWP_FILE_ERROR_INVALID,
                               "invalid hwp file");
         g_free(buffer);
-        g_object_unref(stream);
         return NULL;
     }
 }
@@ -181,12 +193,9 @@ static void ghwp_file_finalize (GObject *obj)
 static void ghwp_file_class_init (GHWPFileClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (GHWPFilePrivate));
     object_class->finalize = ghwp_file_finalize;
 }
 
 static void ghwp_file_init (GHWPFile *file)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE,
-                                                    GHWPFilePrivate);
 }

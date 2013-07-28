@@ -45,6 +45,8 @@ struct _GHWPFileML
 {
     GHWPFile           parent_instance;
     GHWPFileMLPrivate *priv;
+
+    GHWPDocument      *document;
     GHWPPage          *page;
 };
 

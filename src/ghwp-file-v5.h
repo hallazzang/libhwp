@@ -51,6 +51,7 @@ struct _GHWPFileV5
     GHWPFile           parent_instance;
     GHWPFileV5Private *priv;
 
+    GHWPDocument      *document;
     GArray            *section_streams;
     GInputStream      *prv_text_stream;
     GInputStream      *prv_image_stream;

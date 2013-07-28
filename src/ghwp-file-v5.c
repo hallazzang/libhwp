@@ -88,14 +88,14 @@ static gpointer _g_object_ref0 (gpointer obj)
 /*    ID_KNOWN_17         = 17,*/
 /*} IDMappingsID;*/
 
-static void _ghwp_file_v5_parse_doc_info (GHWPDocument *doc, GError **error)
+static void _ghwp_file_v5_parse_doc_info (GHWPFileV5 *file, GError **error)
 {
-    g_return_if_fail (doc != NULL);
+    g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
 /*    guint32 id_mappings[16] = {0}; */ /* 반드시 초기화 해야 한다. */
 /*    int i;*/
 
-/*    GInputStream *stream  = doc->file->doc_info_stream;
+/*    GInputStream *stream  = file->doc_info_stream;
     GHWPContext  *context = ghwp_context_new (stream);
     while (ghwp_context_pull (context, error)) {
         switch (context->tag_id) {
@@ -236,13 +236,13 @@ typedef enum
             list-header (21)
     */
 
-static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
+static void _ghwp_file_v5_parse_body_text (GHWPFileV5 *file, GError **error)
 {
-    g_return_if_fail (GHWP_IS_DOCUMENT (doc));
+    g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    GHWPFileV5 *file = GHWP_FILE_V5 (doc->file);
     gdouble y = 0.0, dy = 0.0;
-    GHWPPage *page = ghwp_page_new ();
+    GHWPDocument *doc  = file->document;
+    GHWPPage     *page = ghwp_page_new ();
 
     for (guint i = 0; i < file->section_streams->len; i++) {
         GInputStream  *stream       = g_array_index (file->section_streams,
@@ -298,7 +298,7 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
                     } else {
                         g_array_append_val (page->layouts, ghwp_layout);
                     }
-                /* table cell */
+                /* table cell text */
                 } else if (ghwp_context->status == STATE_INSIDE_TABLE) {
                     layout = pango_layout_new (context);
                     pango_layout_set_width (layout, cell->width / 100.0 * PANGO_SCALE);
@@ -349,10 +349,10 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
             case GHWP_TAG_LIST_HEADER:
                 if (ghwp_context->status == STATE_INSIDE_TABLE) {
                     cell = ghwp_table_cell_new_from_context (ghwp_context);
-                    printf ("row_addr:%d, col_addr:%d, y = %f\n",
-                            cell->row_addr,
-                            cell->col_addr,
-                            y);
+/*                    printf ("row_addr:%d, col_addr:%d, y = %f\n",*/
+/*                            cell->row_addr,*/
+/*                            cell->col_addr,*/
+/*                            y);*/
 /*                    if (cell->col_addr == 0) {
                         cell->_y = y;
                         printf ("%f\n", y);
@@ -375,20 +375,21 @@ static void _ghwp_file_v5_parse_body_text (GHWPDocument *doc, GError **error)
     } /* for */
 }
 
-static void _ghwp_file_v5_parse_prv_text (GHWPDocument *doc)
+static void _ghwp_file_v5_parse_prv_text (GHWPFileV5 *file)
 {
-    g_return_if_fail (doc != NULL);
+    g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    GsfInputStream *gis   = _g_object_ref0 (GHWP_FILE_V5(doc->file)->prv_text_stream);
+    GsfInputStream *gis   = _g_object_ref0 (file->prv_text_stream);
     gssize          size  = gsf_input_stream_size (gis);
     guchar         *buf   = g_new (guchar, size);
     GError         *error = NULL;
+    GHWPDocument   *doc   = file->document;
 
     g_input_stream_read ((GInputStream*) gis, buf, size, NULL, &error);
 
     if (error != NULL) {
         g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
-        _g_free0 (doc->prv_text);
+        _g_free0 (file->document->prv_text);
         g_clear_error (&error);
         buf = (g_free (buf), NULL);
         _g_object_unref0 (gis);
@@ -448,7 +449,7 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
         doc->hanword_version = g_value_get_string (value);
     } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
         /* not correct n_pages == 0 ?? */
-        doc->n_pages = g_value_get_int (value);
+        /* g_value_get_int (value); */
     } else {
         g_warning("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
     }
@@ -489,9 +490,9 @@ SummaryInfo info[]   = {
 };
 */
 
-static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
+static void _ghwp_file_v5_parse_summary_info (GHWPFileV5 *file)
 {
-    g_return_if_fail (doc != NULL);
+    g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
     GsfInputStream *gis;
     gssize          size;
@@ -499,8 +500,9 @@ static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
     GsfInputMemory *summary;
     GsfDocMetaData *meta;
     GError         *error = NULL;
+    GHWPDocument   *doc   = file->document;
 
-    gis  = _g_object_ref0 (GHWP_FILE_V5(doc->file)->summary_info_stream);
+    gis  = _g_object_ref0 (file->summary_info_stream);
     size = gsf_input_stream_size (gis);
     buf  = g_malloc(size);
 
@@ -530,7 +532,7 @@ static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
         memcpy (buf + 28, component_guid, (gsize) sizeof(component_guid));
     } else {
         buf = (g_free (buf), NULL);
-        _g_object_unref0 (GHWP_FILE_V5(doc->file)->summary_info_stream);
+        _g_object_unref0 (file->summary_info_stream);
         _g_object_unref0 (gis);
         g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
         return;
@@ -557,16 +559,16 @@ static void _ghwp_file_v5_parse_summary_info (GHWPDocument *doc)
     _g_object_unref0 (gis);
 }
 
-static void _ghwp_file_v5_parse (GHWPDocument *doc, GError **error)
+static void _ghwp_file_v5_parse (GHWPFileV5 *file, GError **error)
 {
-    g_return_if_fail (doc != NULL);
+    g_return_if_fail (file != NULL);
 
-    _ghwp_file_v5_parse_doc_info (doc, error);
+    _ghwp_file_v5_parse_doc_info (file, error);
     if (*error) return;
-    _ghwp_file_v5_parse_body_text (doc, error);
+    _ghwp_file_v5_parse_body_text (file, error);
     if (*error) return;
-    _ghwp_file_v5_parse_prv_text (doc);
-    _ghwp_file_v5_parse_summary_info (doc);
+    _ghwp_file_v5_parse_prv_text (file);
+    _ghwp_file_v5_parse_summary_info (file);
 }
 
 /**
@@ -575,13 +577,29 @@ static void _ghwp_file_v5_parse (GHWPDocument *doc, GError **error)
 GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
-    GHWPDocument *doc = ghwp_document_new();
-    doc->file = GHWP_FILE(file);
-    _ghwp_file_v5_parse (doc, error);
-    return doc;
+
+    GHWPFileV5 *file_v5 = GHWP_FILE_V5 (file);
+    file_v5->document = ghwp_document_new();
+    file_v5->document->major_version = file_v5->major_version;
+    file_v5->document->minor_version = file_v5->minor_version;
+    file_v5->document->micro_version = file_v5->micro_version;
+    file_v5->document->extra_version = file_v5->extra_version;
+
+    _ghwp_file_v5_parse (file_v5, error);
+
+    return file_v5->document;
 }
 
 /**
+ * ghwp_file_v5_get_hwp_version:
+ * @file: A #GHWPFile
+ * @major_version: (out) (allow-none): return location for the HWP major version number
+ * @minor_version: (out) (allow-none): return location for the HWP minor version number
+ * @micro_version: (out) (allow-none): return location for the HWP micro version number
+ * @extra_version: (out) (allow-none): return location for the HWP extra version number
+ *
+ * Returns: the major and minor and micro and extra HWP version numbers
+ *
  * Since: 0.2
  **/
 void ghwp_file_v5_get_hwp_version (GHWPFile *file,
@@ -890,8 +908,8 @@ GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** erro
     g_return_val_if_fail (filename != NULL, NULL);
     GFile *gfile = g_file_new_for_path (filename);
 
-    GsfInputStdio* input;
-    GsfInfileMSOle* olefile;
+    GsfInputStdio  *input;
+    GsfInfileMSOle *olefile;
 
     gchar *path = g_file_get_path(gfile);
     _g_object_unref0 (gfile);

@@ -53,6 +53,8 @@ struct _GHWPFileV3
 {
     GHWPFile           parent_instance;
     GHWPFileV3Private *priv;
+
+    GHWPDocument      *document;
     guint16            is_crypt;
     guint8             is_compress;
     guint8             rev;
