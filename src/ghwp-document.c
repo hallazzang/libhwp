@@ -32,9 +32,6 @@
 
 G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
 
-/* private function */
-static void   ghwp_document_finalize               (GObject      *obj);
-
 #define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
@@ -73,11 +70,9 @@ ghwp_document_new_from_filename (const gchar *filename, GError **error)
 
     GHWPFile *file = ghwp_file_new_from_filename (filename, error);
 
-    if (file == NULL) {
+    if (file == NULL || *error) {
         return NULL;
     }
-
-    if (*error) return NULL;
 
     return ghwp_file_get_document (file, error);
 }
@@ -100,7 +95,7 @@ guint ghwp_document_get_n_pages (GHWPDocument *doc)
  */
 GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
 {
-    g_return_val_if_fail (doc != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), NULL);
     GHWPPage *page = g_array_index (doc->pages, GHWPPage *, (guint) n_page);
     return _g_object_ref0 (page);
 }
@@ -117,6 +112,17 @@ GHWPDocument *ghwp_document_new (void)
     return (GHWPDocument*) g_object_new (GHWP_TYPE_DOCUMENT, NULL);
 }
 
+static void ghwp_document_finalize (GObject *obj)
+{
+    GHWPDocument *doc = GHWP_DOCUMENT(obj);
+    _g_object_unref0 (doc->file);
+    _g_free0 (doc->prv_text);
+    _g_array_free0 (doc->paragraphs);
+    _g_array_free0 (doc->pages);
+    _g_object_unref0 (doc->summary_info);
+    G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);
+}
+
 static void ghwp_document_class_init (GHWPDocumentClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -127,17 +133,6 @@ static void ghwp_document_init (GHWPDocument *doc)
 {
     doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
     doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
-}
-
-static void ghwp_document_finalize (GObject *obj)
-{
-    GHWPDocument *doc = GHWP_DOCUMENT(obj);
-    _g_object_unref0 (doc->file);
-    _g_free0 (doc->prv_text);
-    _g_array_free0 (doc->paragraphs);
-    _g_array_free0 (doc->pages);
-    _g_object_unref0 (doc->summary_info);
-    G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);
 }
 
 /**
@@ -151,8 +146,7 @@ static void ghwp_document_finalize (GObject *obj)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_title (GHWPDocument *document)
+gchar *ghwp_document_get_title (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->title);
@@ -169,8 +163,7 @@ ghwp_document_get_title (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_keywords (GHWPDocument *document)
+gchar *ghwp_document_get_keywords (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->keywords);
@@ -187,8 +180,7 @@ ghwp_document_get_keywords (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_subject (GHWPDocument *document)
+gchar *ghwp_document_get_subject (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->subject);
@@ -205,8 +197,7 @@ ghwp_document_get_subject (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_creator (GHWPDocument *document)
+gchar *ghwp_document_get_creator (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->creator);
@@ -222,8 +213,7 @@ ghwp_document_get_creator (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-GTime
-ghwp_document_get_creation_date (GHWPDocument *document)
+GTime ghwp_document_get_creation_date (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
     return document->creation_date;
@@ -239,8 +229,7 @@ ghwp_document_get_creation_date (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-GTime
-ghwp_document_get_modification_date (GHWPDocument *document)
+GTime ghwp_document_get_modification_date (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
     return document->mod_date;
@@ -257,8 +246,7 @@ ghwp_document_get_modification_date (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_format (GHWPDocument *document)
+gchar *ghwp_document_get_format (GHWPDocument *document)
 {
     gchar *format;
 
@@ -266,7 +254,7 @@ ghwp_document_get_format (GHWPDocument *document)
 
     format = g_strdup_printf ("HWP v%s",
         ghwp_document_get_hwp_version_string (document));
-  return format;
+    return format;
 }
 
 /**
@@ -280,8 +268,7 @@ ghwp_document_get_format (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-gchar *
-ghwp_document_get_hwp_version_string (GHWPDocument *document)
+gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
     return ghwp_file_get_hwp_version_string(document->file);
@@ -299,12 +286,11 @@ ghwp_document_get_hwp_version_string (GHWPDocument *document)
  *
  * Since: 0.1.2
  **/
-void
-ghwp_document_get_hwp_version (GHWPDocument *document,
-                               guint8       *major_version,
-                               guint8       *minor_version,
-                               guint8       *micro_version,
-                               guint8       *extra_version)
+void ghwp_document_get_hwp_version (GHWPDocument *document,
+                                    guint8       *major_version,
+                                    guint8       *minor_version,
+                                    guint8       *micro_version,
+                                    guint8       *extra_version)
 {
     g_return_if_fail (GHWP_IS_DOCUMENT (document));
 
