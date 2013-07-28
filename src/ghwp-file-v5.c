@@ -248,6 +248,7 @@ static void _ghwp_file_v5_parse_body_text (GHWPFileV5 *file, GError **error)
         GInputStream  *stream       = g_array_index (file->section_streams,
                                                      GInputStream *, i);
         GHWPContext   *ghwp_context = ghwp_context_new (stream);
+        ghwp_context->document      = file->document;
         PangoFontMap  *fontmap      = pango_cairo_font_map_get_default ();
         PangoContext  *context      = pango_font_map_create_context (fontmap);
         PangoLanguage *lang         = pango_language_from_string ("ko_KR");

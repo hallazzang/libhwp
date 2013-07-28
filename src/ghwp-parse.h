@@ -22,6 +22,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <ghwp/ghwp-document.h>
 
 G_BEGIN_DECLS
 
@@ -51,6 +52,7 @@ struct _GHWPContext {
     GObject             parent_instance;
     GHWPContextPrivate *priv;
     GInputStream       *stream;
+    GHWPDocument       *document;
     guint16             tag_id;
     guint16             level;
     guint16             data_len;
