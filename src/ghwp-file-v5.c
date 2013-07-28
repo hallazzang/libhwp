@@ -204,7 +204,7 @@ static gchar *_ghwp_file_get_text_from_context (GHWPContext *context)
 typedef enum
 {
     CTRL_ID_TABLE = GUINT32_FROM_LE(MAKE_CTRL_ID('t', 'b', 'l', ' ')),
-    CTRL_ID_SECTION_DEFINITION  = GUINT32_FROM_LE(MAKE_CTRL_ID('s', 'e', 'c', 'd'))
+    CTRL_ID_SECTION_DEFINITION = GUINT32_FROM_LE(MAKE_CTRL_ID('s', 'e', 'c', 'd'))
 } CtrlID;
 
     /*
@@ -423,43 +423,32 @@ _ghwp_metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     GValue const *value = gsf_doc_prop_get_val (prop);
 
     if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
-
         doc->creator = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_DATE_MODIFIED) ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->mod_date = (GTime) ts->timet;
-
     } else if ( g_str_equal(name, GSF_META_NAME_DESCRIPTION) ) {
         doc->desc = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_KEYWORDS) ) {
         doc->keywords = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_SUBJECT) ) {
         doc->subject = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_TITLE) ) {
         doc->title = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_LAST_PRINTED) ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->last_printed   = (GTime) ts->timet;
-
     } else if ( g_str_equal(name, GSF_META_NAME_LAST_SAVED_BY) ) {
         doc->last_saved_by = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_DATE_CREATED) ) {
         GsfTimestamp *ts    = g_value_get_boxed (value);
         doc->creation_date  = (GTime) ts->timet;
     /* hwp 문서를 저장할 때 사용된 한컴 워드프로세서의 내부 버전 */
     } else if ( g_str_equal(name, GSF_META_NAME_REVISION_COUNT) ) {
         doc->hanword_version = g_value_get_string (value);
-
     } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
         /* not correct n_pages == 0 ?? */
         doc->n_pages = g_value_get_int (value);
-
     } else {
         g_warning("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
     }
@@ -674,18 +663,18 @@ static void ghwp_file_v5_decode_file_header (GHWPFileV5 *file)
         memcpy (&prop, buf + 36, 4);
         prop = GUINT32_FROM_LE(prop);
 
-        if ((prop & (1 <<  0)) == 1) file->is_compress            = TRUE;
-        if ((prop & (1 <<  1)) == 1) file->is_encrypt             = TRUE;
-        if ((prop & (1 <<  2)) == 1) file->is_distribute          = TRUE;
-        if ((prop & (1 <<  3)) == 1) file->is_script              = TRUE;
-        if ((prop & (1 <<  4)) == 1) file->is_drm                 = TRUE;
-        if ((prop & (1 <<  5)) == 1) file->is_xml_template        = TRUE;
-        if ((prop & (1 <<  6)) == 1) file->is_history             = TRUE;
-        if ((prop & (1 <<  7)) == 1) file->is_sign                = TRUE;
-        if ((prop & (1 <<  8)) == 1) file->is_certificate_encrypt = TRUE;
-        if ((prop & (1 <<  9)) == 1) file->is_sign_spare          = TRUE;
-        if ((prop & (1 << 10)) == 1) file->is_certificate_drm     = TRUE;
-        if ((prop & (1 << 11)) == 1) file->is_ccl                 = TRUE;
+        file->is_compress            = prop & (1 <<  0);
+        file->is_encrypt             = prop & (1 <<  1);
+        file->is_distribute          = prop & (1 <<  2);
+        file->is_script              = prop & (1 <<  3);
+        file->is_drm                 = prop & (1 <<  4);
+        file->is_xml_template        = prop & (1 <<  5);
+        file->is_history             = prop & (1 <<  6);
+        file->is_sign                = prop & (1 <<  7);
+        file->is_certificate_encrypt = prop & (1 <<  8);
+        file->is_sign_spare          = prop & (1 <<  9);
+        file->is_certificate_drm     = prop & (1 << 10);
+        file->is_ccl                 = prop & (1 << 11);
     }
 
     buf = (g_free (buf), NULL);
@@ -731,7 +720,7 @@ static gint compare_entry_names (gconstpointer a, gconstpointer b)
 /* FIXME streams 배열과 enum을 이용하여 코드 재적성 바람 */
 static void _ghwp_file_v5_make_stream (GHWPFileV5 *file)
 {
-    g_return_if_fail (file != NULL);
+    g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
     const gchar *name       = NULL;
     GsfInfile   *oleinfile  = GSF_INFILE (file->priv->olefile);
@@ -950,9 +939,10 @@ static void ghwp_file_v5_class_init (GHWPFileV5Class * klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     g_type_class_add_private (klass, sizeof (GHWPFileV5Private));
-    GHWP_FILE_CLASS (klass)->get_document = ghwp_file_v5_get_document;
-    GHWP_FILE_CLASS (klass)->get_hwp_version_string = ghwp_file_v5_get_hwp_version_string;
-    GHWP_FILE_CLASS (klass)->get_hwp_version = ghwp_file_v5_get_hwp_version;
+    GHWPFileClass *file_class          = GHWP_FILE_CLASS (klass);
+    file_class->get_document           = ghwp_file_v5_get_document;
+    file_class->get_hwp_version_string = ghwp_file_v5_get_hwp_version_string;
+    file_class->get_hwp_version        = ghwp_file_v5_get_hwp_version;
     object_class->finalize = ghwp_file_v5_finalize;
 }
 
