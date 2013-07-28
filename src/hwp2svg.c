@@ -28,8 +28,7 @@ int main (int argc, char **argv)
     GError *error = NULL;
     GHWPPage *page;
     gdouble width = 0.0, height = 0.0;
-    guint i;
-    
+
     if (argc < 2) {
         puts ("Usage: hwp2svg file.hwp");
         return 0;
@@ -45,13 +44,13 @@ int main (int argc, char **argv)
     guint n_pages = ghwp_document_get_n_pages (document);
     if (n_pages < 1) {
         puts ("There is no page");
-        return 0;
+        return -1;
     }
 
     cairo_surface_t *surface;
     cairo_t *cr;
     gchar *filename;
-    for (i = 0; i < n_pages; i++) {
+    for (guint i = 0; i < n_pages; i++) {
         ghwp_page_get_size (page, &width, &height);
         filename = g_strdup_printf("page%d.svg", i);
         surface = cairo_svg_surface_create (filename, width, height);
@@ -66,8 +65,7 @@ int main (int argc, char **argv)
         cairo_surface_destroy (surface);
     }
 
-/* TODO 
     g_object_unref (document);
-    g_object_unref (file);*/
-    return 1;
+    g_object_unref (file);
+    return 0;
 }

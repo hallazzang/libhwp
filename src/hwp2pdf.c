@@ -28,11 +28,10 @@ int main (int argc, char **argv)
     GError *error = NULL;
     GHWPPage *page;
     gdouble width = 0.0, height = 0.0;
-    guint i;
     
     if (argc < 3) {
         puts ("Usage: hwp2pdf file.hwp file.pdf");
-        return 0;
+        return -1;
     }
 
 #if (!GLIB_CHECK_VERSION(2, 35, 0))
@@ -45,13 +44,13 @@ int main (int argc, char **argv)
     guint n_pages = ghwp_document_get_n_pages (document);
     if (n_pages < 1) {
         puts ("There is no page");
-        return 0;
+        return -1;
     }
 
     cairo_surface_t *surface = cairo_pdf_surface_create (argv[2], 0.0, 0.0);
     cairo_t *cr = cairo_create (surface);
 
-    for (i = 0; i < n_pages; i++) {
+    for (guint i = 0; i < n_pages; i++) {
         page = ghwp_document_get_page (document, i);
         ghwp_page_get_size (page, &width, &height);
         cairo_pdf_surface_set_size (surface, width, height);
@@ -61,8 +60,8 @@ int main (int argc, char **argv)
 
     cairo_destroy (cr);
     cairo_surface_destroy (surface);
-/* TODO 
+
     g_object_unref (document);
-    g_object_unref (file);*/
-    return 1;
+    g_object_unref (file);
+    return 0;
 }
