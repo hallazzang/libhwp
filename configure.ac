@@ -4,9 +4,8 @@
 
 m4_define([ghwp_major_version],[0])
 m4_define([ghwp_minor_version],[2])
-m4_define([ghwp_micro_version],[])
-m4_define([ghwp_extra_version],[])
-m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_version()ghwp_extra_version])
+m4_define([ghwp_micro_version],[0])
+m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_version])
 
 # Libtool versioning. The backend and view libraries have separate versions.
 # Before making a release, the libtool version should be modified.
