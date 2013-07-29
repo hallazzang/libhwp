@@ -29,6 +29,7 @@
 #define __GHWP_MODELS_H__
 
 #include <glib-object.h>
+#include <pango/pango-layout.h>
 #include "ghwp-parse.h"
 
 G_BEGIN_DECLS
@@ -184,6 +185,7 @@ struct _GHWPTableCell
     /* private use */
     gdouble _y;
     GArray *paragraphs;
+    GArray *layouts;
 };
 
 struct _GHWPTableCellClass
@@ -197,7 +199,8 @@ GHWPTableCell *ghwp_table_cell_new_from_context   (GHWPContext   *context);
 GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell);
 void           ghwp_table_cell_add_paragraph      (GHWPTableCell *cell,
                                                    GHWPParagraph *paragraph);
-
+void           ghwp_table_cell_add_pango_layout   (GHWPTableCell *cell,
+                                                   PangoLayout   *layout);
 G_END_DECLS
 
 #endif /* __GHWP_MODELS_H__ */

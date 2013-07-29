@@ -45,7 +45,7 @@ GHWPText *ghwp_text_new (const gchar *text)
 
 GHWPText *ghwp_text_append (GHWPText *ghwp_text, const gchar *text)
 {
-    g_return_val_if_fail (ghwp_text != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_TEXT (ghwp_text), NULL);
 
     gchar *tmp;
     tmp = g_strdup (ghwp_text->text);
@@ -99,27 +99,27 @@ static void ghwp_paragraph_init (GHWPParagraph *paragraph)
 void
 ghwp_paragraph_set_ghwp_text (GHWPParagraph *paragraph, GHWPText *ghwp_text)
 {
-    g_return_if_fail (paragraph != NULL);
-    g_return_if_fail (ghwp_text != NULL);
+    g_return_if_fail (GHWP_IS_PARAGRAPH (paragraph));
+    g_return_if_fail (GHWP_IS_TEXT (ghwp_text));
     paragraph->ghwp_text = ghwp_text;
 }
 
 GHWPText *ghwp_paragraph_get_ghwp_text (GHWPParagraph *paragraph)
 {
-    g_return_val_if_fail (paragraph != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_PARAGRAPH (paragraph), NULL);
     return paragraph->ghwp_text;
 }
 
 void ghwp_paragraph_set_table (GHWPParagraph *paragraph, GHWPTable *table)
 {
-    g_return_if_fail (paragraph != NULL);
-    g_return_if_fail (table     != NULL);
+    g_return_if_fail (GHWP_IS_PARAGRAPH (paragraph));
+    g_return_if_fail (GHWP_IS_TABLE (table));
     paragraph->table = table;
 }
 
 GHWPTable *ghwp_paragraph_get_table (GHWPParagraph *paragraph)
 {
-    g_return_val_if_fail (paragraph != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_PARAGRAPH (paragraph), NULL);
     return paragraph->table;
 }
 
@@ -153,7 +153,7 @@ void hexdump(guint8 *data, guint16 data_len)
 
 GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
 {
-    g_return_val_if_fail (context != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_CONTEXT (context), NULL);
     GHWPTable *table = ghwp_table_new ();
 
     context_read_uint32 (context, &table->flags);
@@ -191,14 +191,12 @@ GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
     return table;
 }
 
-static void
-ghwp_table_init (GHWPTable *table)
+static void ghwp_table_init (GHWPTable *table)
 {
     table->cells = g_array_new (TRUE, TRUE, sizeof (GHWPTableCell *));
 }
 
-static void
-ghwp_table_finalize (GObject *object)
+static void ghwp_table_finalize (GObject *object)
 {
     GHWPTable *table = GHWP_TABLE(object);
     _g_free0 (table->row_sizes);
@@ -207,8 +205,7 @@ ghwp_table_finalize (GObject *object)
     G_OBJECT_CLASS (ghwp_table_parent_class)->finalize (object);
 }
 
-static void
-ghwp_table_class_init (GHWPTableClass *klass)
+static void ghwp_table_class_init (GHWPTableClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = ghwp_table_finalize;
@@ -216,15 +213,15 @@ ghwp_table_class_init (GHWPTableClass *klass)
 
 GHWPTableCell *ghwp_table_get_last_cell (GHWPTable *table)
 {
-    g_return_val_if_fail (table != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_TABLE (table), NULL);
     return g_array_index (table->cells, GHWPTableCell *,
                           table->cells->len - 1);
 }
 
 void ghwp_table_add_cell (GHWPTable *table, GHWPTableCell *cell)
 {
-    g_return_if_fail (table != NULL);
-    g_return_if_fail (cell  != NULL);
+    g_return_if_fail (GHWP_IS_TABLE (table));
+    g_return_if_fail (GHWP_IS_TABLE_CELL (cell));
     g_array_append_val (table->cells, cell);
 }
 
@@ -232,22 +229,21 @@ void ghwp_table_add_cell (GHWPTable *table, GHWPTableCell *cell)
 
 G_DEFINE_TYPE (GHWPTableCell, ghwp_table_cell, G_TYPE_OBJECT);
 
-static void
-ghwp_table_cell_init (GHWPTableCell *cell)
+static void ghwp_table_cell_init (GHWPTableCell *cell)
 {
     cell->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
+    cell->layouts    = g_array_new (TRUE, TRUE, sizeof (PangoLayout *));
 }
 
-static void
-ghwp_table_cell_finalize (GObject *object)
+static void ghwp_table_cell_finalize (GObject *object)
 {
     GHWPTableCell *cell = GHWP_TABLE_CELL(object);
     g_array_free (cell->paragraphs, TRUE);
+    g_array_free (cell->layouts,    TRUE);
     G_OBJECT_CLASS (ghwp_table_cell_parent_class)->finalize (object);
 }
 
-static void
-ghwp_table_cell_class_init (GHWPTableCellClass *klass)
+static void ghwp_table_cell_class_init (GHWPTableCellClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = ghwp_table_cell_finalize;
@@ -260,7 +256,7 @@ GHWPTableCell *ghwp_table_cell_new (void)
 
 GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
 {
-    g_return_val_if_fail (context != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_CONTEXT (context), NULL);
 
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
     /* 표 60 LIST_HEADER */
@@ -310,7 +306,7 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
 
 GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell)
 {
-    g_return_val_if_fail (cell != NULL, NULL);
+    g_return_val_if_fail (GHWP_IS_TABLE_CELL (cell), NULL);
     return g_array_index (cell->paragraphs, GHWPParagraph *,
                           cell->paragraphs->len - 1);
 }
@@ -318,7 +314,15 @@ GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell)
 void
 ghwp_table_cell_add_paragraph (GHWPTableCell *cell, GHWPParagraph *paragraph)
 {
-    g_return_if_fail (cell       != NULL);
-    g_return_if_fail (paragraph  != NULL);
+    g_return_if_fail (GHWP_IS_TABLE_CELL (cell));
+    g_return_if_fail (GHWP_IS_PARAGRAPH (paragraph));
     g_array_append_val (cell->paragraphs, paragraph);
+}
+
+void
+ghwp_table_cell_add_pango_layout (GHWPTableCell *cell, PangoLayout *layout)
+{
+    g_return_if_fail (GHWP_IS_TABLE_CELL (cell));
+    g_return_if_fail (PANGO_IS_LAYOUT (layout));
+    g_array_append_val (cell->layouts, layout);
 }
