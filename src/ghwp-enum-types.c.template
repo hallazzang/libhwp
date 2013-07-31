@@ -1,5 +1,5 @@
 /*** BEGIN file-header ***/
-#include "ghwp-enum-types.h"
+#include "ghwp.h"
 
 /*** END file-header ***/
 

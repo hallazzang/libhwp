@@ -3,17 +3,17 @@
  * ghwp-file-v5.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
- * 
+ *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -42,7 +42,7 @@
 
 #include "gsf-input-stream.h"
 #include "ghwp-file-v5.h"
-#include "config.h"
+#include "ghwp-parse.h"
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 
@@ -50,7 +50,6 @@ G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
 
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
 #define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 #define _g_free0(var) (var = (g_free (var), NULL))
 
 static gpointer _g_object_ref0 (gpointer obj)
@@ -140,36 +139,6 @@ static void parse_file_header (GHWPFileV5 *file)
     file->document->extra_version = file->extra_version;
 }
 
-/*typedef enum {*/
-/*    ID_BINARY_DATA      = 0,*/
-/*    ID_KOREAN_FONTS     = 1,*/
-/*    ID_ENGLISH_FONTS    = 2,*/
-/*    ID_HANJA_FONTS      = 3,*/
-/*    ID_JAPANESE_FONTS   = 4,*/
-/*    ID_OTHERS_FONTS     = 5,*/
-/*    ID_SYMBOL_FONTS     = 6,*/
-/*    ID_USER_FONTS       = 7,*/
-/*    ID_BORDER_FILLS     = 8,*/
-/*    ID_CHAR_SHAPES      = 9,*/
-/*    ID_TAB_DEFS         = 10,*/
-/*    ID_PARA_NUMBERINGS  = 11,*/
-/*    ID_BULLETS          = 12,*/
-/*    ID_PARA_SHAPES      = 13,*/
-/*    ID_STYLES           = 14,*/
-    /*
-     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
-     * 한/글2007 이전 문서는 data_len <= 60,
-     * v5.0.0.6 : ID_MAPPINGS data_len: 60
-     * v5.0.1.7 : ID_MAPPINGS data_len: 64
-     * v5.0.2.4 : ID_MAPPINGS data_len: 64
-     */
-/*    ID_MEMO_SHAPES      = 15,*/
-    /* 한/글2010 에서 추가된 것으로 추정됨 */
-    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
-/*    ID_KNOWN_16         = 16,*/
-/*    ID_KNOWN_17         = 17,*/
-/*} IDMappingsID;*/
-
 static void parse_doc_info (GHWPFileV5 *file, GError **error)
 {
     g_return_if_fail (GHWP_IS_FILE_V5 (file));
@@ -201,286 +170,267 @@ static void parse_doc_info (GHWPFileV5 *file, GError **error)
     g_object_unref (context);*/
 }
 
-/**
- * MAKE_CTRL_ID:
- * @a: a #char value
- * @b: a #char value
- * @c: a #char value
- * @d: a #char value
- *
- * Makes @ctrl_id from #char values to host byte order.
- *
- * Returns: @ctrl_id converted to host byte order
- *
- * Since: 0.2
- */
-#define MAKE_CTRL_ID(a, b, c, d)      \
-    GUINT32_FROM_LE((guint32)((((guint8)(a)) << 24) | \
-                              (((guint8)(b)) << 16) | \
-                              (((guint8)(c)) <<  8) | \
-                              (((guint8)(d)) <<  0)))
-
-typedef enum
-{
-    CTRL_ID_SECTION_DEF         = MAKE_CTRL_ID('s', 'e', 'c', 'd'), /* 구역 */
-    CTRL_ID_COLUMN_DEF          = MAKE_CTRL_ID('c', 'o', 'l', 'd'), /* 단 */
-    /* 머리말 */
-    CTRL_ID_HEADEDR             = MAKE_CTRL_ID('h', 'e', 'a', 'd'),
-    /* 꼬리말 */
-    CTRL_ID_FOOTER              = MAKE_CTRL_ID('f', 'o', 'o', 't'),
-    CTRL_ID_FOOTNOTE            = MAKE_CTRL_ID('f', 'n', ' ', ' '), /* 각주 */
-    CTRL_ID_ENDNOTE             = MAKE_CTRL_ID('e', 'n', ' ', ' '), /* 미주 */
-    /* 자동 번호*/
-    CTRL_ID_AUTONUM             = MAKE_CTRL_ID('a', 't', 'n', 'o'),
-    /* 새 번호 지정 */
-    CTRL_ID_NEWNUM              = MAKE_CTRL_ID('n', 'w', 'n', 'o'),
-    /* 감추기 */
-    CTRL_ID_PAGE_HIDE           = MAKE_CTRL_ID('p', 'g', 'h', 'd'),
-    /* 페이지 번호 제어(97의 홀수쪽에서 시작) */
-    CTRL_ID_PAGE_NUM_CTRL       = MAKE_CTRL_ID('p', 'g', 'c', 't'),
-    /* 쪽번호 위치 */
-    CTRL_ID_PAGE_NUM_POS        = MAKE_CTRL_ID('p', 'g', 'n', 'p'),
-    /* 찾아보기 표식 */
-    CTRL_ID_INDEX_MARK          = MAKE_CTRL_ID('i', 'd', 'x', 'm'),
-    /* 책갈피 */
-    CTRL_ID_BOKM                = MAKE_CTRL_ID('b', 'o', 'k', 'm'),
-    /* 글자 겹침 */
-    CTRL_ID_TCPS                = MAKE_CTRL_ID('t', 'c', 'p', 's'),
-    CTRL_ID_DUTMAL              = MAKE_CTRL_ID('t', 'd', 'u', 't'), /* 덧말 */
-    /* 숨은 설명 */
-    CTRL_ID_TCMT                = MAKE_CTRL_ID('t', 'c', 'm', 't'),
-
-    CTRL_ID_TABLE               = MAKE_CTRL_ID('t', 'b', 'l', ' '), /* 표 */
-    CTRL_ID_LINE                = MAKE_CTRL_ID('$', 'l', 'i', 'n'), /* 선 */
-    /* 사각형 */
-    CTRL_ID_RECT                = MAKE_CTRL_ID('$', 'r', 'e', 'c'),
-    CTRL_ID_ELL                 = MAKE_CTRL_ID('$', 'e', 'l', 'l'), /* 타원 */
-    CTRL_ID_ARC                 = MAKE_CTRL_ID('$', 'a', 'r', 'c'), /* 호 */
-    /* 다각형 */
-    CTRL_ID_POLY                = MAKE_CTRL_ID('$', 'p', 'o', 'l'),
-    CTRL_ID_CURV                = MAKE_CTRL_ID('$', 'c', 'u', 'r'), /* 곡선 */
-    /* 한글97 수식 */
-    CTRL_ID_EQEDID              = MAKE_CTRL_ID('e', 'q', 'e', 'd'),
-    CTRL_ID_PIC                 = MAKE_CTRL_ID('$', 'p', 'i', 'c'), /* 그림 */
-    CTRL_ID_OLE                 = MAKE_CTRL_ID('$', 'o', 'l', 'e'), /* OLE */
-    /* 묶음 개체 */
-    CTRL_ID_CON                 = MAKE_CTRL_ID('$', 'c', 'o', 'n'),
-
-    FIELD_UNKNOWN               = MAKE_CTRL_ID('%', 'u', 'n', 'k'),
-    /* 현재의 날짜/시간 필드 */
-    FIELD_DATE                  = MAKE_CTRL_ID('%', 'd', 't', 'e'),
-    /*파일 작성 날짜/시간 필드 */
-    FIELD_DOCDATE               = MAKE_CTRL_ID('%', 'd', 'd', 't'),
-    /* 문서 경로 필드 */
-    FIELD_PATH                  = MAKE_CTRL_ID('%', 'p', 'a', 't'),
-    /*블럭 책갈피 */
-    FIELD_BOOKMARK              = MAKE_CTRL_ID('%', 'b', 'm', 'k'),
-    /* 메일 머지 */
-    FIELD_MAILMERGE             = MAKE_CTRL_ID('%', 'm', 'm', 'g'),
-    /* 상호 참조 */
-    FIELD_CROSSREF              = MAKE_CTRL_ID('%', 'x', 'r', 'f'),
-    /* 계산식 */
-    FIELD_FORMULA               = MAKE_CTRL_ID('%', 'f', 'm', 'u'),
-    /* 누름틀 */
-    FIELD_CLICKHERE             = MAKE_CTRL_ID('%', 'c', 'l', 'k'),
-    /* 문서 요약 정보 필드 */
-    FIELD_SUMMARY               = MAKE_CTRL_ID('%', 's', 'm', 'r'),
-    /* 사용자 정보 필드 */
-    FIELD_USERINFO              = MAKE_CTRL_ID('%', 'u', 's', 'r'),
-    /* 하이퍼링크 */
-    FIELD_HYPERLINK             = MAKE_CTRL_ID('%', 'h', 'l', 'k'),
-    FIELD_REVISION_SIGN         = MAKE_CTRL_ID('%', 's', 'i', 'g'),
-    FIELD_REVISION_DELETE       = MAKE_CTRL_ID('%', '%', '*', 'd'),
-    FIELD_REVISION_ATTACH       = MAKE_CTRL_ID('%', '%', '*', 'a'),
-    FIELD_REVISION_CLIPPING     = MAKE_CTRL_ID('%', '%', '*', 'C'),
-    FIELD_REVISION_SAWTOOTH     = MAKE_CTRL_ID('%', '%', '*', 'S'),
-    FIELD_REVISION_THINKING     = MAKE_CTRL_ID('%', '%', '*', 'T'),
-    FIELD_REVISION_PRAISE       = MAKE_CTRL_ID('%', '%', '*', 'P'),
-    FIELD_REVISION_LINE         = MAKE_CTRL_ID('%', '%', '*', 'L'),
-    FIELD_REVISION_SIMPLECHANGE = MAKE_CTRL_ID('%', '%', '*', 'c'),
-    FIELD_REVISION_HYPERLINK    = MAKE_CTRL_ID('%', '%', '*', 'h'),
-    FIELD_REVISION_LINEATTACH   = MAKE_CTRL_ID('%', '%', '*', 'A'),
-    FIELD_REVISION_LINELINK     = MAKE_CTRL_ID('%', '%', '*', 'i'),
-    FIELD_REVISION_LINETRANSFER = MAKE_CTRL_ID('%', '%', '*', 't'),
-    FIELD_REVISION_RIGHTMOVE    = MAKE_CTRL_ID('%', '%', '*', 'r'),
-    FIELD_REVISION_LEFTMOVE     = MAKE_CTRL_ID('%', '%', '*', 'l'),
-    FIELD_REVISION_TRANSFER     = MAKE_CTRL_ID('%', '%', '*', 'n'),
-    FIELD_REVISION_SIMPLEINSERT = MAKE_CTRL_ID('%', '%', '*', 'e'),
-    FIELD_REVISION_SPLIT        = MAKE_CTRL_ID('%', 's', 'p', 'l'),
-    FIELD_REVISION_CHANGE       = MAKE_CTRL_ID('%', '%', 'm', 'r'),
-    FIELD_MEMO                  = MAKE_CTRL_ID('%', '%', 'm', 'e'),
-    FIELD_PRIVATE_INFO_SECURITY = MAKE_CTRL_ID('%', 'c', 'p', 'r')
-} CtrlID;
-
-    /*
-          \  col 0   col 1
-           +-------+-------+
-    row 0  |  00   |   01  |
-           +-------+-------+
-    row 1  |  10   |   11  |
-           +-------+-------+
-    row 2  |  20   |   21  |
-           +-------+-------+
-
-    <table> ::= { <list-header> <para-header>+ }+
-
-    para-header
-        ...
-        ctrl-header (id:tbl)
-            table: row-count, col-count
-            list-header (00)
-            ...
-            list-header (01)
-            ...
-            list-header (10)
-            ...
-            list-header (11)
-            ...
-            list-header (20)
-            ...
-            list-header (21)
-    */
-static void parse_paragraph (GHWPFileV5 *file, GError **error)
-{
-
-}
-
-static void parse_section (GHWPFileV5 *file, GInputStream *stream)
+static void parse_section_definition (GHWPContext *context)
 {
     GError *error = NULL;
-    gdouble y = 0.0, dy = 0.0;
-    GHWPDocument *doc  = file->document;
-    GHWPPage     *page = ghwp_page_new ();
 
-    GHWPContext   *ghwp_context = ghwp_context_new (stream);
-    ghwp_context->document      = file->document;
-    PangoFontMap  *fontmap      = pango_cairo_font_map_get_default ();
-    PangoContext  *context      = pango_font_map_create_context (fontmap);
-    PangoLanguage *lang         = pango_language_from_string ("ko_KR");
-    guint32        ctrl_id      = 0;
-    guint16        ctrl_lv      = 0;
-    guint16        curr_lv      = 0;
-    PangoLayout   *layout       = NULL;
-    GHWPTable     *table        = NULL;
-    GHWPTableCell *cell         = NULL;
-    pango_context_set_language (context, lang);
-
-    while (ghwp_context_pull(ghwp_context, &error)) {
-        curr_lv = ghwp_context->level;
-        /* 상태 변화 */
-        if (curr_lv <= ctrl_lv)
-            ghwp_context->status = STATE_NORMAL;
-
-        switch (ghwp_context->tag_id) {
-        case GHWP_TAG_PARA_TEXT:
-            if (ghwp_context->status == STATE_NORMAL) {
-                layout = pango_layout_new (context);
-                pango_layout_set_width (layout, 595 * PANGO_SCALE);
-                pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
-                gchar *text =get_text_from_context (ghwp_context);
-                if (text)
-                    pango_layout_set_text (layout, text, -1);
-                g_free (text);
-
-                GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
-                ghwp_layout->pango_layout = layout;
-
-                ghwp_layout->x = 0;
-                ghwp_layout->y = y;
-
-                int height;
-                pango_layout_get_size (layout, NULL, &height);
-                dy = height / (gdouble) PANGO_SCALE;
-                y += dy;
-
-                /* pagination */
-                if (y >= 842.0) {
-                    y = 0;
-                    g_array_append_val (doc->pages, page);
-                    page = ghwp_page_new ();
-                    ghwp_layout->y = y;
-                    g_array_append_val (page->layouts, ghwp_layout);
-                    y = dy;
-                } else {
-                    g_array_append_val (page->layouts, ghwp_layout);
-                }
-            /* table cell text */
-            } else if (ghwp_context->status == STATE_INSIDE_TABLE) {
-                layout = pango_layout_new (context);
-                pango_layout_set_width (layout, cell->width / 100.0 * PANGO_SCALE);
-                pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
-                gchar *text =get_text_from_context (ghwp_context);
-                if (text)
-                    pango_layout_set_text (layout, text, -1);
-                g_free (text);
-
-                GHWPLayout *ghwp_layout   = g_new0 (GHWPLayout, 1);
-                ghwp_layout->pango_layout = layout;
-                /* TODO x, y coordinate */
-                ghwp_layout->x = cell->width / 100.0 * cell->col_addr;
-                ghwp_layout->y = y;
-
-                ghwp_table_cell_add_pango_layout (cell, layout);
-                int height;
-                pango_layout_get_size (layout, NULL, &height);
-                y += dy;
-
-                /* pagination */
-                if (y >= 842.0) {
-                    y = 0;
-                    g_array_append_val (doc->pages, page);
-                    page = ghwp_page_new ();
-                    ghwp_layout->y = y;
-                    g_array_append_val (page->layouts, ghwp_layout);
-                    y = dy;
-                } else {
-                    g_array_append_val (page->layouts, ghwp_layout);
-                }
-            } /* if */
+    while (ghwp_context_pull(context, &error)) {
+        if (context->level < 2) {
+            context->state = STATE_PASSING;
             break;
-        case GHWP_TAG_CTRL_HEADER:
-            context_read_uint32 (ghwp_context, &ctrl_id);
-            switch (ctrl_id) {
-            case CTRL_ID_TABLE:
-                ghwp_context->status = STATE_INSIDE_TABLE;
-                break;
-            default:
-/*                    g_warning ("%s:%d:%s not implemented",
-                           __FILE__, __LINE__, ghwp_get_tag_name (ctrl_id));*/
-                break;
-            }
+        }
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        g_assert (context->level == 2);
+        switch (context->tag_id) {
+        case GHWP_TAG_PAGE_DEF:
             break;
-        case GHWP_TAG_TABLE:
-            table = ghwp_table_new_from_context (ghwp_context);
-            /* TODO table 를 어딘가에 넣어야 함 */
+        case GHWP_TAG_FOOTNOTE_SHAPE:
             break;
-        case GHWP_TAG_LIST_HEADER:
-            if (ghwp_context->status == STATE_INSIDE_TABLE) {
-                cell = ghwp_table_cell_new_from_context (ghwp_context);
-                ghwp_table_add_cell (table, cell);
-/*                    printf ("row_addr:%d, col_addr:%d, y = %f\n",*/
-/*                            cell->row_addr,*/
-/*                            cell->col_addr,*/
-/*                            y);*/
-/*                    if (cell->col_addr == 0) {
-                    cell->_y = y;
-                    printf ("%f\n", y);
-                } else {
-                    y = cell->_y;
-                }*/
-            }
+        case GHWP_TAG_PAGE_BORDER_FILL:
             break;
         default:
-/*                g_warning ("%s:%d:%s not implemented",
-                       __FILE__, __LINE__, ghwp_get_tag_name (ghwp_context->tag_id));*/
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
             break;
         } /* switch */
     } /* while */
-    /* add last page */
-    /* FIXME: problem that a page is appended
-     even if there is no page in document. */
-    g_array_append_val (doc->pages, page);
-    g_object_unref (ghwp_context);
+}
+
+static void parse_paragraph (GHWPContext *context);
+
+/* 머리말 */
+static void parse_header (GHWPContext *context)
+{
+    GError *error = NULL;
+
+    while (ghwp_context_pull(context, &error)) {
+        if (context->level < 2) {
+            context->state = STATE_PASSING;
+            break;
+        }
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+
+        g_assert (context->level == 2);
+
+        switch (context->tag_id) {
+        case GHWP_TAG_LIST_HEADER:
+            break;
+        case GHWP_TAG_PARA_HEADER:
+            parse_paragraph (context);
+            break;
+        default:
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            break;
+        } /* switch */
+    } /* while */
+}
+
+/* 각주 */
+static void parse_footnote (GHWPContext *context)
+{
+    GError *error = NULL;
+
+    while (ghwp_context_pull(context, &error)) {
+        if (context->level < 2) {
+            context->state = STATE_PASSING;
+            break;
+        }
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+
+        g_assert (context->level == 2);
+
+        switch (context->tag_id) {
+        case GHWP_TAG_LIST_HEADER:
+            break;
+        case GHWP_TAG_PARA_HEADER:
+            parse_paragraph (context);
+            break;
+        default:
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            break;
+        } /* switch */
+    } /* while */
+}
+
+/*
+ *         col 0   col 1  
+ *       +-------+-------+
+ * row 0 |  00   |   01  |
+ *       +-------+-------+
+ * row 1 |  10   |   11  |
+ *       +-------+-------+
+ * row 2 |  20   |   21  |
+ *       +-------+-------+
+ *
+ * <table> ::= { <list-header> <para-header>+ }+
+ *
+ * para-header
+ *  ...
+ *  ctrl-header (id:tbl)
+ *   table: row-count, col-count
+ *   list-header (00)
+ *   ...
+ *   list-header (01)
+ *   ...
+ *   list-header (10)
+ *   ...
+ *   list-header (11)
+ *   ...
+ *   list-header (20)
+ *   ...
+ *   list-header (21)
+ */
+static void parse_table (GHWPContext *context)
+{
+    GError *error = NULL;
+    guint16 level = context->level + 1;
+    printf("level = %d\n", level);
+
+    while (ghwp_context_pull(context, &error)) {
+        if (context->level < level) {
+            context->state = STATE_PASSING;
+            break;
+        }
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+
+        g_assert (context->level == level);
+
+        switch (context->tag_id) {
+        case GHWP_TAG_TABLE:
+            break;
+        case GHWP_TAG_LIST_HEADER:
+            break;
+        case GHWP_TAG_PARA_HEADER:
+            parse_paragraph (context);
+            break;
+        default:
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            break;
+        } /* switch */
+    } /* while */
+}
+
+static void parse_paragraph (GHWPContext *context)
+{
+    GError *error = NULL;
+    guint16 level = context->level + 1;
+    printf("level = %d\n", level);
+
+    while (ghwp_context_pull(context, &error)) {
+        if (context->level < level) {
+            context->state = STATE_PASSING;
+            break;
+        }
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+
+        g_assert (context->level == level);
+
+        switch (context->tag_id) {
+        case GHWP_TAG_PARA_TEXT:
+            break;
+        case GHWP_TAG_PARA_CHAR_SHAPE:
+            break;
+        case GHWP_TAG_PARA_LINE_SEG:
+            break;
+        case GHWP_TAG_CTRL_HEADER:
+            context_read_uint32 (context, &context->ctrl_id);
+            printf (" \"%c%c%c%c\"\n",
+                (gchar) (context->ctrl_id >> 24 & 0xff),
+                (gchar) (context->ctrl_id >> 16 & 0xff),
+                (gchar) (context->ctrl_id >>  8 & 0xff),
+                (gchar) (context->ctrl_id >>  0 & 0xff));
+            switch (context->ctrl_id) {
+            case CTRL_ID_SECTION_DEF:
+                parse_section_definition (context);
+                break;
+            case CTRL_ID_NEW_NUM:
+                break;
+            case CTRL_ID_COLUMN_DEF:
+                break;
+            case CTRL_ID_HEADEDR: /* 머리말 */
+                parse_header (context);
+                break;
+            case CTRL_ID_AUTO_NUM:
+                break;
+            case CTRL_ID_TABLE:
+                parse_table (context);
+                break;
+            case CTRL_ID_FOOTNOTE: /* 각주 */
+                parse_footnote (context);
+                break;
+            case CTRL_ID_PAGE_HIDE:
+                break;
+            default:
+                g_error ("%s:%d:\"%c%c%c%c\" not implemented",
+                    __FILE__, __LINE__,
+                    (gchar) (context->ctrl_id >> 24 & 0xff),
+                    (gchar) (context->ctrl_id >> 16 & 0xff),
+                    (gchar) (context->ctrl_id >>  8 & 0xff),
+                    (gchar) (context->ctrl_id >>  0 & 0xff));
+                break;
+            }
+            break;
+        default:
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            break;
+        } /* switch */
+    } /* while */
+}
+
+static void parse_section (GHWPContext *context)
+{
+    GError *error = NULL;
+
+    while (ghwp_context_pull(context, &error)) {
+
+        printf ("%d", context->level);
+        for (int i = 0; i < context->level; i++) {
+            printf (" ");
+        }
+        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+
+        g_assert (context->level == 0);
+
+        switch (context->tag_id) {
+        case GHWP_TAG_PARA_HEADER:
+            parse_paragraph (context);
+            break;
+        default:
+            g_error ("%s:%d:%s not implemented",
+                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            break;
+        } /* switch */
+    } /* while */
 }
 
 static void parse_sections (GHWPFileV5 *file)
@@ -488,7 +438,9 @@ static void parse_sections (GHWPFileV5 *file)
     for (guint i = 0; i < file->section_streams->len; i++) {
         GInputStream *stream = g_array_index (file->section_streams,
                                               GInputStream *, i);
-        parse_section (file, stream);
+        GHWPContext *context = ghwp_context_new (stream);
+        parse_section (context);
+        g_object_unref (context);
     }
 }
 
@@ -507,8 +459,7 @@ static void parse_view_text (GHWPFileV5 *file)
 }
 
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
-static void
-metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
+static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
     gchar        *name  = (gchar        *) k;
     GsfDocProp   *prop  = (GsfDocProp   *) v;
@@ -633,7 +584,7 @@ static void parse_prv_text (GHWPFileV5 *file)
 
     g_input_stream_read ((GInputStream*) gis, buf, size, NULL, &error);
 
-    if (error != NULL) {
+    if (error) {
         g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
         _g_free0 (file->document->prv_text);
         g_clear_error (&error);
@@ -647,7 +598,7 @@ static void parse_prv_text (GHWPFileV5 *file)
     doc->prv_text = g_convert ((const gchar*) buf, (gssize) size,
                                "UTF-8", "UTF-16LE", NULL, NULL, &error);
 
-    if (error != NULL) {
+    if (error) {
         g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
         _g_free0 (doc->prv_text);
         g_clear_error (&error);
@@ -705,7 +656,7 @@ static void parse (GHWPFileV5 *file, GError **error)
 
 /**
  * Since: 0.2
- **/
+ */
 GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
@@ -731,7 +682,7 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
  * Returns: the major and minor and micro and extra HWP version numbers
  *
  * Since: 0.2
- **/
+ */
 void ghwp_file_v5_get_hwp_version (GHWPFile *file,
                                    guint8   *major_version,
                                    guint8   *minor_version,
@@ -748,7 +699,7 @@ void ghwp_file_v5_get_hwp_version (GHWPFile *file,
 
 /**
  * Since: 0.2
- **/
+ */
 gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
 {
     g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
@@ -771,7 +722,7 @@ gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
  * Return value: A newly created #GHWPFileV5, or %NULL
  *
  * Since: 0.2
- **/
+ */
 GHWPFileV5* ghwp_file_v5_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
@@ -1030,7 +981,7 @@ static void make_stream (GHWPFileV5 *file)
 
 /**
  * Since: 0.2
- **/
+ */
 GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** error)
 {
     g_return_val_if_fail (filename != NULL, NULL);

@@ -115,7 +115,13 @@ GHWPContext* ghwp_context_new (GInputStream* stream)
  * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
 gboolean ghwp_context_pull (GHWPContext *context, GError **error)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (GHWP_IS_CONTEXT (context), FALSE);
+
+    if (context->state == STATE_PASSING) {
+        context->state = STATE_NORMAL;
+        return TRUE;
+    }
+
     gboolean is_success = TRUE;
     if (context->data_len - context->data_count > 0)
         context_skip (context, context->data_len - context->data_count);
@@ -188,7 +194,6 @@ gboolean ghwp_context_pull (GHWPContext *context, GError **error)
     return TRUE;
 }
 
-
 static void ghwp_context_class_init (GHWPContextClass * klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -196,13 +201,11 @@ static void ghwp_context_class_init (GHWPContextClass * klass)
     object_class->finalize = ghwp_context_finalize;
 }
 
-
 static void ghwp_context_init (GHWPContext * context)
 {
-    context->status = STATE_NORMAL;
-    context->priv   = GHWP_CONTEXT_GET_PRIVATE (context);
+    context->state     = STATE_NORMAL;
+    context->priv       = GHWP_CONTEXT_GET_PRIVATE (context);
 }
-
 
 static void ghwp_context_finalize (GObject *obj)
 {

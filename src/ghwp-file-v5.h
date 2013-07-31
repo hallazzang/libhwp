@@ -32,7 +32,7 @@
 #include <gio/gio.h>
 #include <gsf/gsf-infile-msole.h>
 
-#include "ghwp.h"
+#include "ghwp-file.h"
 
 G_BEGIN_DECLS
 
@@ -43,6 +43,7 @@ G_BEGIN_DECLS
 #define GHWP_IS_FILE_V5_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_V5))
 #define GHWP_FILE_V5_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_V5, GHWPFileV5Class))
 
+typedef struct _GHWPFileV5        GHWPFileV5;
 typedef struct _GHWPFileV5Class   GHWPFileV5Class;
 typedef struct _GHWPFileV5Private GHWPFileV5Private;
 

@@ -22,7 +22,9 @@
 #define _GHWP_FILE_ML_H_
 
 #include <glib-object.h>
-#include "ghwp.h"
+
+#include "ghwp-file.h"
+#include "ghwp-models.h"
 
 G_BEGIN_DECLS
 
@@ -33,16 +35,15 @@ G_BEGIN_DECLS
 #define GHWP_IS_FILE_ML_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_ML))
 #define GHWP_FILE_ML_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_ML, GHWPFileMLClass))
 
+typedef struct _GHWPFileML        GHWPFileML;
 typedef struct _GHWPFileMLClass   GHWPFileMLClass;
 typedef struct _GHWPFileMLPrivate GHWPFileMLPrivate;
 
-struct _GHWPFileMLClass
-{
+struct _GHWPFileMLClass {
     GHWPFileClass parent_class;
 };
 
-struct _GHWPFileML
-{
+struct _GHWPFileML {
     GHWPFile           parent_instance;
     GHWPFileMLPrivate *priv;
 
@@ -50,8 +51,7 @@ struct _GHWPFileML
     GHWPPage          *page;
 };
 
-struct _GHWPFileMLPrivate
-{
+struct _GHWPFileMLPrivate {
     gchar *uri;
 };
 

@@ -22,13 +22,19 @@
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 
+#include "ghwp-models.h"
+
 G_DEFINE_TYPE (GHWPPage, ghwp_page, G_TYPE_OBJECT);
 
+/**
+ * Since: 0.1
+ */
 void ghwp_page_get_size (GHWPPage *page,
                          gdouble  *width,
                          gdouble  *height)
 {
-    g_return_if_fail (page != NULL);
+    g_return_if_fail (GHWP_IS_PAGE (page));
+
     *width  = 595.0;
     *height = 842.0;
 }
@@ -39,15 +45,16 @@ static void ghwp_show_layout (cairo_t *cr, GHWPLayout *layout)
     pango_cairo_show_layout (cr, layout->pango_layout);
 }
 
+/**
+ * Since: 0.1
+ */
 gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
 {
-    g_return_val_if_fail (page != NULL, FALSE);
-    g_return_val_if_fail (cr   != NULL, FALSE);
+    g_return_val_if_fail (GHWP_IS_PAGE (page) && cr, FALSE);
 
-    int i;
     GHWPLayout *layout;
 
-    for (i = 0; i < page->layouts->len; i++) {
+    for (guint i = 0; i < page->layouts->len; i++) {
         layout = g_array_index (page->layouts, GHWPLayout *, i);
         ghwp_show_layout (cr, layout);
     }
@@ -55,9 +62,69 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
     return TRUE;
 }
 
+/**
+ * Since: 0.1
+ */
 GHWPPage *ghwp_page_new (void)
 {
     return (GHWPPage *) g_object_new (GHWP_TYPE_PAGE, NULL);
+}
+
+/**
+ * Since: TODO
+ */
+void
+ghwp_page_render_selection (GHWPPage           *page,
+                            cairo_t            *cr,
+                            GHWPRectangle      *selection,
+                            GHWPRectangle      *old_selection,
+                            GHWPSelectionStyle  style, 
+                            GHWPColor          *glyph_color,
+                            GHWPColor          *background_color)
+{
+    g_return_if_fail (page != NULL);
+    /* TODO */
+}
+
+/**
+ * Since: TODO
+ */
+char *
+ghwp_page_get_selected_text (GHWPPage          *page,
+                             GHWPSelectionStyle style,
+                             GHWPRectangle     *selection)
+{
+    g_return_val_if_fail (page != NULL, NULL);
+    /* TODO */
+    return NULL;
+}
+
+/**
+ * Since: TODO
+ */
+cairo_region_t *
+ghwp_page_get_selection_region (GHWPPage          *page,
+                                gdouble            scale,
+                                GHWPSelectionStyle style,
+                                GHWPRectangle     *selection)
+{
+    g_return_val_if_fail (page != NULL, NULL);
+    /* TODO */
+    return NULL;
+}
+
+/**
+ * ghwp_rectangle_free:
+ * @rectangle: a #GHWPRectangle
+ *
+ * Frees the given #GHWPRectangle
+ *
+ * Since: 0.2
+ */
+void ghwp_rectangle_free (GHWPRectangle *rectangle)
+{
+    g_return_if_fail (rectangle != NULL);
+    g_slice_free (GHWPRectangle, rectangle);
 }
 
 static void ghwp_page_finalize (GObject *obj)
@@ -78,54 +145,4 @@ static void ghwp_page_init (GHWPPage *page)
 {
     page->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
     page->layouts    = g_array_new (TRUE, TRUE, sizeof (GHWPLayout   *));
-}
-
-/* experimental */
-void
-ghwp_page_render_selection (GHWPPage           *page,
-                            cairo_t            *cr,
-                            GHWPRectangle      *selection,
-                            GHWPRectangle      *old_selection,
-                            GHWPSelectionStyle  style, 
-                            GHWPColor          *glyph_color,
-                            GHWPColor          *background_color)
-{
-    g_return_if_fail (page != NULL);
-    /* TODO */
-}
-
-/* experimental */
-char *
-ghwp_page_get_selected_text (GHWPPage          *page,
-                             GHWPSelectionStyle style,
-                             GHWPRectangle     *selection)
-{
-    g_return_val_if_fail (page != NULL, NULL);
-    /* TODO */
-    return NULL;
-}
-
-/* experimental */
-cairo_region_t *
-ghwp_page_get_selection_region (GHWPPage          *page,
-                                gdouble            scale,
-                                GHWPSelectionStyle style,
-                                GHWPRectangle     *selection)
-{
-    g_return_val_if_fail (page != NULL, NULL);
-    /* TODO */
-    return NULL;
-}
-
-/**
- * ghwp_rectangle_free:
- * @rectangle: a #GHWPRectangle
- *
- * Frees the given #GHWPRectangle
- */
-void
-ghwp_rectangle_free (GHWPRectangle *rectangle)
-{
-    g_return_if_fail (rectangle != NULL);
-    g_slice_free (GHWPRectangle, rectangle);
 }

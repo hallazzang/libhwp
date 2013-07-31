@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <gsf/gsf-doc-meta-data.h>
 
-#include "ghwp.h"
+#include "ghwp-page.h"
 
 G_BEGIN_DECLS
 
@@ -35,8 +35,8 @@ G_BEGIN_DECLS
 #define GHWP_IS_DOCUMENT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_DOCUMENT))
 #define GHWP_DOCUMENT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_DOCUMENT, GHWPDocumentClass))
 
-typedef struct _GHWPDocument        GHWPDocument;
-typedef struct _GHWPDocumentClass   GHWPDocumentClass;
+typedef struct _GHWPDocument      GHWPDocument;
+typedef struct _GHWPDocumentClass GHWPDocumentClass;
 
 struct _GHWPDocument {
     GObject              parent_instance;

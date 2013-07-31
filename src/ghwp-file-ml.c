@@ -35,7 +35,9 @@ G_DEFINE_TYPE (GHWPFileML, ghwp_file_ml, GHWP_TYPE_FILE);
  * domains.
  * 
  * Return value: A newly created #GHWPFileML, or %NULL
- **/
+ *
+ * Since: 0.2
+ */
 GHWPFileML *ghwp_file_ml_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
@@ -48,7 +50,7 @@ GHWPFileML *ghwp_file_ml_new_from_uri (const gchar *uri, GError **error)
 
 /**
  * Since: 0.2
- **/
+ */
 GHWPFileML *ghwp_file_ml_new_from_filename (const gchar *filename,
                                             GError     **error)
 {
@@ -63,16 +65,16 @@ GHWPFileML *ghwp_file_ml_new_from_filename (const gchar *filename,
 }
 
 /**
- * Since:
- **/
+ * Since: TODO
+ */
 gchar *ghwp_file_ml_get_hwp_version_string (GHWPFile *file)
 {
     return NULL;
 }
 
 /**
- * Since:
- **/
+ * Since: TODO
+ */
 void ghwp_file_ml_get_hwp_version (GHWPFile *file,
                                     guint8   *major_version,
                                     guint8   *minor_version,
@@ -82,6 +84,9 @@ void ghwp_file_ml_get_hwp_version (GHWPFile *file,
 
 }
 
+/**
+ * Since: 0.2
+ */
 enum HWPParseStateFlags {
     HWP_PARSE_NORMAL = 0,
     HWP_PARSE_P      = 1 << 0,
@@ -199,7 +204,7 @@ static void _ghwp_file_ml_parse (GHWPFileML *file, GError **error)
 
 /**
  * Since: 0.2
- **/
+ */
 GHWPDocument *ghwp_file_ml_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE_ML (file), NULL);

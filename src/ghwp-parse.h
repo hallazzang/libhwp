@@ -17,12 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GHWP_CONTEXT_H_
-#define _GHWP_CONTEXT_H_
+#ifndef __GHWP_CONTEXT_H__
+#define __GHWP_CONTEXT_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
-#include <ghwp/ghwp-document.h>
+
+#include "ghwp-document.h"
 
 G_BEGIN_DECLS
 
@@ -41,6 +42,7 @@ G_BEGIN_DECLS
 typedef enum
 {
     STATE_NORMAL,
+    STATE_PASSING,
     STATE_INSIDE_TABLE
 } GHWPParseState;
 
@@ -53,11 +55,15 @@ struct _GHWPContext {
     GHWPContextPrivate *priv;
     GInputStream       *stream;
     GHWPDocument       *document;
+    /* from record header */
     guint16             tag_id;
     guint16             level;
     guint16             data_len;
+    /* for checking */
     guint16             data_count;
-    guint8              status;
+    /* for parsing */
+    guint8              state;
+    guint32             ctrl_id;
 };
 
 struct _GHWPContextClass {
@@ -65,9 +71,9 @@ struct _GHWPContextClass {
 };
 
 struct _GHWPContextPrivate {
-    guint32           header;
-    gsize             bytes_read;
-    gboolean          ret;
+    guint32  header;
+    gsize    bytes_read;
+    gboolean ret;
 };
 
 GType        ghwp_context_get_type (void) G_GNUC_CONST;
@@ -82,4 +88,4 @@ gboolean     context_skip          (GHWPContext  *context,
 
 G_END_DECLS
 
-#endif /* _GHWP_CONTEXT_H_ */
+#endif /* __GHWP_CONTEXT_H__ */

@@ -25,15 +25,13 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <glib.h>
 #include <glib-object.h>
-#include <glib/gstdio.h>
 #include <string.h>
 
 #include "ghwp-file.h"
-#include "ghwp-file-v5.h"
-#include "ghwp-file-v3.h"
 #include "ghwp-file-ml.h"
+#include "ghwp-file-v3.h"
+#include "ghwp-file-v5.h"
 
 G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
 
@@ -45,7 +43,7 @@ G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
  * Returns: The error domain
  *
  * Since: 0.2
- **/
+ */
 GQuark ghwp_file_error_quark (void)
 {
     return g_quark_from_string ("ghwp-file-error-quark");
@@ -53,7 +51,7 @@ GQuark ghwp_file_error_quark (void)
 
 /**
  * Since: 0.2
- **/
+ */
 void ghwp_file_get_hwp_version (GHWPFile *file,
                                 guint8   *major_version,
                                 guint8   *minor_version,
@@ -71,7 +69,7 @@ void ghwp_file_get_hwp_version (GHWPFile *file,
 
 /**
  * Since: 0.2
- **/
+ */
 GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
@@ -81,7 +79,7 @@ GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
 
 /**
  * Since: 0.2
- **/
+ */
 gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
@@ -101,7 +99,7 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
  * Return value: A newly created #GHWPFile, or %NULL
  *
  * Since: 0.1
- **/
+ */
 GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
@@ -113,7 +111,7 @@ GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
     return file;
 }
 
-static gboolean is_hwpml (gchar *haystack, size_t haystack_len)
+static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 {
     gchar *ptr1;
     gchar *ptr2;
@@ -136,8 +134,8 @@ static gboolean is_hwpml (gchar *haystack, size_t haystack_len)
 
 /**
  * Since: 0.1
- **/
-GHWPFile *ghwp_file_new_from_filename (const gchar* filename, GError** error)
+ */
+GHWPFile *ghwp_file_new_from_filename (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
@@ -154,35 +152,39 @@ GHWPFile *ghwp_file_new_from_filename (const gchar* filename, GError** error)
         0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
     };
 
-    size_t bytes_read;
-    FILE *file = g_fopen (filename, "rb");
+    GFile            *file   = g_file_new_for_path (filename);
+    GFileInputStream *stream = g_file_read (file, NULL, error);
+    g_object_unref (file);
 
-    if (!file)
+    if (*error)
         return NULL;
 
+    gsize bytes_read = 0;
     guint8 *buffer = g_malloc0 (4096);
-    bytes_read = fread(buffer, sizeof(guint8), 4096, file);
-    fclose (file);
+    g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
+                             &bytes_read, NULL, error);
+    g_object_unref(stream);
 
-    if ( memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
+    GHWPFile *retval = NULL;
+
+    if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
-        g_free(buffer);
-        return GHWP_FILE (ghwp_file_v5_new_from_filename (filename, error));
-    } else if ( memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
+        retval = GHWP_FILE (ghwp_file_v5_new_from_filename (filename, error));
+    } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
-        g_free(buffer);
-        return GHWP_FILE (ghwp_file_v3_new_from_filename (filename, error));
+        retval = GHWP_FILE (ghwp_file_v3_new_from_filename (filename, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
-        g_free(buffer);
-        return GHWP_FILE (ghwp_file_ml_new_from_filename (filename, error));
+        retval = GHWP_FILE (ghwp_file_ml_new_from_filename (filename, error));
     } else {
         /* invalid hwp file */
-        *error = g_error_new (ghwp_file_error_quark(), GHWP_FILE_ERROR_INVALID,
-                              "invalid hwp file");
-        g_free(buffer);
-        return NULL;
+        g_set_error (error, GHWP_FILE_ERROR, GHWP_FILE_ERROR_INVALID,
+                            "invalid hwp file");
+        retval = NULL;
     }
+
+    g_free(buffer);
+    return retval;
 }
 
 static void ghwp_file_finalize (GObject *obj)

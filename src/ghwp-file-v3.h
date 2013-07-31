@@ -30,7 +30,8 @@
 
 #include <glib-object.h>
 
-#include "ghwp.h"
+#include "ghwp-file.h"
+#include "ghwp-models.h"
 
 G_BEGIN_DECLS
 
@@ -41,16 +42,15 @@ G_BEGIN_DECLS
 #define GHWP_IS_FILE_V3_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_V3))
 #define GHWP_FILE_V3_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_V3, GHWPFileV3Class))
 
+typedef struct _GHWPFileV3        GHWPFileV3;
 typedef struct _GHWPFileV3Class   GHWPFileV3Class;
 typedef struct _GHWPFileV3Private GHWPFileV3Private;
 
-struct _GHWPFileV3Class 
-{
+struct _GHWPFileV3Class {
     GHWPFileClass parent_class;
 };
 
-struct _GHWPFileV3
-{
+struct _GHWPFileV3 {
     GHWPFile           parent_instance;
     GHWPFileV3Private *priv;
 
@@ -62,8 +62,7 @@ struct _GHWPFileV3
     GHWPPage          *page;
 };
 
-struct _GHWPFileV3Private
-{
+struct _GHWPFileV3Private {
     GInputStream *stream;
 };
 

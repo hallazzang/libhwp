@@ -3,17 +3,17 @@
  * ghwp-document.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
- * 
+ *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,8 +27,9 @@
 
 #include <string.h>
 
-#include "config.h"
 #include "ghwp-document.h"
+#include "ghwp-file.h"
+#include "ghwp-models.h"
 
 G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
 
@@ -63,8 +64,8 @@ static gpointer _g_object_ref0 (gpointer obj)
  * Returns: %TRUE if the version of the HWP document
  * is the same as or newer than the passed-in version.
  *
- * Since: FIXME
- **/
+ * Since: TODO
+ */
 gboolean ghwp_document_check_version (GHWPDocument *document,
                                       guint8        major,
                                       guint8        minor,
@@ -97,7 +98,7 @@ gboolean ghwp_document_check_version (GHWPDocument *document,
  * Return value: A newly created #GHWPDocument, or %NULL
  *
  * Since: 0.1
- **/
+ */
 GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
@@ -110,7 +111,7 @@ GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 
 /**
  * Since: 0.1
- **/
+ */
 GHWPDocument *
 ghwp_document_new_from_filename (const gchar *filename, GError **error)
 {
@@ -127,7 +128,7 @@ ghwp_document_new_from_filename (const gchar *filename, GError **error)
 
 /**
  * Since: 0.1
- **/
+ */
 guint ghwp_document_get_n_pages (GHWPDocument *doc)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), 0U);
@@ -145,7 +146,7 @@ guint ghwp_document_get_n_pages (GHWPDocument *doc)
  *     DO NOT FREE the page.
  *
  * Since: 0.1
- **/
+ */
 GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), NULL);
@@ -161,10 +162,177 @@ GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
  * Return value: A newly created #GHWPDocument
  *
  * Since: 0.1
- **/
+ */
 GHWPDocument *ghwp_document_new (void)
 {
     return (GHWPDocument*) g_object_new (GHWP_TYPE_DOCUMENT, NULL);
+}
+
+/**
+ * ghwp_document_get_title:
+ * @document: A #GHWPDocument
+ *
+ * Returns the document's title
+ *
+ * Return value: a new allocated string containing the title
+ *               of @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_title (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->title);
+}
+
+/**
+ * ghwp_document_get_keywords:
+ * @document: A #GHWPDocument
+ *
+ * Returns the keywords associated to the document
+ *
+ * Return value: a new allocated string containing keywords associated
+ *               to @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_keywords (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->keywords);
+}
+
+/**
+ * ghwp_document_get_subject:
+ * @document: A #GHWPDocument
+ *
+ * Returns the subject of the document
+ *
+ * Return value: a new allocated string containing the subject
+ *               of @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_subject (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->subject);
+}
+
+/**
+ * ghwp_document_get_creator:
+ * @document: A #GHWPDocument
+ *
+ * Returns the creator of the document.
+ *
+ * Return value: a new allocated string containing the creator
+ *               of @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_creator (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup (document->creator);
+}
+
+/**
+ * ghwp_document_get_creation_date:
+ * @document: A #GHWPDocument
+ *
+ * Returns the date the document was created as seconds since the Epoch
+ *
+ * Return value: the date the document was created, or -1
+ *
+ * Since: 0.2
+ */
+GTime ghwp_document_get_creation_date (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
+    return document->creation_date;
+}
+
+/**
+ * ghwp_document_get_modification_date:
+ * @document: A #GHWPDocument
+ *
+ * Returns the date the document was most recently modified as seconds since the Epoch
+ *
+ * Return value: the date the document was most recently modified, or -1
+ *
+ * Since: 0.2
+ */
+GTime ghwp_document_get_modification_date (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
+    return document->mod_date;
+}
+
+/**
+ * ghwp_document_get_hwp_format:
+ * @document: A #GHWPDocument
+ *
+ * Returns the HWP format of @document as a string (e.g. HWP v5.0.0.6)
+ *
+ * Return value: a new allocated string containing the HWP format
+ *               of @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_format (GHWPDocument *document)
+{
+    gchar *format;
+
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+
+    format = g_strdup_printf ("HWP v%s",
+        ghwp_document_get_hwp_version_string (document));
+    return format;
+}
+
+/**
+ * ghwp_document_get_hwp_version_string:
+ * @document: A #GHWPDocument
+ *
+ * Returns the HWP version of @document as a string (e.g. 5.0.0.6)
+ *
+ * Return value: a new allocated string containing the HWP version
+ *               of @document, or %NULL
+ *
+ * Since: 0.2
+ */
+gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document)
+{
+    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
+    return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
+                                           document->minor_version,
+                                           document->micro_version,
+                                           document->extra_version);
+}
+
+/**
+ * ghwp_document_get_hwp_version:
+ * @document: A #GHWPDocument
+ * @major_version: (out) (allow-none): return location for the HWP major version number
+ * @minor_version: (out) (allow-none): return location for the HWP minor version number
+ * @micro_version: (out) (allow-none): return location for the HWP micro version number
+ * @extra_version: (out) (allow-none): return location for the HWP extra version number
+ *
+ * Returns: the major and minor and micro and extra HWP version numbers
+ *
+ * Since: 0.2
+ */
+void ghwp_document_get_hwp_version (GHWPDocument *document,
+                                    guint8       *major_version,
+                                    guint8       *minor_version,
+                                    guint8       *micro_version,
+                                    guint8       *extra_version)
+{
+    g_return_if_fail (GHWP_IS_DOCUMENT (document));
+    if (major_version) *major_version = document->major_version;
+    if (minor_version) *minor_version = document->minor_version;
+    if (micro_version) *micro_version = document->micro_version;
+    if (extra_version) *extra_version = document->extra_version;
 }
 
 static void ghwp_document_finalize (GObject *obj)
@@ -187,171 +355,4 @@ static void ghwp_document_init (GHWPDocument *doc)
 {
     doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
     doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
-}
-
-/**
- * ghwp_document_get_title:
- * @document: A #GHWPDocument
- *
- * Returns the document's title
- *
- * Return value: a new allocated string containing the title
- *               of @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_title (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->title);
-}
-
-/**
- * ghwp_document_get_keywords:
- * @document: A #GHWPDocument
- *
- * Returns the keywords associated to the document
- *
- * Return value: a new allocated string containing keywords associated
- *               to @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_keywords (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->keywords);
-}
-
-/**
- * ghwp_document_get_subject:
- * @document: A #GHWPDocument
- *
- * Returns the subject of the document
- *
- * Return value: a new allocated string containing the subject
- *               of @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_subject (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->subject);
-}
-
-/**
- * ghwp_document_get_creator:
- * @document: A #GHWPDocument
- *
- * Returns the creator of the document.
- *
- * Return value: a new allocated string containing the creator
- *               of @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_creator (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->creator);
-}
-
-/**
- * ghwp_document_get_creation_date:
- * @document: A #GHWPDocument
- *
- * Returns the date the document was created as seconds since the Epoch
- *
- * Return value: the date the document was created, or -1
- *
- * Since: 0.1.2
- **/
-GTime ghwp_document_get_creation_date (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
-    return document->creation_date;
-}
-
-/**
- * ghwp_document_get_modification_date:
- * @document: A #GHWPDocument
- *
- * Returns the date the document was most recently modified as seconds since the Epoch
- *
- * Return value: the date the document was most recently modified, or -1
- *
- * Since: 0.1.2
- **/
-GTime ghwp_document_get_modification_date (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), (GTime)-1);
-    return document->mod_date;
-}
-
-/**
- * ghwp_document_get_hwp_format:
- * @document: A #GHWPDocument
- *
- * Returns the HWP format of @document as a string (e.g. HWP v5.0.0.6)
- *
- * Return value: a new allocated string containing the HWP format
- *               of @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_format (GHWPDocument *document)
-{
-    gchar *format;
-
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-
-    format = g_strdup_printf ("HWP v%s",
-        ghwp_document_get_hwp_version_string (document));
-    return format;
-}
-
-/**
- * ghwp_document_get_hwp_version_string:
- * @document: A #GHWPDocument
- *
- * Returns the HWP version of @document as a string (e.g. 5.0.0.6)
- *
- * Return value: a new allocated string containing the HWP version
- *               of @document, or %NULL
- *
- * Since: 0.1.2
- **/
-gchar *ghwp_document_get_hwp_version_string (GHWPDocument *document)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT (document), NULL);
-    return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
-                                           document->minor_version,
-                                           document->micro_version,
-                                           document->extra_version);
-}
-
-/**
- * ghwp_document_get_hwp_version:
- * @document: A #GHWPDocument
- * @major_version: (out) (allow-none): return location for the HWP major version number
- * @minor_version: (out) (allow-none): return location for the HWP minor version number
- * @micro_version: (out) (allow-none): return location for the HWP micro version number
- * @extra_version: (out) (allow-none): return location for the HWP extra version number
- *
- * Returns: the major and minor and micro and extra HWP version numbers
- *
- * Since: 0.1.2
- **/
-void ghwp_document_get_hwp_version (GHWPDocument *document,
-                                    guint8       *major_version,
-                                    guint8       *minor_version,
-                                    guint8       *micro_version,
-                                    guint8       *extra_version)
-{
-    g_return_if_fail (GHWP_IS_DOCUMENT (document));
-    if (major_version) *major_version = document->major_version;
-    if (minor_version) *minor_version = document->minor_version;
-    if (micro_version) *micro_version = document->micro_version;
-    if (extra_version) *extra_version = document->extra_version;
 }
