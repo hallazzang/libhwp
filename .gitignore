@@ -40,6 +40,8 @@ ghwp-version.h
 src/hwp2pdf
 src/hwp2svg
 src/unhwp
+src/ghwp-enum-types.h
+src/ghwp-enum-types.c
 
 # output files of dpkg-buildpackage
 debian/autoreconf.*
