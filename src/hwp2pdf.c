@@ -39,9 +39,14 @@ int main (int argc, char **argv)
 #endif
 
     GHWPFile *file = ghwp_file_new_from_filename (argv[1], &error);
+
+    if (error)
+        g_error ("%s", error->message);
+
     GHWPDocument *document = ghwp_file_get_document (file, &error);
 
     guint n_pages = ghwp_document_get_n_pages (document);
+
     if (n_pages < 1) {
         puts ("There is no page");
         return -1;
