@@ -52,7 +52,6 @@ struct _GHWPFileV5
     GHWPFile           parent_instance;
     GHWPFileV5Private *priv;
 
-    GHWPDocument      *document;
     GArray            *section_streams;
     GInputStream      *prv_text_stream;
     GInputStream      *prv_image_stream;
@@ -101,6 +100,11 @@ void          ghwp_file_v5_get_hwp_version        (GHWPFile    *file,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
+gboolean      ghwp_file_v5_check_version          (GHWPFileV5 *file,
+                                                   guint8      major,
+                                                   guint8      minor,
+                                                   guint8      micro,
+                                                   guint8      extra);
 GHWPDocument *ghwp_file_v5_get_document           (GHWPFile    *file,
                                                    GError     **error);
 

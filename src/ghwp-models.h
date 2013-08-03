@@ -30,7 +30,7 @@
 
 #include <glib-object.h>
 #include <pango/pango-layout.h>
-#include "ghwp-parse.h"
+#include "ghwp-parse-context.h"
 
 G_BEGIN_DECLS
 
@@ -140,7 +140,6 @@ struct _GHWPTable
 
 GType          ghwp_table_get_type         (void) G_GNUC_CONST;
 GHWPTable     *ghwp_table_new              (void);
-GHWPTable     *ghwp_table_new_from_context (GHWPContext   *context);
 GHWPTableCell *ghwp_table_get_last_cell    (GHWPTable     *table);
 void           ghwp_table_add_cell         (GHWPTable     *table,
                                             GHWPTableCell *cell);
@@ -195,12 +194,13 @@ struct _GHWPTableCellClass
 
 GType          ghwp_table_cell_get_type           (void) G_GNUC_CONST;
 GHWPTableCell *ghwp_table_cell_new                (void);
-GHWPTableCell *ghwp_table_cell_new_from_context   (GHWPContext   *context);
+GHWPTableCell *ghwp_table_cell_new_from_context   (GHWPParseContext   *context);
 GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell);
 void           ghwp_table_cell_add_paragraph      (GHWPTableCell *cell,
                                                    GHWPParagraph *paragraph);
 void           ghwp_table_cell_add_pango_layout   (GHWPTableCell *cell,
                                                    PangoLayout   *layout);
+
 G_END_DECLS
 
 #endif /* __GHWP_MODELS_H__ */

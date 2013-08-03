@@ -1,4 +1,4 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * ghwp-document.c
  *
@@ -26,65 +26,17 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 
 #include "ghwp-document.h"
 #include "ghwp-file.h"
 #include "ghwp-models.h"
+#include "ghwp-parser.h"
 
-G_DEFINE_TYPE (GHWPDocument, ghwp_document, G_TYPE_OBJECT);
+static void ghwp_document_parser_iface_init (GHWPParserInterface *iface);
 
-#define _g_array_free0(var) ((var == NULL) ? NULL : (var = (g_array_free (var, TRUE), NULL)))
-#define _g_free0(var) (var = (g_free (var), NULL))
-#define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
-
-static gpointer _g_object_ref0 (gpointer obj)
-{
-    return obj ? g_object_ref (obj) : NULL;
-}
-
-/**
- * ghwp_document_check_version:
- * @document: a #GHWPDocument
- * @major: the major version to check for
- * @minor: the minor version to check for
- * @micro: the micro version to check for
- * @extra: the extra version to check for
- *
- * Checks the version of the HWP document
- *
- * <example>
- * <title>Checking the version of the HWP document</title>
- * <programlisting>
- *   if (ghwp_document_check_version (doc, 5, 0, 0, 7))
- *     g_print ("HWP document version is 5.0.0.7 or above");
- * </programlisting>
- * </example>
- *
- * Returns: %TRUE if the version of the HWP document
- * is the same as or newer than the passed-in version.
- *
- * Since: TODO
- */
-gboolean ghwp_document_check_version (GHWPDocument *document,
-                                      guint8        major,
-                                      guint8        minor,
-                                      guint8        micro,
-                                      guint8        extra)
-{
-    g_return_val_if_fail (GHWP_IS_DOCUMENT(document), FALSE);
-
-    return (document->major_version >  major)   ||
-           (document->major_version == major &&
-            document->minor_version >  minor)   ||
-           (document->major_version == major &&
-            document->minor_version == minor &&
-            document->micro_version >  micro)   ||
-           (document->major_version == major &&
-            document->minor_version == minor &&
-            document->micro_version == micro &&
-            document->extra_version >= extra);
-}
+G_DEFINE_TYPE_WITH_CODE (GHWPDocument, ghwp_document, G_TYPE_OBJECT,
+    G_IMPLEMENT_INTERFACE (GHWP_TYPE_PARSER, ghwp_document_parser_iface_init))
 
 /**
  * ghwp_document_new_from_uri:
@@ -105,7 +57,7 @@ GHWPDocument *ghwp_document_new_from_uri (const gchar *uri, GError **error)
 
     gchar        *filename = g_filename_from_uri (uri, NULL, error);
     GHWPDocument *document = ghwp_document_new_from_filename (filename, error);
-    _g_free0 (filename);
+    g_free (filename);
     return document;
 }
 
@@ -151,7 +103,7 @@ GHWPPage *ghwp_document_get_page (GHWPDocument *doc, gint n_page)
 {
     g_return_val_if_fail (GHWP_IS_DOCUMENT (doc), NULL);
     GHWPPage *page = g_array_index (doc->pages, GHWPPage *, (guint) n_page);
-    return _g_object_ref0 (page);
+    return g_object_ref (page);
 }
 
 /**
@@ -338,10 +290,10 @@ void ghwp_document_get_hwp_version (GHWPDocument *document,
 static void ghwp_document_finalize (GObject *obj)
 {
     GHWPDocument *doc = GHWP_DOCUMENT(obj);
-    _g_free0 (doc->prv_text);
-    _g_array_free0 (doc->paragraphs);
-    _g_array_free0 (doc->pages);
-    _g_object_unref0 (doc->summary_info);
+    g_free (doc->prv_text);
+    g_array_free (doc->paragraphs, TRUE);
+    g_array_free (doc->pages, TRUE);
+    g_object_unref (doc->summary_info);
     G_OBJECT_CLASS (ghwp_document_parent_class)->finalize (obj);
 }
 
@@ -355,4 +307,24 @@ static void ghwp_document_init (GHWPDocument *doc)
 {
     doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
     doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
+}
+
+void set_document_version (GHWPParser *parser,
+                           guint8      major_version,
+                           guint8      minor_version,
+                           guint8      micro_version,
+                           guint8      extra_version,
+                           gpointer    user_data,
+                           GError    **error)
+{
+  GHWPDocument *document  = (GHWPDocument *) user_data;
+  document->major_version = major_version;
+  document->minor_version = minor_version;
+  document->micro_version = micro_version;
+  document->extra_version = extra_version;
+}
+
+static void ghwp_document_parser_iface_init (GHWPParserInterface *iface)
+{
+  iface->document_version = set_document_version;
 }

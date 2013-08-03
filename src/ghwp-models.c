@@ -151,46 +151,6 @@ void hexdump(guint8 *data, guint16 data_len)
     printf("\n-----------------------------------------------\n");
 }
 
-GHWPTable *ghwp_table_new_from_context (GHWPContext *context)
-{
-    g_return_val_if_fail (GHWP_IS_CONTEXT (context), NULL);
-    GHWPTable *table = ghwp_table_new ();
-
-    context_read_uint32 (context, &table->flags);
-    context_read_uint16 (context, &table->n_rows);
-    context_read_uint16 (context, &table->n_cols);
-    context_read_uint16 (context, &table->cell_spacing);
-    context_read_uint16 (context, &table->left_margin);
-    context_read_uint16 (context, &table->right_margin);
-    context_read_uint16 (context, &table->top_margin);
-    context_read_uint16 (context, &table->bottom_margin);
-
-    table->row_sizes = g_malloc0_n (table->n_rows, 2);
-
-    for (guint i = 0; i < table->n_rows; i++) {
-        context_read_uint16 (context, &(table->row_sizes[i]));
-    }
-
-    context_read_uint16 (context, &table->border_fill_id);
-
-    if (ghwp_document_check_version (context->document, 5, 0, 0, 7)) {
-        context_read_uint16 (context, &table->valid_zone_info_size);
-
-        table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
-
-        for (guint i = 0; i < table->valid_zone_info_size; i++) {
-            context_read_uint16 (context, &(table->zones[i]));
-        }
-    }
-
-    if (context->data_count != context->data_len) {
-        g_warning ("%s:%d: TABLE data size mismatch at %s\n",
-            __FILE__, __LINE__,
-            ghwp_document_get_hwp_version_string(context->document));
-    }
-    return table;
-}
-
 static void ghwp_table_init (GHWPTable *table)
 {
     table->cells = g_array_new (TRUE, TRUE, sizeof (GHWPTableCell *));
@@ -254,9 +214,9 @@ GHWPTableCell *ghwp_table_cell_new (void)
     return g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
 }
 
-GHWPTableCell *ghwp_table_cell_new_from_context (GHWPContext *context)
+GHWPTableCell *ghwp_table_cell_new_from_context (GHWPParseContext *context)
 {
-    g_return_val_if_fail (GHWP_IS_CONTEXT (context), NULL);
+    g_return_val_if_fail (GHWP_IS_PARSE_CONTEXT (context), NULL);
 
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
     /* 표 60 LIST_HEADER */
