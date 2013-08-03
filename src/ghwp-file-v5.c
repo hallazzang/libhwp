@@ -259,158 +259,202 @@ static gint compare_entry_names (gconstpointer a, gconstpointer b)
     return i - j;
 }
 
-static void make_stream (GHWPFileV5 *file)
+static void make_stream (GHWPFileV5 *file, GError **error)
 {
-    g_return_if_fail (GHWP_IS_FILE_V5 (file));
+  g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    const gchar *name       = NULL;
-    GsfInfile   *oleinfile  = GSF_INFILE (file->priv->olefile);
-    gint         n_children = gsf_infile_num_children (oleinfile);
+  GsfInfile   *ole          = GSF_INFILE (file->priv->olefile);
+  gint         n_root_entry = gsf_infile_num_children (ole);
 
-    if (n_children < 1) {
-        g_error ("invalid hwp file\n");
+  if (n_root_entry < 1)
+  {
+    g_set_error_literal (error,
+                         GHWP_FILE_ERROR,
+                         GHWP_FILE_ERROR_INVALID,
+                         "invalid hwp file");
+    return;
+  }
+
+  /* 루트 엔트리 이름을 entry_names 배열에 넣고 우선 순위에 따라 정렬한다 */
+  GArray *entry_names = g_array_new (TRUE, TRUE, sizeof(char *));
+  for (gint i = 0; i < n_root_entry; i++) 
+  {
+    const gchar *name = gsf_infile_name_by_index (ole, i);
+    g_array_append_val (entry_names, name);
+  }
+  g_array_sort(entry_names, compare_entry_names);
+  /* 우선 순위에 따라 스트림을 만든다 */
+  for (gint i = 0; i < n_root_entry; i++)
+  {
+    char *entry = g_array_index (entry_names, char *, i);
+
+    if (g_str_equal (entry, "FileHeader")) {
+      GsfInput *fh = gsf_infile_child_by_name (ole, entry);
+
+      if (gsf_infile_num_children (GSF_INFILE (fh)) != -1)
+      {
+        if (GSF_IS_INPUT (fh))
+          g_object_unref (fh);
+
+        g_set_error_literal (error,
+                             GHWP_FILE_ERROR,
+                             GHWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
         return;
-    }
+      }
 
-    /* 스펙이 명확하지 않고, 추후 예고없이 스펙이 변할 수 있기 때문에
-     * 이를 감지하고자 코드를 이렇게 작성하였다. */
-    GArray *entry_names = g_array_new (TRUE, TRUE, sizeof(char *));
+      file->file_header_stream = G_INPUT_STREAM (gsf_input_stream_new (fh));
+      parse_file_header (file);
+      g_object_unref (fh);
+    } else if (g_str_equal (entry, "DocInfo")) {
+      GsfInput *docinfo = gsf_infile_child_by_name (ole, entry);
 
-    for (gint i = 0; i < n_children; i++) {
-        name = gsf_infile_name_by_index (oleinfile, i);
-        g_array_append_val (entry_names, name);
-    }
-    g_array_sort(entry_names, compare_entry_names);
+      if (gsf_infile_num_children ((GsfInfile*) docinfo) != -1)
+      {
+        if (GSF_IS_INPUT (docinfo))
+          g_object_unref (docinfo);
 
-    for (gint i = 0; i < n_children; i++) {
-        char     *entry = g_array_index (entry_names, char *, i);
-        GsfInput* input;
-        gint      n_children = 0;
+        g_set_error_literal (error,
+                             GHWP_FILE_ERROR,
+                             GHWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
+        return;
+      }
 
-        if (g_str_equal (entry, "FileHeader")) {
-            input = gsf_infile_child_by_name (oleinfile, entry);
-            n_children = gsf_infile_num_children ((GsfInfile*) input);
+      if (file->is_compress) {
+        GsfInputStream    *gis;
+        GZlibDecompressor *zd;
+        GInputStream      *cis;
 
-            if (n_children > 0) {
-                g_error ("invalid\n");
-            }
+        gis = gsf_input_stream_new (docinfo);
+        zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+        cis = g_converter_input_stream_new ((GInputStream*) gis,
+                                            (GConverter*) zd);
+        file->doc_info_stream = cis;
 
-            file->file_header_stream = G_INPUT_STREAM (gsf_input_stream_new (input));
-            parse_file_header (file);
-        } else if (g_str_equal (entry, "DocInfo")) {
-            input = gsf_infile_child_by_name (oleinfile, entry);
-            input = g_object_ref (input);
-            n_children = gsf_infile_num_children ((GsfInfile*) input);
+        g_object_unref (zd);
+        g_object_unref (gis);
+      } else {
+        file->doc_info_stream = (GInputStream*) gsf_input_stream_new (docinfo);
+      }
+      g_object_unref (docinfo);
+    } else if (g_str_equal(entry, "BodyText") ||
+               g_str_equal(entry, "VeiwText")) {
+      GsfInfile *infile = (GsfInfile *) gsf_infile_child_by_name (ole, entry);
 
-            if (n_children > 0) {
-                g_error ("invalid\n");
-            }
+      file->section_streams = g_array_new (TRUE, TRUE, sizeof (GInputStream*));
 
-            if (file->is_compress) {
-                GsfInputStream    *gis;
-                GZlibDecompressor *zd;
-                GInputStream      *cis;
+      gint n_section = gsf_infile_num_children (infile);
 
-                gis = gsf_input_stream_new (input);
-                zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-                cis = g_converter_input_stream_new ((GInputStream*) gis,
-                                                    (GConverter*) zd);
-                file->doc_info_stream = cis;
+      if (n_section <= 0) {
+        if (GSF_IS_INFILE (infile))
+          g_object_unref (infile);
 
-                g_object_unref (zd);
-                g_object_unref (gis);
-            } else {
-                file->doc_info_stream = (GInputStream*) gsf_input_stream_new (input);
-            }
-            g_object_unref (input);
-        } else if (g_str_equal(entry, "BodyText") ||
-                   g_str_equal(entry, "VeiwText")) {
-            GsfInfile* infile;
+        g_set_error (error,
+                     GHWP_FILE_ERROR,
+                     GHWP_FILE_ERROR_INVALID,
+                     "can't read section in %s\n", entry);
+        return;
+      }
 
-            file->section_streams = g_array_new (TRUE, TRUE,
-                                                 sizeof (GInputStream*));
+      for (gint i = 0; i < n_section; i++) {
+        GsfInput *section = 
+                    gsf_infile_child_by_vname (infile,
+                                               g_strdup_printf("Section%d", i),
+                                               NULL);
 
-            infile = (GsfInfile*) gsf_infile_child_by_name (oleinfile, entry);
-            infile = g_object_ref (infile);
+        if (gsf_infile_num_children ((GsfInfile *) section) != -1) {
+          if (GSF_IS_INPUT (section))
+            g_object_unref (section);
 
-            n_children = gsf_infile_num_children (infile);
+          g_set_error_literal (error,
+                               GHWP_FILE_ERROR,
+                               GHWP_FILE_ERROR_INVALID,
+                               "invalid hwp file");
+          return;
+        }
 
-            if (n_children == 0) {
-                g_error ("nothing in %s\n", entry);
-            }
+        if (file->is_compress) {
+          GInputStream      *gis;
+          GZlibDecompressor *zd;
+          GInputStream      *cis;
 
-            for (gint j = 0; j < n_children; j++) {
-                input = gsf_infile_child_by_index (infile, j);
-                GsfInfile *section = g_object_ref (input);
+          gis = (GInputStream *) gsf_input_stream_new (section);
+          zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+          cis = g_converter_input_stream_new (gis, (GConverter *) zd);
 
-                if (gsf_infile_num_children (section) > 0) {
-                    g_error ("invalid section");
-                }
-
-                if (file->is_compress) {
-                    GsfInputStream    *gis;
-                    GZlibDecompressor *zd;
-                    GInputStream      *cis;
-
-                    gis = gsf_input_stream_new ((GsfInput*) section);
-                    zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-                    cis = g_converter_input_stream_new ((GInputStream *) gis,
-                                                        (GConverter *) zd);
-
-                    file->priv->section_stream = G_INPUT_STREAM (cis);
-                    g_object_unref (zd);
-                    g_object_unref (gis);
-                } else {
-                    GsfInputStream *stream;
-                    stream = gsf_input_stream_new ((GsfInput*) section);
-                    file->priv->section_stream = G_INPUT_STREAM (stream);
-                }
-
-                GInputStream *_stream_ = file->priv->section_stream;
-                _stream_ = g_object_ref (_stream_);
-                g_array_append_val (file->section_streams, _stream_);
-                g_object_unref (section);
-            } /* for */
-            g_object_unref (infile);
-        } else if (g_str_equal (entry, "\005HwpSummaryInformation")) {
-            input = gsf_infile_child_by_name (oleinfile, entry);
-            input = g_object_ref (input);
-            n_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (n_children > 0) {
-                g_error ("invalid\n");
-            }
-
-            file->summary_info_stream = (GInputStream*) gsf_input_stream_new (input);
-            g_object_unref (input);
-        } else if (g_str_equal (entry, "PrvText")) {
-            input = gsf_infile_child_by_name (oleinfile, entry);
-            input = g_object_ref (input);
-            n_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (n_children > 0) {
-                g_error ("invalid\n");
-            }
-
-            file->prv_text_stream = (GInputStream *) gsf_input_stream_new (input);
-            g_object_unref (input);
-        } else if (g_str_equal (entry, "PrvImage")) {
-            input = gsf_infile_child_by_name (oleinfile, entry);
-            input = g_object_ref (input);
-            n_children = gsf_infile_num_children ((GsfInfile*) input);
-
-            if (n_children > 0) {
-                g_error ("invalid\n");
-            }
-
-            file->prv_image_stream = (GInputStream*) gsf_input_stream_new (input);
-            g_object_unref (input);
+          GInputStream *tmp = G_INPUT_STREAM (cis);
+          g_array_append_val (file->section_streams, tmp);
+          g_object_unref (zd);
+          g_object_unref (gis);
         } else {
-            g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
-        } /* if */
-    } /* for */
-    g_array_free (entry_names, TRUE);
-    g_array_unref (entry_names);
+          GsfInputStream *stream = gsf_input_stream_new (section);
+          GInputStream *tmp = G_INPUT_STREAM (stream);
+          g_array_append_val (file->section_streams, tmp);
+        }
+
+        g_object_unref (section);
+      } /* for */
+      g_object_unref (infile);
+    } else if (g_str_equal (entry, "\005HwpSummaryInformation")) {
+      GsfInput *summary = gsf_infile_child_by_name (ole, entry);
+      g_object_ref (summary);
+
+      if (gsf_infile_num_children ((GsfInfile *) summary) != -1) {
+        if (GSF_IS_INPUT (summary))
+          g_object_unref (summary);
+
+        g_set_error_literal (error,
+                             GHWP_FILE_ERROR,
+                             GHWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
+        return;
+      }
+
+      file->summary_info_stream = (GInputStream*) gsf_input_stream_new (summary);
+      g_object_unref (summary);
+    } else if (g_str_equal (entry, "PrvText")) {
+      GsfInput *prvtext = gsf_infile_child_by_name (ole, entry);
+      g_object_ref (prvtext);
+
+      if (gsf_infile_num_children ((GsfInfile *) prvtext) != -1) {
+        if (GSF_IS_INPUT (prvtext))
+          g_object_unref (prvtext);
+
+        g_set_error_literal (error,
+                             GHWP_FILE_ERROR,
+                             GHWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
+        return;
+      }
+
+      file->prv_text_stream = (GInputStream *) gsf_input_stream_new (prvtext);
+      g_object_unref (prvtext);
+    } else if (g_str_equal (entry, "PrvImage")) {
+      GsfInput *prvimage = gsf_infile_child_by_name (ole, entry);
+      g_object_ref (prvimage);
+
+      if (gsf_infile_num_children ((GsfInfile *) prvimage) != -1) {
+        if (GSF_IS_INPUT (prvimage))
+          g_object_unref (prvimage);
+
+        g_set_error_literal (error,
+                             GHWP_FILE_ERROR,
+                             GHWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
+        return;
+      }
+
+      file->prv_image_stream = (GInputStream*) gsf_input_stream_new (prvimage);
+      g_object_unref (prvimage);
+    } else {
+      g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
+    } /* if */
+  } /* for */
+
+  g_array_free (entry_names, TRUE);
+  g_array_unref (entry_names);
+  return;
 }
 
 /**
@@ -446,7 +490,7 @@ GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** erro
     GHWPFileV5 *file = g_object_new (GHWP_TYPE_FILE_V5, NULL);
     file->priv->olefile = olefile;
     g_object_unref (input);
-    make_stream (file);
+    make_stream (file, error);
 
     return file;
 }
