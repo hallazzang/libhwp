@@ -1,4 +1,4 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * ghwp-enums.h
  *
@@ -186,94 +186,88 @@ typedef enum
  */
 typedef enum
 {
-    CTRL_ID_SECTION_DEF         = MAKE_CTRL_ID('s', 'e', 'c', 'd'), /* 구역 */
-    CTRL_ID_COLUMN_DEF          = MAKE_CTRL_ID('c', 'o', 'l', 'd'), /* 단 */
-    /* 머리말 */
-    CTRL_ID_HEADEDR             = MAKE_CTRL_ID('h', 'e', 'a', 'd'),
-    /* 꼬리말 */
-    CTRL_ID_FOOTER              = MAKE_CTRL_ID('f', 'o', 'o', 't'),
-    CTRL_ID_FOOTNOTE            = MAKE_CTRL_ID('f', 'n', ' ', ' '), /* 각주 */
-    CTRL_ID_ENDNOTE             = MAKE_CTRL_ID('e', 'n', ' ', ' '), /* 미주 */
-    /* 자동 번호*/
-    CTRL_ID_AUTO_NUM            = MAKE_CTRL_ID('a', 't', 'n', 'o'),
-    /* 새 번호 지정 */
-    CTRL_ID_NEW_NUM             = MAKE_CTRL_ID('n', 'w', 'n', 'o'),
-    /* 감추기 */
-    CTRL_ID_PAGE_HIDE           = MAKE_CTRL_ID('p', 'g', 'h', 'd'),
-    /* 페이지 번호 제어(97의 홀수쪽에서 시작) */
-    CTRL_ID_PAGE_NUM_CTRL       = MAKE_CTRL_ID('p', 'g', 'c', 't'),
-    /* 쪽번호 위치 */
-    CTRL_ID_PAGE_NUM_POS        = MAKE_CTRL_ID('p', 'g', 'n', 'p'),
-    /* 찾아보기 표식 */
-    CTRL_ID_INDEX_MARK          = MAKE_CTRL_ID('i', 'd', 'x', 'm'),
-    /* 책갈피 */
-    CTRL_ID_BOKM                = MAKE_CTRL_ID('b', 'o', 'k', 'm'),
-    /* 글자 겹침 */
-    CTRL_ID_TCPS                = MAKE_CTRL_ID('t', 'c', 'p', 's'),
-    CTRL_ID_DUTMAL              = MAKE_CTRL_ID('t', 'd', 'u', 't'), /* 덧말 */
-    /* 숨은 설명 */
-    CTRL_ID_TCMT                = MAKE_CTRL_ID('t', 'c', 'm', 't'),
+  CTRL_ID_SECTION_DEF          = MAKE_CTRL_ID('s', 'e', 'c', 'd'), /* 구역 */
+  CTRL_ID_COLUMN_DEF           = MAKE_CTRL_ID('c', 'o', 'l', 'd'), /* 단 */
+  CTRL_ID_HEADEDR              = MAKE_CTRL_ID('h', 'e', 'a', 'd'), /* 머리말 */
+  CTRL_ID_FOOTER               = MAKE_CTRL_ID('f', 'o', 'o', 't'), /* 꼬리말 */
+  CTRL_ID_FOOTNOTE             = MAKE_CTRL_ID('f', 'n', ' ', ' '), /* 각주 */
+  CTRL_ID_ENDNOTE              = MAKE_CTRL_ID('e', 'n', ' ', ' '), /* 미주 */
+  /* 자동 번호*/
+  CTRL_ID_AUTO_NUM             = MAKE_CTRL_ID('a', 't', 'n', 'o'),
+  /* 새 번호 지정 */
+  CTRL_ID_NEW_NUM              = MAKE_CTRL_ID('n', 'w', 'n', 'o'),
+  CTRL_ID_PAGE_HIDE            = MAKE_CTRL_ID('p', 'g', 'h', 'd'), /* 감추기 */
+  /* 페이지 번호 제어(97의 홀수쪽에서 시작) */
+  CTRL_ID_PAGE_NUM_CTRL        = MAKE_CTRL_ID('p', 'g', 'c', 't'),
+  /* 쪽번호 위치 */
+  CTRL_ID_PAGE_NUM_POS         = MAKE_CTRL_ID('p', 'g', 'n', 'p'),
+  /* 찾아보기 표식 */
+  CTRL_ID_INDEX_MARK           = MAKE_CTRL_ID('i', 'd', 'x', 'm'),
+  CTRL_ID_BOKM                 = MAKE_CTRL_ID('b', 'o', 'k', 'm'), /* 책갈피 */
+  /* 글자 겹침 */
+  CTRL_ID_TCPS                 = MAKE_CTRL_ID('t', 'c', 'p', 's'),
+  CTRL_ID_DUTMAL               = MAKE_CTRL_ID('t', 'd', 'u', 't'), /* 덧말 */
+  /* 숨은 설명 */
+  CTRL_ID_TCMT                 = MAKE_CTRL_ID('t', 'c', 'm', 't'),
 
-    CTRL_ID_TABLE               = MAKE_CTRL_ID('t', 'b', 'l', ' '), /* 표 */
-    CTRL_ID_LINE                = MAKE_CTRL_ID('$', 'l', 'i', 'n'), /* 선 */
-    /* 사각형 */
-    CTRL_ID_RECT                = MAKE_CTRL_ID('$', 'r', 'e', 'c'),
-    CTRL_ID_ELL                 = MAKE_CTRL_ID('$', 'e', 'l', 'l'), /* 타원 */
-    CTRL_ID_ARC                 = MAKE_CTRL_ID('$', 'a', 'r', 'c'), /* 호 */
-    /* 다각형 */
-    CTRL_ID_POLY                = MAKE_CTRL_ID('$', 'p', 'o', 'l'),
-    CTRL_ID_CURV                = MAKE_CTRL_ID('$', 'c', 'u', 'r'), /* 곡선 */
-    /* 한글97 수식 */
-    CTRL_ID_EQEDID              = MAKE_CTRL_ID('e', 'q', 'e', 'd'),
-    CTRL_ID_PIC                 = MAKE_CTRL_ID('$', 'p', 'i', 'c'), /* 그림 */
-    CTRL_ID_OLE                 = MAKE_CTRL_ID('$', 'o', 'l', 'e'), /* OLE */
-    /* 묶음 개체 */
-    CTRL_ID_CON                 = MAKE_CTRL_ID('$', 'c', 'o', 'n'),
+  CTRL_ID_TABLE                = MAKE_CTRL_ID('t', 'b', 'l', ' '), /* 표 */
+  CTRL_ID_LINE                 = MAKE_CTRL_ID('$', 'l', 'i', 'n'), /* 선 */
+  CTRL_ID_RECT                 = MAKE_CTRL_ID('$', 'r', 'e', 'c'), /* 사각형 */
+  CTRL_ID_ELL                  = MAKE_CTRL_ID('$', 'e', 'l', 'l'), /* 타원 */
+  CTRL_ID_ARC                  = MAKE_CTRL_ID('$', 'a', 'r', 'c'), /* 호 */
+  CTRL_ID_POLY                 = MAKE_CTRL_ID('$', 'p', 'o', 'l'), /* 다각형 */
+  CTRL_ID_CURV                 = MAKE_CTRL_ID('$', 'c', 'u', 'r'), /* 곡선 */
+  /* 한글97 수식 */
+  CTRL_ID_EQEDID               = MAKE_CTRL_ID('e', 'q', 'e', 'd'),
+  CTRL_ID_PIC                  = MAKE_CTRL_ID('$', 'p', 'i', 'c'), /* 그림 */
+  CTRL_ID_OLE                  = MAKE_CTRL_ID('$', 'o', 'l', 'e'), /* OLE */
+  /* 묶음 개체 */
+  CTRL_ID_CON                  = MAKE_CTRL_ID('$', 'c', 'o', 'n'),
 
-    FIELD_UNKNOWN               = MAKE_CTRL_ID('%', 'u', 'n', 'k'),
-    /* 현재의 날짜/시간 필드 */
-    FIELD_DATE                  = MAKE_CTRL_ID('%', 'd', 't', 'e'),
-    /*파일 작성 날짜/시간 필드 */
-    FIELD_DOCDATE               = MAKE_CTRL_ID('%', 'd', 'd', 't'),
-    /* 문서 경로 필드 */
-    FIELD_PATH                  = MAKE_CTRL_ID('%', 'p', 'a', 't'),
-    /*블럭 책갈피 */
-    FIELD_BOOKMARK              = MAKE_CTRL_ID('%', 'b', 'm', 'k'),
-    /* 메일 머지 */
-    FIELD_MAILMERGE             = MAKE_CTRL_ID('%', 'm', 'm', 'g'),
-    /* 상호 참조 */
-    FIELD_CROSSREF              = MAKE_CTRL_ID('%', 'x', 'r', 'f'),
-    /* 계산식 */
-    FIELD_FORMULA               = MAKE_CTRL_ID('%', 'f', 'm', 'u'),
-    /* 누름틀 */
-    FIELD_CLICKHERE             = MAKE_CTRL_ID('%', 'c', 'l', 'k'),
-    /* 문서 요약 정보 필드 */
-    FIELD_SUMMARY               = MAKE_CTRL_ID('%', 's', 'm', 'r'),
-    /* 사용자 정보 필드 */
-    FIELD_USERINFO              = MAKE_CTRL_ID('%', 'u', 's', 'r'),
-    /* 하이퍼링크 */
-    FIELD_HYPERLINK             = MAKE_CTRL_ID('%', 'h', 'l', 'k'),
-    FIELD_REVISION_SIGN         = MAKE_CTRL_ID('%', 's', 'i', 'g'),
-    FIELD_REVISION_DELETE       = MAKE_CTRL_ID('%', '%', '*', 'd'),
-    FIELD_REVISION_ATTACH       = MAKE_CTRL_ID('%', '%', '*', 'a'),
-    FIELD_REVISION_CLIPPING     = MAKE_CTRL_ID('%', '%', '*', 'C'),
-    FIELD_REVISION_SAWTOOTH     = MAKE_CTRL_ID('%', '%', '*', 'S'),
-    FIELD_REVISION_THINKING     = MAKE_CTRL_ID('%', '%', '*', 'T'),
-    FIELD_REVISION_PRAISE       = MAKE_CTRL_ID('%', '%', '*', 'P'),
-    FIELD_REVISION_LINE         = MAKE_CTRL_ID('%', '%', '*', 'L'),
-    FIELD_REVISION_SIMPLECHANGE = MAKE_CTRL_ID('%', '%', '*', 'c'),
-    FIELD_REVISION_HYPERLINK    = MAKE_CTRL_ID('%', '%', '*', 'h'),
-    FIELD_REVISION_LINEATTACH   = MAKE_CTRL_ID('%', '%', '*', 'A'),
-    FIELD_REVISION_LINELINK     = MAKE_CTRL_ID('%', '%', '*', 'i'),
-    FIELD_REVISION_LINETRANSFER = MAKE_CTRL_ID('%', '%', '*', 't'),
-    FIELD_REVISION_RIGHTMOVE    = MAKE_CTRL_ID('%', '%', '*', 'r'),
-    FIELD_REVISION_LEFTMOVE     = MAKE_CTRL_ID('%', '%', '*', 'l'),
-    FIELD_REVISION_TRANSFER     = MAKE_CTRL_ID('%', '%', '*', 'n'),
-    FIELD_REVISION_SIMPLEINSERT = MAKE_CTRL_ID('%', '%', '*', 'e'),
-    FIELD_REVISION_SPLIT        = MAKE_CTRL_ID('%', 's', 'p', 'l'),
-    FIELD_REVISION_CHANGE       = MAKE_CTRL_ID('%', '%', 'm', 'r'),
-    FIELD_MEMO                  = MAKE_CTRL_ID('%', '%', 'm', 'e'),
-    FIELD_PRIVATE_INFO_SECURITY = MAKE_CTRL_ID('%', 'c', 'p', 'r')
+  CTRL_ID_DRAWING_SHAPE_OBJECT = MAKE_CTRL_ID('g', 's', 'o', ' '),
+
+  FIELD_UNKNOWN                = MAKE_CTRL_ID('%', 'u', 'n', 'k'),
+  /* 현재의 날짜/시간 필드 */
+  FIELD_DATE                   = MAKE_CTRL_ID('%', 'd', 't', 'e'),
+  /*파일 작성 날짜/시간 필드 */
+  FIELD_DOCDATE                = MAKE_CTRL_ID('%', 'd', 'd', 't'),
+  /* 문서 경로 필드 */
+  FIELD_PATH                   = MAKE_CTRL_ID('%', 'p', 'a', 't'),
+  /*블럭 책갈피 */
+  FIELD_BOOKMARK               = MAKE_CTRL_ID('%', 'b', 'm', 'k'),
+  /* 메일 머지 */
+  FIELD_MAILMERGE              = MAKE_CTRL_ID('%', 'm', 'm', 'g'),
+  /* 상호 참조 */
+  FIELD_CROSSREF               = MAKE_CTRL_ID('%', 'x', 'r', 'f'),
+  FIELD_FORMULA                = MAKE_CTRL_ID('%', 'f', 'm', 'u'), /* 계산식 */
+  FIELD_CLICKHERE              = MAKE_CTRL_ID('%', 'c', 'l', 'k'), /* 누름틀 */
+  /* 문서 요약 정보 필드 */
+  FIELD_SUMMARY                 = MAKE_CTRL_ID('%', 's', 'm', 'r'),
+  /* 사용자 정보 필드 */
+  FIELD_USERINFO                = MAKE_CTRL_ID('%', 'u', 's', 'r'),
+  /* 하이퍼링크 */
+  FIELD_HYPERLINK              = MAKE_CTRL_ID('%', 'h', 'l', 'k'),
+  FIELD_REVISION_SIGN          = MAKE_CTRL_ID('%', 's', 'i', 'g'),
+  FIELD_REVISION_DELETE        = MAKE_CTRL_ID('%', '%', '*', 'd'),
+  FIELD_REVISION_ATTACH        = MAKE_CTRL_ID('%', '%', '*', 'a'),
+  FIELD_REVISION_CLIPPING      = MAKE_CTRL_ID('%', '%', '*', 'C'),
+  FIELD_REVISION_SAWTOOTH      = MAKE_CTRL_ID('%', '%', '*', 'S'),
+  FIELD_REVISION_THINKING      = MAKE_CTRL_ID('%', '%', '*', 'T'),
+  FIELD_REVISION_PRAISE        = MAKE_CTRL_ID('%', '%', '*', 'P'),
+  FIELD_REVISION_LINE          = MAKE_CTRL_ID('%', '%', '*', 'L'),
+  FIELD_REVISION_SIMPLECHANGE  = MAKE_CTRL_ID('%', '%', '*', 'c'),
+  FIELD_REVISION_HYPERLINK     = MAKE_CTRL_ID('%', '%', '*', 'h'),
+  FIELD_REVISION_LINEATTACH    = MAKE_CTRL_ID('%', '%', '*', 'A'),
+  FIELD_REVISION_LINELINK      = MAKE_CTRL_ID('%', '%', '*', 'i'),
+  FIELD_REVISION_LINETRANSFER  = MAKE_CTRL_ID('%', '%', '*', 't'),
+  FIELD_REVISION_RIGHTMOVE     = MAKE_CTRL_ID('%', '%', '*', 'r'),
+  FIELD_REVISION_LEFTMOVE      = MAKE_CTRL_ID('%', '%', '*', 'l'),
+  FIELD_REVISION_TRANSFER      = MAKE_CTRL_ID('%', '%', '*', 'n'),
+  FIELD_REVISION_SIMPLEINSERT  = MAKE_CTRL_ID('%', '%', '*', 'e'),
+  FIELD_REVISION_SPLIT         = MAKE_CTRL_ID('%', 's', 'p', 'l'),
+  FIELD_REVISION_CHANGE        = MAKE_CTRL_ID('%', '%', 'm', 'r'),
+  FIELD_MEMO                   = MAKE_CTRL_ID('%', '%', 'm', 'e'),
+  FIELD_PRIVATE_INFO_SECURITY  = MAKE_CTRL_ID('%', 'c', 'p', 'r')
 } GHWPCtrlID;
 
 #endif /* __GHWP_ENUMS__ */
