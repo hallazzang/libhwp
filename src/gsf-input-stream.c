@@ -31,8 +31,7 @@ G_DEFINE_TYPE (GsfInputStream, gsf_input_stream, G_TYPE_INPUT_STREAM);
 GsfInputStream *gsf_input_stream_new (GsfInput *input)
 {
   g_return_val_if_fail (GSF_IS_INPUT (input), NULL);
-  GsfInputStream *gis;
-  gis = g_object_new (GSF_TYPE_INPUT_STREAM, NULL);
+  GsfInputStream *gis = g_object_new (GSF_TYPE_INPUT_STREAM, NULL);
   gis->priv->input = g_object_ref (input);
   return gis;
 }
