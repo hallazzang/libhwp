@@ -1,7 +1,8 @@
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * gsf-input-stream.h
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -17,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GSF_INPUT_STREAM_H_
-#define _GSF_INPUT_STREAM_H_
+#ifndef __GSF_INPUT_STREAM_H__
+#define __GSF_INPUT_STREAM_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -36,23 +37,34 @@ typedef struct _GsfInputStream        GsfInputStream;
 typedef struct _GsfInputStreamClass   GsfInputStreamClass;
 typedef struct _GsfInputStreamPrivate GsfInputStreamPrivate;
 
-struct _GsfInputStream {
-    GInputStream           parent_instance;
-    GsfInputStreamPrivate *priv;
+struct _GsfInputStream
+{
+  GInputStream           parent_instance;
+  GsfInputStreamPrivate *priv;
 };
 
-struct _GsfInputStreamClass {
-    GInputStreamClass parent_class;
+struct _GsfInputStreamClass
+{
+  GInputStreamClass parent_class;
 };
 
-struct _GsfInputStreamPrivate {
-    GsfInput* input;
+struct _GsfInputStreamPrivate
+{
+  GsfInput* input;
 };
 
 GType           gsf_input_stream_get_type (void) G_GNUC_CONST;
 GsfInputStream *gsf_input_stream_new      (GsfInput       *input);
-gssize          gsf_input_stream_size     (GsfInputStream *gsf_input_stream);
+gssize          gsf_input_stream_read     (GInputStream   *base,
+                                           void           *buffer,
+                                           gsize           buffer_len,
+                                           GCancellable   *cancellable,
+                                           GError        **error);
+gboolean        gsf_input_stream_close    (GInputStream   *base,
+                                           GCancellable   *cancellable,
+                                           GError        **error);
+gssize          gsf_input_stream_size     (GsfInputStream *stream);
 
 G_END_DECLS
 
-#endif /* _GSF_INPUT_STREAM_H_ */
+#endif /* __GSF_INPUT_STREAM_H__ */

@@ -1,7 +1,8 @@
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * gsf-input-stream.c
  *
- * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -27,60 +28,50 @@
 
 G_DEFINE_TYPE (GsfInputStream, gsf_input_stream, G_TYPE_INPUT_STREAM);
 
-static gssize gsf_input_stream_read    (GInputStream *base,
-                                        void         *buffer,
-                                        gsize         buffer_len,
-                                        GCancellable *cancellable,
-                                        GError      **error);
-static gboolean gsf_input_stream_close (GInputStream *base,
-                                        GCancellable *cancellable,
-                                        GError      **error);
-static void gsf_input_stream_finalize  (GObject *obj);
-
-GsfInputStream *
-gsf_input_stream_new (GsfInput *input)
+GsfInputStream *gsf_input_stream_new (GsfInput *input)
 {
-    g_return_val_if_fail (input != NULL, NULL);
-    GsfInputStream *gis;
-    gis = g_object_new (GSF_TYPE_INPUT_STREAM, NULL);
-    gis->priv->input = g_object_ref (input);
-    return gis;
+  g_return_val_if_fail (GSF_IS_INPUT (input), NULL);
+  GsfInputStream *gis;
+  gis = g_object_new (GSF_TYPE_INPUT_STREAM, NULL);
+  gis->priv->input = g_object_ref (input);
+  return gis;
 }
 
-static gssize gsf_input_stream_read (GInputStream *base,
-                                     void         *buffer,
-                                     gsize         buffer_len,
-                                     GCancellable *cancellable,
-                                     GError      **error)
+gssize gsf_input_stream_read (GInputStream *base,
+                              void         *buffer,
+                              gsize         buffer_len,
+                              GCancellable *cancellable,
+                              GError      **error)
 {
-    GsfInputStream *gis = GSF_INPUT_STREAM (base);
-    gint64    remaining = gsf_input_remaining (gis->priv->input);
+  GsfInputStream *gis = GSF_INPUT_STREAM (base);
+  gint64    remaining = gsf_input_remaining (gis->priv->input);
+  gsf_input_read (gis->priv->input, MIN (remaining, buffer_len), buffer);
 
-    if (remaining < (gint64) buffer_len) {
-        gsf_input_read (gis->priv->input, (gsize) remaining,  buffer);
-    } else {
-        gsf_input_read (gis->priv->input, (gsize) buffer_len, buffer);
-    }
-    return (gssize) (remaining - gsf_input_remaining (gis->priv->input));
+  return (gssize) (remaining - gsf_input_remaining (gis->priv->input));
 }
 
-static gboolean
-gsf_input_stream_close (GInputStream *base,
-                        GCancellable *cancellable,
-                        GError      **error)
+gboolean gsf_input_stream_close (GInputStream *base,
+                                 GCancellable *cancellable,
+                                 GError      **error)
 {
-    /* pseudo TRUE, currently do nothing */
+    /* FIXME: currently do nothing */
     return TRUE;
 }
 
-gssize gsf_input_stream_size (GsfInputStream *gsf_input_stream)
+gssize gsf_input_stream_size (GsfInputStream *stream)
 {
-    g_return_val_if_fail (gsf_input_stream != NULL, 0L);
-    return (gssize) gsf_input_size (gsf_input_stream->priv->input);
+    g_return_val_if_fail (GSF_IS_INPUT_STREAM (stream), 0L);
+    return (gssize) gsf_input_size (stream->priv->input);
 }
 
-static void
-gsf_input_stream_class_init (GsfInputStreamClass *klass)
+static void gsf_input_stream_finalize (GObject *obj)
+{
+    GsfInputStream *gis = GSF_INPUT_STREAM (obj);
+    g_object_unref (gis->priv->input);
+    G_OBJECT_CLASS (gsf_input_stream_parent_class)->finalize (obj);
+}
+
+static void gsf_input_stream_class_init (GsfInputStreamClass *klass)
 {
     GObjectClass      *object_class = G_OBJECT_CLASS (klass);
     GInputStreamClass *parent_class = G_INPUT_STREAM_CLASS (klass);
@@ -90,16 +81,7 @@ gsf_input_stream_class_init (GsfInputStreamClass *klass)
     object_class->finalize = gsf_input_stream_finalize;
 }
 
-static void
-gsf_input_stream_finalize (GObject *obj)
-{
-    GsfInputStream *gis = GSF_INPUT_STREAM (obj);
-    g_object_unref (gis->priv->input);
-    G_OBJECT_CLASS (gsf_input_stream_parent_class)->finalize (obj);
-}
-
-static void
-gsf_input_stream_init (GsfInputStream *stream)
+static void gsf_input_stream_init (GsfInputStream *stream)
 {
     stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream,
                                                 GSF_TYPE_INPUT_STREAM,
