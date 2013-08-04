@@ -35,7 +35,7 @@
 #include "ghwp-models.h"
 #include "ghwp-page.h"
 #include "ghwp-parse-context.h"
-#include "ghwp-parser.h"
+#include "ghwp-listener.h"
 #include "ghwp-version.h"
 #include "gsf-input-stream.h"
 #include "hnc2unicode.h"

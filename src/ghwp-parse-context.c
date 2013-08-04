@@ -37,8 +37,9 @@
 
 #include "gsf-input-stream.h"
 #include "ghwp-file-v5.h"
-#include "ghwp-parser.h"
+#include "ghwp-listener.h"
 #include "ghwp-models.h"
+#include "ghwp-parse-context.h"
 
 G_DEFINE_TYPE (GHWPParseContext, ghwp_parse_context, G_TYPE_OBJECT)
 
@@ -214,10 +215,10 @@ gboolean ghwp_parse_context_pull (GHWPParseContext *context, GError **error)
  * Since: TODO
  */
 GHWPParseContext *
-ghwp_parse_context_new (GHWPParser *parser, gpointer user_data)
+ghwp_parse_context_new (GHWPListener *listener, gpointer user_data)
 {
   GHWPParseContext *context = g_object_new (GHWP_TYPE_PARSE_CONTEXT, NULL);
-  context->parser           = parser;
+  context->listener           = listener;
   context->user_data        = user_data;
 
   return context;
@@ -756,6 +757,7 @@ static void parse_section (GHWPParseContext *context,
 
     switch (context->tag_id) {
     case GHWP_TAG_PARA_HEADER:
+/*        context->listener->paragraph();*/
         parse_paragraph (context, file);
         break;
     default:
@@ -857,9 +859,9 @@ static void parse_summary_info (GHWPFileV5 *file, GHWPDocument *document)
     }
 
     /* changwoo's solution, thanks to changwoo.
-     * https://groups.google.com/forum/#!topic/libhwp/gFDD7UMCXBc
+     * https://groups.google.com/d/msg/libhwp/gFDD7UMCXBc/tyR3wOXoRIoJ
      * https://github.com/changwoo/gnome-hwp-support/blob/master/properties/props-data.c
-     * Trick the libgsf's MSOLE property set parser, by changing
+     * Trick the libgsf's MSOLE property set listener, by changing
      * its GUID. The \005HwpSummaryInformation is compatible with
      * the summary property set.
      */
@@ -964,14 +966,15 @@ void ghwp_parse_context_parse (GHWPParseContext *context,
                                GError          **error)
 {
   g_return_if_fail (context != NULL);
-
-  ghwp_parser_document_version (context->parser,
-                                file->major_version,
-                                file->minor_version,
-                                file->micro_version,
-                                file->extra_version,
-                                context->user_data,
-                                error);
+  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (context->listener);
+  if (iface->document_version)
+    iface->document_version (context->listener,
+                             file->major_version,
+                             file->minor_version,
+                             file->micro_version,
+                             file->extra_version,
+                             context->user_data,
+                             error);
 
 /*    parse_doc_info       (file, document);*/
   parse_body_text      (context, file);

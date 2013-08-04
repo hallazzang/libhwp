@@ -28,6 +28,7 @@
 #include <glib/gprintf.h>
 
 #include "ghwp-models.h"
+#include "ghwp-parse-context.h"
 
 #define _g_free0(var) (var = (g_free (var), NULL))
 

@@ -31,12 +31,12 @@
 #include "ghwp-document.h"
 #include "ghwp-file.h"
 #include "ghwp-models.h"
-#include "ghwp-parser.h"
+#include "ghwp-listener.h"
 
-static void ghwp_document_parser_iface_init (GHWPParserInterface *iface);
+static void ghwp_document_listener_iface_init (GHWPListenerInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GHWPDocument, ghwp_document, G_TYPE_OBJECT,
-    G_IMPLEMENT_INTERFACE (GHWP_TYPE_PARSER, ghwp_document_parser_iface_init))
+  G_IMPLEMENT_INTERFACE (GHWP_TYPE_LISTENER,ghwp_document_listener_iface_init))
 
 /**
  * ghwp_document_new_from_uri:
@@ -309,13 +309,13 @@ static void ghwp_document_init (GHWPDocument *doc)
     doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
 }
 
-void set_document_version (GHWPParser *parser,
-                           guint8      major_version,
-                           guint8      minor_version,
-                           guint8      micro_version,
-                           guint8      extra_version,
-                           gpointer    user_data,
-                           GError    **error)
+void set_document_version (GHWPListener *listener,
+                           guint8        major_version,
+                           guint8        minor_version,
+                           guint8        micro_version,
+                           guint8        extra_version,
+                           gpointer      user_data,
+                           GError      **error)
 {
   GHWPDocument *document  = (GHWPDocument *) user_data;
   document->major_version = major_version;
@@ -324,7 +324,7 @@ void set_document_version (GHWPParser *parser,
   document->extra_version = extra_version;
 }
 
-static void ghwp_document_parser_iface_init (GHWPParserInterface *iface)
+static void ghwp_document_listener_iface_init (GHWPListenerInterface *iface)
 {
   iface->document_version = set_document_version;
 }

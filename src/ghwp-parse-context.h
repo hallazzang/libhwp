@@ -24,9 +24,8 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
-#include "ghwp-document.h"
 #include "ghwp-file-v5.h"
-#include "ghwp-parser.h"
+#include "ghwp-listener.h"
 
 G_BEGIN_DECLS
 
@@ -51,7 +50,7 @@ struct _GHWPParseContext
   GObject                  parent_instance;
   GHWPParseContextPrivate *priv;
 
-  GHWPParser              *parser;
+  GHWPListener              *listener;
   gpointer                 user_data;
   GInputStream            *stream;
   /* from record header */
@@ -78,7 +77,7 @@ struct _GHWPParseContextPrivate
 };
 
 GType             ghwp_parse_context_get_type (void) G_GNUC_CONST;
-GHWPParseContext *ghwp_parse_context_new      (GHWPParser       *parser,
+GHWPParseContext *ghwp_parse_context_new      (GHWPListener       *listener,
                                                gpointer          user_data);
 void              ghwp_parse_context_parse    (GHWPParseContext *context,
                                                GHWPFileV5       *file,
