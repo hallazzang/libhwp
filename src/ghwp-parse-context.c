@@ -287,7 +287,9 @@ static void parse_section_definition (GHWPParseContext *context)
     } /* while */
 }
 
-static void parse_paragraph (GHWPParseContext *context, GHWPFileV5 *file);
+static void make_paragraph (GHWPParseContext *context,
+                             GHWPFileV5       *file,
+                             GHWPParagraph    *paragraph);
 
 /* 머리말 */
 static void parse_header (GHWPParseContext *context, GHWPFileV5 *file)
@@ -312,7 +314,7 @@ static void parse_header (GHWPParseContext *context, GHWPFileV5 *file)
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            parse_paragraph (context, file);
+            make_paragraph (context, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -347,7 +349,7 @@ static void parse_footnote (GHWPParseContext *context, GHWPFileV5 *file)
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            parse_paragraph (context, file);
+            make_paragraph (context, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -381,7 +383,7 @@ static void parse_tcmt (GHWPParseContext *context, GHWPFileV5 *file)
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            parse_paragraph (context, file);
+            make_paragraph (context, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -495,7 +497,7 @@ static void parse_table (GHWPParseContext *context, GHWPFileV5 *file)
         case GHWP_TAG_PARA_HEADER:
             context->state = GHWP_PARSE_STATE_INSIDE_TABLE;
             paragraph = ghwp_paragraph_new ();
-            parse_paragraph (context, file);
+            make_paragraph (context, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -649,7 +651,9 @@ parse_drawing_shape_object (GHWPParseContext *context, GHWPFileV5 *file)
     } /* while */
 }
 
-static void parse_paragraph (GHWPParseContext *context, GHWPFileV5 *file)
+static void make_paragraph (GHWPParseContext *context,
+                             GHWPFileV5       *file,
+                             GHWPParagraph    *paragraph)
 {
   GError *error = NULL;
   guint16 level = context->level + 1;
@@ -744,6 +748,7 @@ static void parse_section (GHWPParseContext *context,
                            GHWPFileV5       *file)
 {
   GError *error = NULL;
+  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (context->listener);
 
   while (ghwp_parse_context_pull(context, &error))
   {
@@ -757,8 +762,17 @@ static void parse_section (GHWPParseContext *context,
 
     switch (context->tag_id) {
     case GHWP_TAG_PARA_HEADER:
-/*        context->listener->paragraph();*/
-        parse_paragraph (context, file);
+    {
+      if (!iface->object)
+        break;
+
+      GHWPParagraph *paragraph = ghwp_paragraph_new ();
+      iface->object (context->listener,
+                              G_OBJECT (paragraph),
+                              context->user_data,
+                              &error);
+      make_paragraph (context, file, paragraph);
+    }
         break;
     default:
         g_error ("%s:%d:%s not implemented",

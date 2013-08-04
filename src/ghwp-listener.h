@@ -57,31 +57,28 @@ struct _GHWPListenerInterface
 {
   GTypeInterface            base_iface;
 
-  void (*document_version) (GHWPListener    *listener,
-                            guint8         major_version,
-                            guint8         minor_version,
-                            guint8         micro_version,
-                            guint8         extra_version,
-                            gpointer       user_data,
-                            GError       **error);
-  void (*paragraph)        (GHWPListener    *listener,
-                            GHWPParagraph *paragraph,
-                            gpointer       user_data,
-                            GError       **error);
+  void (*document_version) (GHWPListener *listener,
+                            guint8        major_version,
+                            guint8        minor_version,
+                            guint8        micro_version,
+                            guint8        extra_version,
+                            gpointer      user_data,
+                            GError      **error);
+  void (*object)           (GHWPListener *listener,
+                            GObject      *object,
+                            gpointer      user_data,
+                            GError      **error);
 };
 
 GType ghwp_listener_get_type         (void) G_GNUC_CONST;
 /*void  ghwp_listener_document_version (GHWPListener *listener,*/
-/*                                    guint8      major_version,*/
-/*                                    guint8      minor_version,*/
-/*                                    guint8      micro_version,*/
-/*                                    guint8      extra_version,*/
-/*                                    gpointer    user_data,*/
-/*                                    GError    **error);*/
-/*void (*paragraph)        (GHWPListener    *listener,*/
-/*                          GHWPParagraph *paragraph,*/
-/*                          gpointer       user_data,*/
-/*                          GError       **error);*/
+/*                                      guint8        major_version,*/
+/*                                      guint8        minor_version,*/
+/*                                      guint8        micro_version,*/
+/*                                      guint8        extra_version,*/
+/*                                      gpointer      user_data,*/
+/*                                      GError      **error);*/
+
 G_END_DECLS
 
 #endif /* __GHWP_LISTENER_H__ */

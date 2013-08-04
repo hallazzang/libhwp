@@ -309,22 +309,33 @@ static void ghwp_document_init (GHWPDocument *doc)
     doc->pages      = g_array_new (TRUE, TRUE, sizeof (GHWPPage *));
 }
 
-void set_document_version (GHWPListener *listener,
-                           guint8        major_version,
-                           guint8        minor_version,
-                           guint8        micro_version,
-                           guint8        extra_version,
-                           gpointer      user_data,
-                           GError      **error)
+void listen_document_version (GHWPListener *listener,
+                              guint8        major_version,
+                              guint8        minor_version,
+                              guint8        micro_version,
+                              guint8        extra_version,
+                              gpointer      user_data,
+                              GError      **error)
 {
   GHWPDocument *document  = (GHWPDocument *) user_data;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;
   document->extra_version = extra_version;
+  puts ("LISTENED: listen_document_version");
+}
+
+void listen_object (GHWPListener *listener,
+                    GObject      *object,
+                    gpointer      user_data,
+                    GError      **error)
+{
+  if (GHWP_IS_PARAGRAPH (object))
+    puts ("LISTENED: Document have listened GHWPParagraph");
 }
 
 static void ghwp_document_listener_iface_init (GHWPListenerInterface *iface)
 {
-  iface->document_version = set_document_version;
+  iface->document_version = listen_document_version;
+  iface->object           = listen_object;
 }

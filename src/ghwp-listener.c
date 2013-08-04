@@ -27,12 +27,12 @@ static void ghwp_listener_default_init (GHWPListenerInterface *klass)
 }
 
 /*void ghwp_listener_document_version (GHWPListener *listener,*/
-/*                                   guint8      major_version,*/
-/*                                   guint8      minor_version,*/
-/*                                   guint8      micro_version,*/
-/*                                   guint8      extra_version,*/
-/*                                   gpointer    user_data,*/
-/*                                   GError    **error)*/
+/*                                     guint8        major_version,*/
+/*                                     guint8        minor_version,*/
+/*                                     guint8        micro_version,*/
+/*                                     guint8        extra_version,*/
+/*                                     gpointer      user_data,*/
+/*                                     GError      **error)*/
 /*{*/
 /*  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (listener);*/
 

@@ -50,7 +50,7 @@ struct _GHWPParseContext
   GObject                  parent_instance;
   GHWPParseContextPrivate *priv;
 
-  GHWPListener              *listener;
+  GHWPListener            *listener;
   gpointer                 user_data;
   GInputStream            *stream;
   /* from record header */
