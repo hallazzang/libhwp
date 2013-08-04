@@ -14,7 +14,7 @@ ghwp_headers =               \
 	ghwp-models.h        \
 	ghwp-page.h          \
 	ghwp-listener.h      \
-	ghwp-parse-context.h \
+	ghwp-parser.h        \
 	ghwp-version.h       \
 	gsf-input-stream.h   \
 	hnc2unicode.h        \
@@ -49,7 +49,7 @@ libghwp_la_SOURCES =         \
 	ghwp-models.c        \
 	ghwp-page.c          \
 	ghwp-listener.c      \
-	ghwp-parse-context.c \
+	ghwp-parser.c        \
 	gsf-input-stream.c   \
 	hnc2unicode.c        \
 	ghwp-enum-types.c    \

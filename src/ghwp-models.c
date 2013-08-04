@@ -28,7 +28,7 @@
 #include <glib/gprintf.h>
 
 #include "ghwp-models.h"
-#include "ghwp-parse-context.h"
+#include "ghwp-parser.h"
 
 #define _g_free0(var) (var = (g_free (var), NULL))
 
@@ -215,9 +215,9 @@ GHWPTableCell *ghwp_table_cell_new (void)
     return g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
 }
 
-GHWPTableCell *ghwp_table_cell_new_from_context (GHWPParseContext *context)
+GHWPTableCell *ghwp_table_cell_new_from_context (GHWPParser *context)
 {
-    g_return_val_if_fail (GHWP_IS_PARSE_CONTEXT (context), NULL);
+    g_return_val_if_fail (GHWP_IS_PARSER (context), NULL);
 
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
     /* 표 60 LIST_HEADER */

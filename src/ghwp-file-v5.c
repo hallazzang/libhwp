@@ -46,7 +46,7 @@
 #include "ghwp-file-v5.h"
 #include "ghwp-listener.h"
 #include "ghwp-models.h"
-#include "ghwp-parse-context.h"
+#include "ghwp-parser.h"
 
 G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
 
@@ -59,9 +59,9 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 
   GHWPDocument *document = ghwp_document_new ();
 
-  GHWPParseContext *context;
-  context = ghwp_parse_context_new (GHWP_LISTENER (document), document);
-  ghwp_parse_context_parse (context, GHWP_FILE_V5 (file), error);
+  GHWPParser *context;
+  context = ghwp_parser_new (GHWP_LISTENER (document), document);
+  ghwp_parser_parse (context, GHWP_FILE_V5 (file), error);
   g_object_unref (context);
 
   if (*error) {
