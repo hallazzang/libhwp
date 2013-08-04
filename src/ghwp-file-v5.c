@@ -59,10 +59,10 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 
   GHWPDocument *document = ghwp_document_new ();
 
-  GHWPParser *context;
-  context = ghwp_parser_new (GHWP_LISTENER (document), document);
-  ghwp_parser_parse (context, GHWP_FILE_V5 (file), error);
-  g_object_unref (context);
+  GHWPParser *parser;
+  parser = ghwp_parser_new (GHWP_LISTENER (document), document);
+  ghwp_parser_parse (parser, GHWP_FILE_V5 (file), error);
+  g_object_unref (parser);
 
   if (*error) {
     g_object_unref (document);

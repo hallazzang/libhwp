@@ -43,9 +43,9 @@
 
 G_DEFINE_TYPE (GHWPParser, ghwp_parser, G_TYPE_OBJECT)
 
-gboolean context_skip (GHWPParser *context, guint16 count)
+gboolean parser_skip (GHWPParser *parser, guint16 count)
 {
-  g_return_val_if_fail (context != NULL, FALSE);
+  g_return_val_if_fail (parser != NULL, FALSE);
 
   gboolean is_success = FALSE;
   /*
@@ -53,152 +53,152 @@ gboolean context_skip (GHWPParser *context, guint16 count)
    * g_input_stream_skip를 제대로 작동시키려면 컨버터 스트림을 손봐야 한다.
    */
   guint8 *buf = g_malloc (count);
-  is_success = g_input_stream_read_all (context->stream, buf, (gsize) count,
-                                        &context->priv->bytes_read, 
+  is_success = g_input_stream_read_all (parser->stream, buf, (gsize) count,
+                                        &parser->priv->bytes_read, 
                                         NULL, NULL);
   g_free (buf);
 
-  if ((is_success == FALSE) || (context->priv->bytes_read != (gsize) count))
+  if ((is_success == FALSE) || (parser->priv->bytes_read != (gsize) count))
   {
     g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
-    g_input_stream_close (context->stream, NULL, NULL);
+    g_input_stream_close (parser->stream, NULL, NULL);
     return FALSE;
   }
 
-  context->data_count += count;
+  parser->data_count += count;
   return TRUE;
 }
 
-gboolean context_read_uint16 (GHWPParser *context, guint16 *i)
+gboolean parser_read_uint16 (GHWPParser *parser, guint16 *i)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
-    g_return_val_if_fail (context->data_count <= context->data_len - 2, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
+    g_return_val_if_fail (parser->data_count <= parser->data_len - 2, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, i, 2,
-                                          &context->priv->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, i, 2,
+                                          &parser->priv->bytes_read,
                                           NULL, NULL);
     if ((is_success == FALSE) ||
-        (context->priv->bytes_read != 2) ||
-        (context->priv->bytes_read == 0))
+        (parser->priv->bytes_read != 2) ||
+        (parser->priv->bytes_read == 0))
     {
         *i = 0;
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
     *i = GUINT16_FROM_LE(*i);
-    context->data_count += 2;
+    parser->data_count += 2;
     return TRUE;
 }
 
-gboolean context_read_uint32 (GHWPParser *context, guint32 *i)
+gboolean parser_read_uint32 (GHWPParser *parser, guint32 *i)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
-    g_return_val_if_fail (context->data_count <= context->data_len - 4, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
+    g_return_val_if_fail (parser->data_count <= parser->data_len - 4, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, i, 4,
-                                          &context->priv->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, i, 4,
+                                          &parser->priv->bytes_read,
                                           NULL, NULL);
     if ((is_success == FALSE) ||
-        (context->priv->bytes_read != 4) ||
-        (context->priv->bytes_read == 0))
+        (parser->priv->bytes_read != 4) ||
+        (parser->priv->bytes_read == 0))
     {
         *i = 0;
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
     *i = GUINT32_FROM_LE(*i);
-    context->data_count += 4;
+    parser->data_count += 4;
     return TRUE;
 }
 
 /* 에러일 경우 FALSE 반환, error 설정,
  * 성공일 경우 TRUE 반환,
  * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
-gboolean ghwp_parser_pull (GHWPParser *context, GError **error)
+gboolean ghwp_parser_pull (GHWPParser *parser, GError **error)
 {
-  g_return_val_if_fail (GHWP_IS_PARSER (context), FALSE);
+  g_return_val_if_fail (GHWP_IS_PARSER (parser), FALSE);
 
-  if (context->state == GHWP_PARSE_STATE_PASSING) {
-      context->state = GHWP_PARSE_STATE_NORMAL;
+  if (parser->state == GHWP_PARSE_STATE_PASSING) {
+      parser->state = GHWP_PARSE_STATE_NORMAL;
       return TRUE;
   }
 
   gboolean is_success = TRUE;
 
-  if (context->data_len - context->data_count > 0)
-      context_skip (context, context->data_len - context->data_count);
+  if (parser->data_len - parser->data_count > 0)
+      parser_skip (parser, parser->data_len - parser->data_count);
 
   /* 4바이트 읽기 */
-  is_success = g_input_stream_read_all (context->stream,
-                                        &context->priv->header,
+  is_success = g_input_stream_read_all (parser->stream,
+                                        &parser->priv->header,
                                         (gsize) 4,
-                                        &context->priv->bytes_read,
+                                        &parser->priv->bytes_read,
                                         NULL, error);
 
   if (is_success == FALSE) {
-    if (!g_input_stream_is_closed(context->stream))
-      g_input_stream_close (context->stream, NULL, NULL);
+    if (!g_input_stream_is_closed(parser->stream))
+      g_input_stream_close (parser->stream, NULL, NULL);
     return FALSE;
   }
   /* 스트림의 끝, 에러가 아님 */
-  if (context->priv->bytes_read == ((gsize) 0)) {
-    if (!g_input_stream_is_closed(context->stream))
-      g_input_stream_close (context->stream, NULL, NULL);
+  if (parser->priv->bytes_read == ((gsize) 0)) {
+    if (!g_input_stream_is_closed(parser->stream))
+      g_input_stream_close (parser->stream, NULL, NULL);
     return FALSE;
   }
   /* 비정상 */
-  if (context->priv->bytes_read != ((gsize) 4)) {
+  if (parser->priv->bytes_read != ((gsize) 4)) {
     g_error("error %s %d", __FILE__, __LINE__);
     g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
                          _("File corrupted or invalid file"));
-    if (!g_input_stream_is_closed(context->stream))
-      g_input_stream_close (context->stream, NULL, NULL);
+    if (!g_input_stream_is_closed(parser->stream))
+      g_input_stream_close (parser->stream, NULL, NULL);
     return FALSE;
   }
 
   /* Converts a guint32 value from little-endian to host byte order. */
-  context->priv->header = GUINT32_FROM_LE(context->priv->header);
+  parser->priv->header = GUINT32_FROM_LE(parser->priv->header);
   /* 4바이트 헤더 디코딩하기 */
-  context->tag_id   = (guint16) ( context->priv->header        & 0x3ff);
-  context->level    = (guint16) ((context->priv->header >> 10) & 0x3ff);
-  context->data_len = (guint16) ((context->priv->header >> 20) & 0xfff);
+  parser->tag_id   = (guint16) ( parser->priv->header        & 0x3ff);
+  parser->level    = (guint16) ((parser->priv->header >> 10) & 0x3ff);
+  parser->data_len = (guint16) ((parser->priv->header >> 20) & 0xfff);
   /* 비정상 */
-  if (context->data_len == 0) {
+  if (parser->data_len == 0) {
       g_error("error %s %d", __FILE__, __LINE__);
       g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
                            _("File corrupted"));
-      g_input_stream_close (context->stream, NULL, NULL);
+      g_input_stream_close (parser->stream, NULL, NULL);
       return FALSE;
   }
   /* data_len == 0xfff 이면 다음 4바이트는 data_len 이다 */
-  if (context->data_len == 0xfff) {
+  if (parser->data_len == 0xfff) {
       g_error("0xfff %s %d", __FILE__, __LINE__);
-      is_success = g_input_stream_read_all (context->stream,
-                                            &context->data_len, (gsize) 4,
-                                            &context->priv->bytes_read,
+      is_success = g_input_stream_read_all (parser->stream,
+                                            &parser->data_len, (gsize) 4,
+                                            &parser->priv->bytes_read,
                                             NULL, error);
 
       if (is_success == FALSE) {
           /* g_input_stream_read_all이 에러를 설정했으므로
            * 따로 에러 설정할 필요 없다. */
-          g_input_stream_close (context->stream, NULL, NULL);
+          g_input_stream_close (parser->stream, NULL, NULL);
           return FALSE;
       }
 
       /* 비정상 */
-      if (context->priv->bytes_read != ((gsize) 4)) {
+      if (parser->priv->bytes_read != ((gsize) 4)) {
           g_set_error_literal (error, GHWP_ERROR, GHWP_ERROR_INVALID,
                                _("File corrupted"));
-          g_input_stream_close (context->stream, NULL, NULL);
+          g_input_stream_close (parser->stream, NULL, NULL);
           return FALSE;
       }
 
-      context->data_len = GUINT32_FROM_LE(context->data_len);
+      parser->data_len = GUINT32_FROM_LE(parser->data_len);
   }
 
-  context->data_count = 0;
+  parser->data_count = 0;
 
   return TRUE;
 }
@@ -206,9 +206,9 @@ gboolean ghwp_parser_pull (GHWPParser *context, GError **error)
 /*GHWPParser *ghwp_parser_new (GInputStream *stream)*/
 /*{*/
 /*    g_return_val_if_fail (stream != NULL, NULL);*/
-/*    GHWPParser *context = g_object_new (GHWP_TYPE_PARSER, NULL);*/
-/*    context->stream = g_object_ref (stream);*/
-/*    return context;*/
+/*    GHWPParser *parser = g_object_new (GHWP_TYPE_PARSER, NULL);*/
+/*    parser->stream = g_object_ref (stream);*/
+/*    return parser;*/
 /*}*/
 
 /**
@@ -217,11 +217,11 @@ gboolean ghwp_parser_pull (GHWPParser *context, GError **error)
 GHWPParser *
 ghwp_parser_new (GHWPListener *listener, gpointer user_data)
 {
-  GHWPParser *context = g_object_new (GHWP_TYPE_PARSER, NULL);
-  context->listener           = listener;
-  context->user_data        = user_data;
+  GHWPParser *parser = g_object_new (GHWP_TYPE_PARSER, NULL);
+  parser->listener           = listener;
+  parser->user_data        = user_data;
 
-  return context;
+  return parser;
 }
 
 static void parse_doc_info (GHWPFileV5 *file, GHWPDocument *document)
@@ -232,47 +232,47 @@ static void parse_doc_info (GHWPFileV5 *file, GHWPDocument *document)
 /*    int i;*/
 
 /*    GInputStream *stream  = file->doc_info_stream;
-    GHWPParser  *context = ghwp_parser_new (stream);
-    while (ghwp_parser_pull (context, error)) {
-        switch (context->tag_id) {
+    GHWPParser  *parser = ghwp_parser_new (stream);
+    while (ghwp_parser_pull (parser, error)) {
+        switch (parser->tag_id) {
         case GHWP_TAG_DOCUMENT_PROPERTIES:*/
             /* TODO */
 /*            break;
         case GHWP_TAG_ID_MAPPINGS:*/
 /*            for (i = 0; i < sizeof(id_mappings); i = i + sizeof(guint32)) {*/
-/*                memcpy(&id_mappings[i], &(context->data[i]), sizeof(guint32));*/
+/*                memcpy(&id_mappings[i], &(parser->data[i]), sizeof(guint32));*/
 /*                id_mappings[i] = GUINT16_FROM_LE(id_mappings[i]);*/
 /*                printf("%d\n", id_mappings[i]);*/
 /*            }*/
 /*            break;
         default:
             printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
-                _ghwp_get_tag_name (context->tag_id));
+                _ghwp_get_tag_name (parser->tag_id));
             break;
         }
     }
 
-    g_object_unref (context);*/
+    g_object_unref (parser);*/
 }
 
-static void parse_section_definition (GHWPParser *context)
+static void parse_section_definition (GHWPParser *parser)
 {
     GError *error = NULL;
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < 2) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < 2) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
 
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
-        g_assert (context->level == 2);
-        switch (context->tag_id) {
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
+        g_assert (parser->level == 2);
+        switch (parser->tag_id) {
         case GHWP_TAG_PAGE_DEF:
             break;
         case GHWP_TAG_FOOTNOTE_SHAPE:
@@ -281,113 +281,113 @@ static void parse_section_definition (GHWPParser *context)
             break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
-static void make_paragraph (GHWPParser *context,
+static void make_paragraph (GHWPParser *parser,
                              GHWPFileV5       *file,
                              GHWPParagraph    *paragraph);
 
 /* 머리말 */
-static void parse_header (GHWPParser *context, GHWPFileV5 *file)
+static void parse_header (GHWPParser *parser, GHWPFileV5 *file)
 {
     GError *error = NULL;
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < 2) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < 2) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == 2);
+        g_assert (parser->level == 2);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            make_paragraph (context, file, NULL);
+            make_paragraph (parser, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
 /* 각주 */
-static void parse_footnote (GHWPParser *context, GHWPFileV5 *file)
+static void parse_footnote (GHWPParser *parser, GHWPFileV5 *file)
 {
   GError *error = NULL;
-  guint16 level = context->level + 1;
+  guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < level) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < level) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == level);
+        g_assert (parser->level == level);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            make_paragraph (context, file, NULL);
+            make_paragraph (parser, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
-static void parse_tcmt (GHWPParser *context, GHWPFileV5 *file)
+static void parse_tcmt (GHWPParser *parser, GHWPFileV5 *file)
 {
   GError *error = NULL;
-  guint16 level = context->level + 1;
+  guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < level) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < level) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == level);
+        g_assert (parser->level == level);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_LIST_HEADER:
             break;
         case GHWP_TAG_PARA_HEADER:
-            make_paragraph (context, file, NULL);
+            make_paragraph (parser, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
@@ -423,39 +423,39 @@ static void parse_tcmt (GHWPParser *context, GHWPFileV5 *file)
  */
 
 static GHWPTable *
-ghwp_parser_get_table (GHWPParser *context, GHWPFileV5 *file)
+ghwp_parser_get_table (GHWPParser *parser, GHWPFileV5 *file)
 {
-    g_return_val_if_fail (GHWP_IS_PARSER (context), NULL);
+    g_return_val_if_fail (GHWP_IS_PARSER (parser), NULL);
     GHWPTable *table = ghwp_table_new ();
 
-    context_read_uint32 (context, &table->flags);
-    context_read_uint16 (context, &table->n_rows);
-    context_read_uint16 (context, &table->n_cols);
-    context_read_uint16 (context, &table->cell_spacing);
-    context_read_uint16 (context, &table->left_margin);
-    context_read_uint16 (context, &table->right_margin);
-    context_read_uint16 (context, &table->top_margin);
-    context_read_uint16 (context, &table->bottom_margin);
+    parser_read_uint32 (parser, &table->flags);
+    parser_read_uint16 (parser, &table->n_rows);
+    parser_read_uint16 (parser, &table->n_cols);
+    parser_read_uint16 (parser, &table->cell_spacing);
+    parser_read_uint16 (parser, &table->left_margin);
+    parser_read_uint16 (parser, &table->right_margin);
+    parser_read_uint16 (parser, &table->top_margin);
+    parser_read_uint16 (parser, &table->bottom_margin);
 
     table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
     for (guint i = 0; i < table->n_rows; i++) {
-        context_read_uint16 (context, &(table->row_sizes[i]));
+        parser_read_uint16 (parser, &(table->row_sizes[i]));
     }
 
-    context_read_uint16 (context, &table->border_fill_id);
+    parser_read_uint16 (parser, &table->border_fill_id);
 
     if (ghwp_file_v5_check_version (file, 5, 0, 0, 7)) {
-        context_read_uint16 (context, &table->valid_zone_info_size);
+        parser_read_uint16 (parser, &table->valid_zone_info_size);
 
         table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
 
         for (guint i = 0; i < table->valid_zone_info_size; i++) {
-            context_read_uint16 (context, &(table->zones[i]));
+            parser_read_uint16 (parser, &(table->zones[i]));
         }
     }
 
-    if (context->data_count != context->data_len) {
+    if (parser->data_count != parser->data_len) {
         g_warning ("%s:%d: TABLE data size mismatch at %s\n",
             __FILE__, __LINE__,
             ghwp_file_v5_get_hwp_version_string(GHWP_FILE (file)));
@@ -463,45 +463,45 @@ ghwp_parser_get_table (GHWPParser *context, GHWPFileV5 *file)
     return table;
 }
 
-static void parse_table (GHWPParser *context, GHWPFileV5 *file)
+static void parse_table (GHWPParser *parser, GHWPFileV5 *file)
 {
     GError *error = NULL;
-    guint16 level = context->level + 1;
+    guint16 level = parser->level + 1;
     printf("level = %d\n", level);
     GHWPTable     *table     = NULL;
     GHWPTableCell *cell      = NULL;
     GHWPParagraph *paragraph = NULL;
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < level) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < level) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == level);
+        g_assert (parser->level == level);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_TABLE:
-            table = ghwp_parser_get_table (context, file);
+            table = ghwp_parser_get_table (parser, file);
             break;
         case GHWP_TAG_LIST_HEADER: /* cell */
-            cell = ghwp_table_cell_new_from_context (context);
+            cell = ghwp_table_cell_new_from_parser (parser);
             ghwp_table_add_cell (table, cell);
             break;
         case GHWP_TAG_PARA_HEADER:
-            context->state = GHWP_PARSE_STATE_INSIDE_TABLE;
+            parser->state = GHWP_PARSE_STATE_INSIDE_TABLE;
             paragraph = ghwp_paragraph_new ();
-            make_paragraph (context, file, NULL);
+            make_paragraph (parser, file, NULL);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
@@ -509,16 +509,16 @@ static void parse_table (GHWPParser *context, GHWPFileV5 *file)
     /* add table to where ? */
 }
 
-static gchar *ghwp_parser_get_text (GHWPParser *context)
+static gchar *ghwp_parser_get_text (GHWPParser *parser)
 {
-    g_return_val_if_fail (context != NULL, NULL);
+    g_return_val_if_fail (parser != NULL, NULL);
     gunichar2 ch; /* guint16 */
     GString  *text = g_string_new("");
     guint     i;
 
-    for (i = 0; i < context->data_len; i = i + 2)
+    for (i = 0; i < parser->data_len; i = i + 2)
     {
-        context_read_uint16 (context, &ch);
+        parser_read_uint16 (parser, &ch);
         switch (ch) {
         case 0:
             break;
@@ -531,11 +531,11 @@ static gchar *ghwp_parser_get_text (GHWPParser *context)
         case 7: /* inline */
         case 8: /* inline */
             i = i + 14;
-            context_skip(context, 14);;
+            parser_skip(parser, 14);;
             break;
         case 9: /* inline */ /* tab */
             i = i + 14;
-            context_skip(context, 14);;
+            parser_skip(parser, 14);;
             g_string_append_unichar(text, ch);
             break;
         case 10:
@@ -543,7 +543,7 @@ static gchar *ghwp_parser_get_text (GHWPParser *context)
         case 11:
         case 12:
             i = i + 14;
-            context_skip(context, 14);;
+            parser_skip(parser, 14);;
             break;
         case 13:
             break;
@@ -558,7 +558,7 @@ static gchar *ghwp_parser_get_text (GHWPParser *context)
         case 22:
         case 23:
             i = i + 14;
-            context_skip(context, 14);;
+            parser_skip(parser, 14);;
             break;
         case 24:
         case 25:
@@ -575,7 +575,7 @@ static gchar *ghwp_parser_get_text (GHWPParser *context)
         } /* switch */
     } /* for */
 
-    if (context->data_count != context->data_len) {
+    if (parser->data_count != parser->data_len) {
         g_string_free(text, TRUE);
         return NULL;
     }
@@ -583,27 +583,27 @@ static gchar *ghwp_parser_get_text (GHWPParser *context)
     return g_string_free(text, FALSE);
 }
 
-static void parse_shape_component (GHWPParser *context, GHWPFileV5 *file)
+static void parse_shape_component (GHWPParser *parser, GHWPFileV5 *file)
 {
   GError *error = NULL;
-  guint16 level = context->level + 1;
+  guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < level) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < level) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == level);
+        g_assert (parser->level == level);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_SHAPE_COMPONENT_PICTURE:
           break;
         case GHWP_TAG_SHAPE_COMPONENT_LINE:
@@ -612,71 +612,71 @@ static void parse_shape_component (GHWPParser *context, GHWPFileV5 *file)
           break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
 static void
-parse_drawing_shape_object (GHWPParser *context, GHWPFileV5 *file)
+parse_drawing_shape_object (GHWPParser *parser, GHWPFileV5 *file)
 {
   GError *error = NULL;
-  guint16 level = context->level + 1;
+  guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (ghwp_parser_pull(context, &error)) {
-        if (context->level < level) {
-            context->state = GHWP_PARSE_STATE_PASSING;
+    while (ghwp_parser_pull(parser, &error)) {
+        if (parser->level < level) {
+            parser->state = GHWP_PARSE_STATE_PASSING;
             break;
         }
 
-        printf ("%d", context->level);
-        for (int i = 0; i < context->level; i++) {
+        printf ("%d", parser->level);
+        for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
-        printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+        printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-        g_assert (context->level == level);
+        g_assert (parser->level == level);
 
-        switch (context->tag_id) {
+        switch (parser->tag_id) {
         case GHWP_TAG_SHAPE_COMPONENT:
-          parse_shape_component (context, file);
+          parse_shape_component (parser, file);
           break;
         default:
             g_error ("%s:%d:%s not implemented",
-                __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+                __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
-static void make_paragraph (GHWPParser *context,
+static void make_paragraph (GHWPParser *parser,
                              GHWPFileV5       *file,
                              GHWPParagraph    *paragraph)
 {
   GError *error = NULL;
-  guint16 level = context->level + 1;
+  guint16 level = parser->level + 1;
   printf("level = %d\n", level);
   gchar *text = NULL;
 
-  while (ghwp_parser_pull(context, &error)) {
-    if (context->level < level) {
-        context->state = GHWP_PARSE_STATE_PASSING;
+  while (ghwp_parser_pull(parser, &error)) {
+    if (parser->level < level) {
+        parser->state = GHWP_PARSE_STATE_PASSING;
         break;
     }
 
-    printf ("%d", context->level);
-    for (int i = 0; i < context->level; i++) {
+    printf ("%d", parser->level);
+    for (int i = 0; i < parser->level; i++) {
       printf (" ");
     }
-    printf ("%s\n", ghwp_get_tag_name(context->tag_id));
+    printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
 
-    g_assert (context->level == level);
+    g_assert (parser->level == level);
 
-    switch (context->tag_id) {
+    switch (parser->tag_id) {
     case GHWP_TAG_PARA_TEXT:
-      text = ghwp_parser_get_text (context);
+      text = ghwp_parser_get_text (parser);
       if (text != NULL || *text != '\0')
         printf("%s\n", text);
       else
@@ -690,121 +690,121 @@ static void make_paragraph (GHWPParser *context,
     case GHWP_TAG_PARA_LINE_SEG:
       break;
     case GHWP_TAG_CTRL_HEADER:
-      context_read_uint32 (context, &context->ctrl_id);
+      parser_read_uint32 (parser, &parser->ctrl_id);
       printf (" \"%c%c%c%c\"\n",
-        (gchar) (context->ctrl_id >> 24 & 0xff),
-        (gchar) (context->ctrl_id >> 16 & 0xff),
-        (gchar) (context->ctrl_id >>  8 & 0xff),
-        (gchar) (context->ctrl_id >>  0 & 0xff));
-      switch (context->ctrl_id) {
+        (gchar) (parser->ctrl_id >> 24 & 0xff),
+        (gchar) (parser->ctrl_id >> 16 & 0xff),
+        (gchar) (parser->ctrl_id >>  8 & 0xff),
+        (gchar) (parser->ctrl_id >>  0 & 0xff));
+      switch (parser->ctrl_id) {
       case CTRL_ID_SECTION_DEF:
-        parse_section_definition (context);
+        parse_section_definition (parser);
         break;
       case CTRL_ID_NEW_NUM:
         break;
       case CTRL_ID_COLUMN_DEF:
         break;
       case CTRL_ID_HEADEDR: /* 머리말 */
-        parse_header (context, file);
+        parse_header (parser, file);
         break;
       case CTRL_ID_AUTO_NUM:
         break;
       case CTRL_ID_TABLE:
-        parse_table (context, file);
+        parse_table (parser, file);
         break;
       case CTRL_ID_FOOTNOTE: /* 각주 */
-        parse_footnote (context, file);
+        parse_footnote (parser, file);
         break;
       case CTRL_ID_PAGE_HIDE:
         break;
       case CTRL_ID_DRAWING_SHAPE_OBJECT:
-        parse_drawing_shape_object (context, file);
+        parse_drawing_shape_object (parser, file);
         break;
       case CTRL_ID_TCMT: /* 숨은 설명 */
-        parse_tcmt (context, file);
+        parse_tcmt (parser, file);
         break;
       case CTRL_ID_TCPS:
         break;
       default:
         g_error ("%s:%d:\"%c%c%c%c\":%s not implemented",
             __FILE__, __LINE__,
-            (gchar) (context->ctrl_id >> 24 & 0xff),
-            (gchar) (context->ctrl_id >> 16 & 0xff),
-            (gchar) (context->ctrl_id >>  8 & 0xff),
-            (gchar) (context->ctrl_id >>  0 & 0xff),
-            ghwp_get_ctrl_name (context->ctrl_id));
+            (gchar) (parser->ctrl_id >> 24 & 0xff),
+            (gchar) (parser->ctrl_id >> 16 & 0xff),
+            (gchar) (parser->ctrl_id >>  8 & 0xff),
+            (gchar) (parser->ctrl_id >>  0 & 0xff),
+            ghwp_get_ctrl_name (parser->ctrl_id));
         break;
       }
       break;
     default:
       g_error ("%s:%d:%s not implemented",
-          __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+          __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
       break;
     } /* switch */
   } /* while */
 }
 
-static void parse_section (GHWPParser *context,
+static void parse_section (GHWPParser *parser,
                            GHWPFileV5       *file)
 {
   GError *error = NULL;
-  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (context->listener);
+  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (parser->listener);
 
-  while (ghwp_parser_pull(context, &error))
+  while (ghwp_parser_pull(parser, &error))
   {
-    printf ("%d", context->level);
-    for (int i = 0; i < context->level; i++) {
+    printf ("%d", parser->level);
+    for (int i = 0; i < parser->level; i++) {
         printf (" ");
     }
-    printf ("%s\n", ghwp_get_tag_name(context->tag_id));
-    context_skip (context, context->data_len);
-    g_assert (context->level == 0);
+    printf ("%s\n", ghwp_get_tag_name(parser->tag_id));
+    parser_skip (parser, parser->data_len);
+    g_assert (parser->level == 0);
 
-    switch (context->tag_id) {
+    switch (parser->tag_id) {
     case GHWP_TAG_PARA_HEADER:
     {
       if (!iface->object)
         break;
 
       GHWPParagraph *paragraph = ghwp_paragraph_new ();
-      iface->object (context->listener,
+      iface->object (parser->listener,
                               G_OBJECT (paragraph),
-                              context->user_data,
+                              parser->user_data,
                               &error);
-      make_paragraph (context, file, paragraph);
+      make_paragraph (parser, file, paragraph);
     }
         break;
     default:
         g_error ("%s:%d:%s not implemented",
-            __FILE__, __LINE__, ghwp_get_tag_name (context->tag_id));
+            __FILE__, __LINE__, ghwp_get_tag_name (parser->tag_id));
         break;
     }  /* switch */
   } /* while */
 }
 
-static void parse_sections (GHWPParser *context, GHWPFileV5 *file)
+static void parse_sections (GHWPParser *parser, GHWPFileV5 *file)
 {
   for (guint i = 0; i < file->section_streams->len; i++)
   {
     GInputStream *stream = g_array_index (file->section_streams,
                                           GInputStream *, i);
-    context->stream = stream;
-    parse_section  (context, file);
+    parser->stream = stream;
+    parse_section  (parser, file);
   }
 }
 
-static void parse_body_text (GHWPParser *context, GHWPFileV5 *file)
+static void parse_body_text (GHWPParser *parser, GHWPFileV5 *file)
 {
     g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    parse_sections (context, file);
+    parse_sections (parser, file);
 }
 
-static void parse_view_text (GHWPParser *context, GHWPFileV5 *file)
+static void parse_view_text (GHWPParser *parser, GHWPFileV5 *file)
 {
     g_return_if_fail (GHWP_IS_FILE_V5 (file));
 
-    parse_sections (context, file);
+    parse_sections (parser, file);
 }
 
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
@@ -952,46 +952,46 @@ static void parse_prv_text (GHWPFileV5 *file, GHWPDocument *document)
     g_object_unref (gis);
 }
 
-gboolean ghwp_parser_check_version (GHWPParser *context,
+gboolean ghwp_parser_check_version (GHWPParser *parser,
                                            guint8            major,
                                            guint8            minor,
                                            guint8            micro,
                                            guint8            extra)
 {
-    g_return_val_if_fail (GHWP_IS_PARSER (context), FALSE);
+    g_return_val_if_fail (GHWP_IS_PARSER (parser), FALSE);
 
-    return (context->major_version >  major)   ||
-           (context->major_version == major &&
-            context->minor_version >  minor)   ||
-           (context->major_version == major &&
-            context->minor_version == minor &&
-            context->micro_version >  micro)   ||
-           (context->major_version == major &&
-            context->minor_version == minor &&
-            context->micro_version == micro &&
-            context->extra_version >= extra);
+    return (parser->major_version >  major)   ||
+           (parser->major_version == major &&
+            parser->minor_version >  minor)   ||
+           (parser->major_version == major &&
+            parser->minor_version == minor &&
+            parser->micro_version >  micro)   ||
+           (parser->major_version == major &&
+            parser->minor_version == minor &&
+            parser->micro_version == micro &&
+            parser->extra_version >= extra);
 }
 
 /*
  * Since: TODO
  */
-void ghwp_parser_parse (GHWPParser *context,
+void ghwp_parser_parse (GHWPParser *parser,
                                GHWPFileV5       *file,
                                GError          **error)
 {
-  g_return_if_fail (context != NULL);
-  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (context->listener);
+  g_return_if_fail (parser != NULL);
+  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (parser->listener);
   if (iface->document_version)
-    iface->document_version (context->listener,
+    iface->document_version (parser->listener,
                              file->major_version,
                              file->minor_version,
                              file->micro_version,
                              file->extra_version,
-                             context->user_data,
+                             parser->user_data,
                              error);
 
 /*    parse_doc_info       (file, document);*/
-  parse_body_text      (context, file);
+  parse_body_text      (parser, file);
 /*    parse_view_text      (file, document);*/
 /*    parse_summary_info   (file, document);*/
 /*    parse_bin_data       (file, document);*/
@@ -1003,20 +1003,20 @@ void ghwp_parser_parse (GHWPParser *context,
 /*    parse_doc_history    (file, document);*/
 }
 
-static void ghwp_parser_init (GHWPParser * context)
+static void ghwp_parser_init (GHWPParser * parser)
 {
-  context->state = GHWP_PARSE_STATE_NORMAL;
-  context->priv  = G_TYPE_INSTANCE_GET_PRIVATE (context,
+  parser->state = GHWP_PARSE_STATE_NORMAL;
+  parser->priv  = G_TYPE_INSTANCE_GET_PRIVATE (parser,
                                                 GHWP_TYPE_PARSER,
                                                 GHWPParserPrivate);
 }
 
 static void ghwp_parser_finalize (GObject *obj)
 {
-  GHWPParser *context = GHWP_PARSER(obj);
-  if (G_IS_INPUT_STREAM (context->stream)) {
-    g_input_stream_close (context->stream, NULL, NULL);
-    g_object_unref (context->stream);
+  GHWPParser *parser = GHWP_PARSER(obj);
+  if (G_IS_INPUT_STREAM (parser->stream)) {
+    g_input_stream_close (parser->stream, NULL, NULL);
+    g_object_unref (parser->stream);
   }
   G_OBJECT_CLASS (ghwp_parser_parent_class)->finalize (obj);
 }

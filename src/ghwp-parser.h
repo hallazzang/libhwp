@@ -79,15 +79,15 @@ struct _GHWPParserPrivate
 GType             ghwp_parser_get_type (void) G_GNUC_CONST;
 GHWPParser *ghwp_parser_new      (GHWPListener       *listener,
                                                gpointer          user_data);
-void              ghwp_parser_parse    (GHWPParser *context,
+void              ghwp_parser_parse    (GHWPParser *parser,
                                                GHWPFileV5       *file,
                                                GError          **error);
-gboolean     ghwp_parser_pull     (GHWPParser  *context, GError **error);
-gboolean     context_read_uint16   (GHWPParser  *context,
+gboolean     ghwp_parser_pull     (GHWPParser  *parser, GError **error);
+gboolean     parser_read_uint16   (GHWPParser  *parser,
                                     guint16      *i);
-gboolean     context_read_uint32   (GHWPParser  *context,
+gboolean     parser_read_uint32   (GHWPParser  *parser,
                                     guint32      *i);
-gboolean     context_skip          (GHWPParser  *context,
+gboolean     parser_skip          (GHWPParser  *parser,
                                     guint16       count);
 
 G_END_DECLS

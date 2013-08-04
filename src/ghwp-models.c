@@ -215,32 +215,32 @@ GHWPTableCell *ghwp_table_cell_new (void)
     return g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
 }
 
-GHWPTableCell *ghwp_table_cell_new_from_context (GHWPParser *context)
+GHWPTableCell *ghwp_table_cell_new_from_parser (GHWPParser *parser)
 {
-    g_return_val_if_fail (GHWP_IS_PARSER (context), NULL);
+    g_return_val_if_fail (GHWP_IS_PARSER (parser), NULL);
 
     GHWPTableCell *table_cell = ghwp_table_cell_new ();
     /* 표 60 LIST_HEADER */
-    context_read_uint16 (context, &table_cell->n_paragraphs);
-    context_read_uint32 (context, &table_cell->flags);
-    context_read_uint16 (context, &table_cell->unknown1);
+    parser_read_uint16 (parser, &table_cell->n_paragraphs);
+    parser_read_uint32 (parser, &table_cell->flags);
+    parser_read_uint16 (parser, &table_cell->unknown1);
     /* 표 75 cell property */
-    context_read_uint16 (context, &table_cell->col_addr);
-    context_read_uint16 (context, &table_cell->row_addr);
-    context_read_uint16 (context, &table_cell->col_span);
-    context_read_uint16 (context, &table_cell->row_span);
+    parser_read_uint16 (parser, &table_cell->col_addr);
+    parser_read_uint16 (parser, &table_cell->row_addr);
+    parser_read_uint16 (parser, &table_cell->col_span);
+    parser_read_uint16 (parser, &table_cell->row_span);
 
-    context_read_uint32 (context, &table_cell->width);
-    context_read_uint32 (context, &table_cell->height);
+    parser_read_uint32 (parser, &table_cell->width);
+    parser_read_uint32 (parser, &table_cell->height);
 
-    context_read_uint16 (context, &table_cell->left_margin);
-    context_read_uint16 (context, &table_cell->right_margin);
-    context_read_uint16 (context, &table_cell->top_margin);
-    context_read_uint16 (context, &table_cell->bottom_margin);
+    parser_read_uint16 (parser, &table_cell->left_margin);
+    parser_read_uint16 (parser, &table_cell->right_margin);
+    parser_read_uint16 (parser, &table_cell->top_margin);
+    parser_read_uint16 (parser, &table_cell->bottom_margin);
 
-    context_read_uint16 (context, &table_cell->border_fill_id);
+    parser_read_uint16 (parser, &table_cell->border_fill_id);
     /* unknown */
-    context_read_uint32 (context, &table_cell->unknown2);
+    parser_read_uint32 (parser, &table_cell->unknown2);
 /*    printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",*/
 /*        table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,*/
 
@@ -258,7 +258,7 @@ GHWPTableCell *ghwp_table_cell_new_from_context (GHWPParser *context)
 
 /*        table_cell->border_fill_id);*/
 
-    if (context->data_count != context->data_len) {
+    if (parser->data_count != parser->data_len) {
         g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
     }
 
