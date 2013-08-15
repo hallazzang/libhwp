@@ -56,14 +56,14 @@ gchar *hnchar_to_utf8 (guint16 c)
             g_string_append_unichar (string, syllable);
             return g_string_free (string, FALSE);
         /* 초성만 존재하는 경우 유니코드 한글 호환 자모로 변환 */
-        } else if ((HNC_L1[v] != FILL) &&
+        } else if ((HNC_L1[l] != FILL) &&
                    (HNC_V1[v] == FILL || HNC_V1[v] == NONE) &&
                    (HNC_T1[t] == FILL)) {
             g_string_append_unichar (string, HNC_L1[l]);
             return g_string_free (string, FALSE);
         /* 중성만 존재하는 경우 유니코드 한글 호환 자모로 변환 */
         } else if ((HNC_L1[l] == FILL) &&
-                   (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
+                   (HNC_V1[v] != FILL && HNC_V1[v] != NONE) &&
                    (HNC_T1[t] == FILL)) {
             g_string_append_unichar (string, HNC_V1[v]);
             return g_string_free (string, FALSE);
@@ -75,14 +75,14 @@ gchar *hnchar_to_utf8 (guint16 c)
             return g_string_free (string, FALSE);
         /* 초성과 중성만 존재하는 조합형 옛한글의 경우 */
         } else if ((HNC_L1[l] != FILL) &&
-                   (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
+                   (HNC_V1[v] != FILL && HNC_V1[v] != NONE) &&
                    (HNC_T1[t] == FILL)) {
             g_string_append_unichar (string, HNC_L2[l]);
             g_string_append_unichar (string, HNC_V2[v]);
             return g_string_free (string, FALSE);
         /* 초성, 중성, 종성 모두 존재하는 조합형 옛한글의 경우 */
         } else if ((HNC_L1[l] != FILL) &&
-                   (HNC_V1[v] != FILL || HNC_V1[v] != NONE) &&
+                   (HNC_V1[v] != FILL && HNC_V1[v] != NONE) &&
                    (HNC_T1[t] != FILL)) {
             g_string_append_unichar (string, HNC_L2[l]);
             g_string_append_unichar (string, HNC_V2[v]);
