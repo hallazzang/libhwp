@@ -20,7 +20,6 @@
 
 #include <glib.h>
 #include "hnc2unicode.h"
-#include "hnc2unicode.inc"
 #include <stdio.h>
 
 static gchar *_hnc_to_utf8 (guint16 c);
