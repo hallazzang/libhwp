@@ -215,56 +215,6 @@ GHWPTableCell *ghwp_table_cell_new (void)
     return g_object_new (GHWP_TYPE_TABLE_CELL, NULL);
 }
 
-GHWPTableCell *ghwp_table_cell_new_from_parser (GHWPParser *parser)
-{
-    g_return_val_if_fail (GHWP_IS_PARSER (parser), NULL);
-
-    GHWPTableCell *table_cell = ghwp_table_cell_new ();
-    /* 표 60 LIST_HEADER */
-    parser_read_uint16 (parser, &table_cell->n_paragraphs);
-    parser_read_uint32 (parser, &table_cell->flags);
-    parser_read_uint16 (parser, &table_cell->unknown1);
-    /* 표 75 cell property */
-    parser_read_uint16 (parser, &table_cell->col_addr);
-    parser_read_uint16 (parser, &table_cell->row_addr);
-    parser_read_uint16 (parser, &table_cell->col_span);
-    parser_read_uint16 (parser, &table_cell->row_span);
-
-    parser_read_uint32 (parser, &table_cell->width);
-    parser_read_uint32 (parser, &table_cell->height);
-
-    parser_read_uint16 (parser, &table_cell->left_margin);
-    parser_read_uint16 (parser, &table_cell->right_margin);
-    parser_read_uint16 (parser, &table_cell->top_margin);
-    parser_read_uint16 (parser, &table_cell->bottom_margin);
-
-    parser_read_uint16 (parser, &table_cell->border_fill_id);
-    /* unknown */
-    parser_read_uint32 (parser, &table_cell->unknown2);
-/*    printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",*/
-/*        table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,*/
-
-/*        table_cell->col_addr,*/
-/*        table_cell->row_addr,*/
-/*        table_cell->col_span,*/
-/*        table_cell->row_span,*/
-
-/*        table_cell->width, table_cell->height,*/
-
-/*        table_cell->left_margin,*/
-/*        table_cell->right_margin,*/
-/*        table_cell->top_margin,*/
-/*        table_cell->bottom_margin,*/
-
-/*        table_cell->border_fill_id);*/
-
-    if (parser->data_count != parser->data_len) {
-        g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
-    }
-
-    return table_cell;
-}
-
 GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell *cell)
 {
     g_return_val_if_fail (GHWP_IS_TABLE_CELL (cell), NULL);

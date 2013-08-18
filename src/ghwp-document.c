@@ -330,8 +330,13 @@ void listen_object (GHWPListener *listener,
                     gpointer      user_data,
                     GError      **error)
 {
-  if (GHWP_IS_PARAGRAPH (object))
+  if (GHWP_IS_PARAGRAPH (object)) {
     puts ("LISTENED: Document have listened GHWPParagraph");
+    GHWPParagraph *paragraph = GHWP_PARAGRAPH (object);
+    GHWPText *text = ghwp_paragraph_get_ghwp_text (paragraph);
+    if (text)
+      printf("%s\n", text->text);
+  }
 }
 
 static void ghwp_document_listener_iface_init (GHWPListenerInterface *iface)
