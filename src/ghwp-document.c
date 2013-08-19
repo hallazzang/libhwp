@@ -32,6 +32,7 @@
 #include "ghwp-file.h"
 #include "ghwp-models.h"
 #include "ghwp-listener.h"
+#include <pango/pangocairo.h>
 
 static void ghwp_document_listener_iface_init (GHWPListenerInterface *iface);
 
@@ -317,12 +318,16 @@ void listen_document_version (GHWPListener *listener,
                               gpointer      user_data,
                               GError      **error)
 {
-  GHWPDocument *document  = (GHWPDocument *) user_data;
+  GHWPDocument *document  = (GHWPDocument *) listener;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;
   document->extra_version = extra_version;
-  puts ("LISTENED: listen_document_version");
+}
+
+void ghwp_document_paginate (GHWPDocument *document, PangoLayout *layout)
+{
+  /* TODO */
 }
 
 void listen_object (GHWPListener *listener,
@@ -331,11 +336,19 @@ void listen_object (GHWPListener *listener,
                     GError      **error)
 {
   if (GHWP_IS_PARAGRAPH (object)) {
-    puts ("LISTENED: Document have listened GHWPParagraph");
     GHWPParagraph *paragraph = GHWP_PARAGRAPH (object);
-    GHWPText *text = ghwp_paragraph_get_ghwp_text (paragraph);
-    if (text)
-      printf("%s\n", text->text);
+    GHWPText *ghwp_text = ghwp_paragraph_get_ghwp_text (paragraph);
+    GHWPDocument *document  = (GHWPDocument *) listener;
+    if (ghwp_text) {
+      printf("%s\n", ghwp_text->text);
+      PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
+      PangoContext *context = pango_font_map_create_context (fontmap);
+      PangoLayout *layout = pango_layout_new (context);
+      pango_layout_set_width (layout, 595 * PANGO_SCALE);
+      pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
+      pango_layout_set_text (layout, ghwp_text->text, -1);
+      ghwp_document_paginate (document, layout);
+    }
   }
 }
 
