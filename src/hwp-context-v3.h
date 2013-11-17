@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-context-v3.h
+ * hwp-context-v3.h
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -26,7 +26,7 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_CONTEXT_V3             (ghwp_context_v3_get_type ())
+#define GHWP_TYPE_CONTEXT_V3             (hwp_context_v3_get_type ())
 #define GHWP_CONTEXT_V3(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_CONTEXT_V3, GHWPContextV3))
 #define GHWP_CONTEXT_V3_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_CONTEXT_V3, GHWPContextV3Class))
 #define GHWP_IS_CONTEXT_V3(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_CONTEXT_V3))
@@ -48,18 +48,18 @@ struct _GHWPContextV3
     gsize         bytes_read;
 };
 
-GType          ghwp_context_v3_get_type    (void) G_GNUC_CONST;
-GHWPContextV3 *ghwp_context_v3_new         (GInputStream  *stream);
-gboolean       ghwp_context_v3_read_uint8  (GHWPContextV3 *context,
+GType          hwp_context_v3_get_type    (void) G_GNUC_CONST;
+GHWPContextV3 *hwp_context_v3_new         (GInputStream  *stream);
+gboolean       hwp_context_v3_read_uint8  (GHWPContextV3 *context,
                                             guint8        *i);
-gboolean       ghwp_context_v3_read_uint16 (GHWPContextV3 *context,
+gboolean       hwp_context_v3_read_uint16 (GHWPContextV3 *context,
                                             guint16       *i);
-gboolean       ghwp_context_v3_read_uint32 (GHWPContextV3 *context,
+gboolean       hwp_context_v3_read_uint32 (GHWPContextV3 *context,
                                             guint32       *i);
-gboolean       ghwp_context_v3_read        (GHWPContextV3 *context,
+gboolean       hwp_context_v3_read        (GHWPContextV3 *context,
                                             void          *buffer,
                                             gsize          count);
-gboolean       ghwp_context_v3_skip        (GHWPContextV3 *context,
+gboolean       hwp_context_v3_skip        (GHWPContextV3 *context,
                                             guint16        count);
 G_END_DECLS
 

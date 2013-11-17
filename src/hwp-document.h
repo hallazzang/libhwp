@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-document.h
+ * hwp-document.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -24,11 +24,11 @@
 #include <glib-object.h>
 #include <gsf/gsf-doc-meta-data.h>
 
-#include "ghwp-page.h"
+#include "hwp-page.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_DOCUMENT             (ghwp_document_get_type ())
+#define GHWP_TYPE_DOCUMENT             (hwp_document_get_type ())
 #define GHWP_DOCUMENT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_DOCUMENT, GHWPDocument))
 #define GHWP_DOCUMENT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_DOCUMENT, GHWPDocumentClass))
 #define GHWP_IS_DOCUMENT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_DOCUMENT))
@@ -79,24 +79,24 @@ struct _GHWPDocumentClass {
     GObjectClass parent_class;
 };
 
-GType         ghwp_document_get_type           (void) G_GNUC_CONST;
-GHWPDocument *ghwp_document_new                (void);
-GHWPDocument *ghwp_document_new_from_uri       (const gchar  *uri,
+GType         hwp_document_get_type           (void) G_GNUC_CONST;
+GHWPDocument *hwp_document_new                (void);
+GHWPDocument *hwp_document_new_from_uri       (const gchar  *uri,
                                                 GError      **error);
-GHWPDocument *ghwp_document_new_from_filename  (const gchar  *filename,
+GHWPDocument *hwp_document_new_from_filename  (const gchar  *filename,
                                                 GError      **error);
-guint         ghwp_document_get_n_pages        (GHWPDocument *doc);
-GHWPPage     *ghwp_document_get_page           (GHWPDocument *doc, gint n_page);
+guint         hwp_document_get_n_pages        (GHWPDocument *doc);
+GHWPPage     *hwp_document_get_page           (GHWPDocument *doc, gint n_page);
 /* meta data */
-gchar    *ghwp_document_get_title              (GHWPDocument *document);
-gchar    *ghwp_document_get_keywords           (GHWPDocument *document);
-gchar    *ghwp_document_get_subject            (GHWPDocument *document);
-gchar    *ghwp_document_get_creator            (GHWPDocument *document);
-GTime     ghwp_document_get_creation_date      (GHWPDocument *document);
-GTime     ghwp_document_get_modification_date  (GHWPDocument *document);
-gchar    *ghwp_document_get_format             (GHWPDocument *document);
-gchar    *ghwp_document_get_hwp_version_string (GHWPDocument *document);
-void      ghwp_document_get_hwp_version        (GHWPDocument *document,
+gchar    *hwp_document_get_title              (GHWPDocument *document);
+gchar    *hwp_document_get_keywords           (GHWPDocument *document);
+gchar    *hwp_document_get_subject            (GHWPDocument *document);
+gchar    *hwp_document_get_creator            (GHWPDocument *document);
+GTime     hwp_document_get_creation_date      (GHWPDocument *document);
+GTime     hwp_document_get_modification_date  (GHWPDocument *document);
+gchar    *hwp_document_get_format             (GHWPDocument *document);
+gchar    *hwp_document_get_hwp_version_string (GHWPDocument *document);
+void      hwp_document_get_hwp_version        (GHWPDocument *document,
                                                 guint8       *major_version,
                                                 guint8       *minor_version,
                                                 guint8       *micro_version,

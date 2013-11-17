@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-file-ml.h
+ * hwp-file-ml.h
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -23,12 +23,12 @@
 
 #include <glib-object.h>
 
-#include "ghwp-file.h"
-#include "ghwp-models.h"
+#include "hwp-file.h"
+#include "hwp-models.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_ML             (ghwp_file_ml_get_type ())
+#define GHWP_TYPE_FILE_ML             (hwp_file_ml_get_type ())
 #define GHWP_FILE_ML(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_ML, GHWPFileML))
 #define GHWP_FILE_ML_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_ML, GHWPFileMLClass))
 #define GHWP_IS_FILE_ML(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_ML))
@@ -55,18 +55,18 @@ struct _GHWPFileMLPrivate {
     gchar *uri;
 };
 
-GType         ghwp_file_ml_get_type               (void) G_GNUC_CONST;
-GHWPFileML   *ghwp_file_ml_new_from_uri           (const gchar *uri,
+GType         hwp_file_ml_get_type               (void) G_GNUC_CONST;
+GHWPFileML   *hwp_file_ml_new_from_uri           (const gchar *uri,
                                                    GError     **error);
-GHWPFileML   *ghwp_file_ml_new_from_filename      (const gchar *filename,
+GHWPFileML   *hwp_file_ml_new_from_filename      (const gchar *filename,
                                                    GError     **error);
-gchar        *ghwp_file_ml_get_hwp_version_string (GHWPFile    *file);
-void          ghwp_file_ml_get_hwp_version        (GHWPFile    *file,
+gchar        *hwp_file_ml_get_hwp_version_string (GHWPFile    *file);
+void          hwp_file_ml_get_hwp_version        (GHWPFile    *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-GHWPDocument *ghwp_file_ml_get_document           (GHWPFile    *file,
+GHWPDocument *hwp_file_ml_get_document           (GHWPFile    *file,
                                                    GError     **error);
 
 G_END_DECLS

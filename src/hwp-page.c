@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-page.c
+ * hwp-page.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -18,18 +18,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ghwp-page.h"
+#include "hwp-page.h"
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 
-#include "ghwp-models.h"
+#include "hwp-models.h"
 
-G_DEFINE_TYPE (GHWPPage, ghwp_page, G_TYPE_OBJECT);
+G_DEFINE_TYPE (GHWPPage, hwp_page, G_TYPE_OBJECT);
 
 /**
  * Since: 0.1
  */
-void ghwp_page_get_size (GHWPPage *page,
+void hwp_page_get_size (GHWPPage *page,
                          gdouble  *width,
                          gdouble  *height)
 {
@@ -39,7 +39,7 @@ void ghwp_page_get_size (GHWPPage *page,
     *height = 842.0;
 }
 
-static void ghwp_show_layout (cairo_t *cr, GHWPLayout *layout)
+static void hwp_show_layout (cairo_t *cr, GHWPLayout *layout)
 {
     cairo_move_to (cr, layout->x, layout->y);
     pango_cairo_show_layout (cr, layout->pango_layout);
@@ -48,7 +48,7 @@ static void ghwp_show_layout (cairo_t *cr, GHWPLayout *layout)
 /**
  * Since: 0.1
  */
-gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
+gboolean hwp_page_render (GHWPPage *page, cairo_t *cr)
 {
     g_return_val_if_fail (GHWP_IS_PAGE (page) && cr, FALSE);
 
@@ -56,7 +56,7 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
 
     for (guint i = 0; i < page->layouts->len; i++) {
         layout = g_array_index (page->layouts, GHWPLayout *, i);
-        ghwp_show_layout (cr, layout);
+        hwp_show_layout (cr, layout);
     }
 
     return TRUE;
@@ -65,7 +65,7 @@ gboolean ghwp_page_render (GHWPPage *page, cairo_t *cr)
 /**
  * Since: 0.1
  */
-GHWPPage *ghwp_page_new (void)
+GHWPPage *hwp_page_new (void)
 {
     return (GHWPPage *) g_object_new (GHWP_TYPE_PAGE, NULL);
 }
@@ -74,7 +74,7 @@ GHWPPage *ghwp_page_new (void)
  * Since: TODO
  */
 void
-ghwp_page_render_selection (GHWPPage           *page,
+hwp_page_render_selection (GHWPPage           *page,
                             cairo_t            *cr,
                             GHWPRectangle      *selection,
                             GHWPRectangle      *old_selection,
@@ -90,7 +90,7 @@ ghwp_page_render_selection (GHWPPage           *page,
  * Since: TODO
  */
 char *
-ghwp_page_get_selected_text (GHWPPage          *page,
+hwp_page_get_selected_text (GHWPPage          *page,
                              GHWPSelectionStyle style,
                              GHWPRectangle     *selection)
 {
@@ -103,7 +103,7 @@ ghwp_page_get_selected_text (GHWPPage          *page,
  * Since: TODO
  */
 cairo_region_t *
-ghwp_page_get_selection_region (GHWPPage          *page,
+hwp_page_get_selection_region (GHWPPage          *page,
                                 gdouble            scale,
                                 GHWPSelectionStyle style,
                                 GHWPRectangle     *selection)
@@ -114,34 +114,34 @@ ghwp_page_get_selection_region (GHWPPage          *page,
 }
 
 /**
- * ghwp_rectangle_free:
+ * hwp_rectangle_free:
  * @rectangle: a #GHWPRectangle
  *
  * Frees the given #GHWPRectangle
  *
  * Since: 0.2
  */
-void ghwp_rectangle_free (GHWPRectangle *rectangle)
+void hwp_rectangle_free (GHWPRectangle *rectangle)
 {
     g_return_if_fail (rectangle != NULL);
     g_slice_free (GHWPRectangle, rectangle);
 }
 
-static void ghwp_page_finalize (GObject *obj)
+static void hwp_page_finalize (GObject *obj)
 {
     GHWPPage *page = GHWP_PAGE (obj);
     g_array_free (page->paragraphs, TRUE);
     g_array_free (page->layouts,    TRUE);
-    G_OBJECT_CLASS (ghwp_page_parent_class)->finalize (obj);
+    G_OBJECT_CLASS (hwp_page_parent_class)->finalize (obj);
 }
 
-static void ghwp_page_class_init (GHWPPageClass * klass)
+static void hwp_page_class_init (GHWPPageClass * klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = ghwp_page_finalize;
+    object_class->finalize     = hwp_page_finalize;
 }
 
-static void ghwp_page_init (GHWPPage *page)
+static void hwp_page_init (GHWPPage *page)
 {
     page->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
     page->layouts    = g_array_new (TRUE, TRUE, sizeof (GHWPLayout   *));

@@ -1,4 +1,4 @@
-libghwp is a GObject based library for handling HWP documents.
+libhwp is a GObject based library for handling HWP documents.
 
 What is HWP?
 ------------
@@ -18,7 +18,7 @@ sudo ldconfig
 
 Making deb Package
 ------------------
-cd libghwp
+cd libhwp
 dch -l custom
 dpkg-buildpackage -b
 ls ..

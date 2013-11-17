@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * ghwp-parser.h
+ * hwp-parser.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -24,12 +24,12 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
-#include "ghwp-file-v5.h"
-#include "ghwp-listener.h"
+#include "hwp-file-v5.h"
+#include "hwp-listener.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_PARSER             (ghwp_parser_get_type ())
+#define GHWP_TYPE_PARSER             (hwp_parser_get_type ())
 #define GHWP_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARSER, GHWPParser))
 #define GHWP_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PARSER, GHWPParserClass))
 #define GHWP_IS_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARSER))
@@ -76,13 +76,13 @@ struct _GHWPParserPrivate
   gboolean ret;
 };
 
-GType             ghwp_parser_get_type (void) G_GNUC_CONST;
-GHWPParser *ghwp_parser_new      (GHWPListener       *listener,
+GType             hwp_parser_get_type (void) G_GNUC_CONST;
+GHWPParser *hwp_parser_new      (GHWPListener       *listener,
                                                gpointer          user_data);
-void              ghwp_parser_parse    (GHWPParser *parser,
+void              hwp_parser_parse    (GHWPParser *parser,
                                                GHWPFileV5       *file,
                                                GError          **error);
-gboolean     ghwp_parser_pull     (GHWPParser  *parser, GError **error);
+gboolean     hwp_parser_pull     (GHWPParser  *parser, GError **error);
 gboolean     parser_read_uint16   (GHWPParser  *parser,
                                     guint16      *i);
 gboolean     parser_read_uint32   (GHWPParser  *parser,

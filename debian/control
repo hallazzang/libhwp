@@ -3,7 +3,7 @@
 # Modifications should be made to debian/control.in instead.
 # This file is regenerated automatically in the clean target.
 
-Source: libghwp
+Source: libhwp
 Priority: optional
 Section: libs
 Maintainer: Hodong Kim <cogniti@gmail.com>
@@ -15,15 +15,15 @@ Build-Depends: cdbs (>= 0.4.93),
                libglib2.0-dev,
                pkg-config
 Standards-Version: 3.9.3
-Homepage: https://github.com/cogniti/libghwp
-Vcs-Git: git://github.com/cogniti/libghwp.git
-Vcs-Browser: https://github.com/cogniti/libghwp
+Homepage: https://github.com/cogniti/libhwp
+Vcs-Git: git://github.com/cogniti/libhwp.git
+Vcs-Browser: https://github.com/cogniti/libhwp
 
-Package: libghwp-dev
+Package: libhwp-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends},
-         libghwp1 (= ${binary:Version}),
+         libhwp1 (= ${binary:Version}),
          libcairo2-dev,
          libglib2.0-dev
 Description: handling and rendering HWP documents (development files)
@@ -32,7 +32,7 @@ Description: handling and rendering HWP documents (development files)
  .
  This package contains the development files.
 
-Package: libghwp1
+Package: libhwp1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
 Pre-Depends: ${misc:Pre-Depends}

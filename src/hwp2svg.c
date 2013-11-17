@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <glib-object.h>
 #include <cairo-svg.h>
-#include "ghwp.h"
+#include "hwp.h"
 
 int main (int argc, char **argv)
 {
@@ -38,10 +38,10 @@ int main (int argc, char **argv)
     g_type_init();
 #endif
 
-    GHWPFile *file = ghwp_file_new_from_filename (argv[1], &error);
-    GHWPDocument *document = ghwp_file_get_document (file, &error);
+    GHWPFile *file = hwp_file_new_from_filename (argv[1], &error);
+    GHWPDocument *document = hwp_file_get_document (file, &error);
 
-    guint n_pages = ghwp_document_get_n_pages (document);
+    guint n_pages = hwp_document_get_n_pages (document);
     if (n_pages < 1) {
         puts ("There is no page");
         return -1;
@@ -51,13 +51,13 @@ int main (int argc, char **argv)
     cairo_t *cr;
     gchar *filename;
     for (guint i = 0; i < n_pages; i++) {
-        ghwp_page_get_size (page, &width, &height);
+        hwp_page_get_size (page, &width, &height);
         filename = g_strdup_printf("page%d.svg", i);
         surface = cairo_svg_surface_create (filename, width, height);
         cr = cairo_create (surface);
 
-        page = ghwp_document_get_page (document, i);
-        ghwp_page_render (page, cr);
+        page = hwp_document_get_page (document, i);
+        hwp_page_render (page, cr);
         cairo_show_page (cr);
 
         g_free (filename);

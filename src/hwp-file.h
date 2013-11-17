@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-file.h
+ * hwp-file.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -32,11 +32,11 @@
 #include <gio/gio.h>
 #include <gsf/gsf-infile-msole.h>
 
-#include "ghwp-document.h"
+#include "hwp-document.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE             (ghwp_file_get_type ())
+#define GHWP_TYPE_FILE             (hwp_file_get_type ())
 #define GHWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE, GHWPFile))
 #define GHWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE, GHWPFileClass))
 #define GHWP_IS_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE))
@@ -70,7 +70,7 @@ struct _GHWPFileClass {
  *
  * Since: 0.2
  */
-#define GHWP_FILE_ERROR          (ghwp_file_error_quark ())
+#define GHWP_FILE_ERROR          (hwp_file_error_quark ())
 
 /**
  * GHWPFileError:
@@ -84,17 +84,17 @@ typedef enum {
     GHWP_FILE_ERROR_INVALID
 } GHWPFileError;
 
-GType         ghwp_file_get_type          (void) G_GNUC_CONST;
-GQuark        ghwp_file_error_quark       (void) G_GNUC_CONST;
-GHWPFile     *ghwp_file_new_from_uri      (const gchar* uri,
+GType         hwp_file_get_type          (void) G_GNUC_CONST;
+GQuark        hwp_file_error_quark       (void) G_GNUC_CONST;
+GHWPFile     *hwp_file_new_from_uri      (const gchar* uri,
                                            GError     **error);
-GHWPFile     *ghwp_file_new_from_filename (const gchar *filename,
+GHWPFile     *hwp_file_new_from_filename (const gchar *filename,
                                            GError     **error);
-GHWPDocument *ghwp_file_get_document      (GHWPFile    *file,
+GHWPDocument *hwp_file_get_document      (GHWPFile    *file,
                                            GError     **error);
 gchar *
-ghwp_file_get_hwp_version_string          (GHWPFile*    self);
-void          ghwp_file_get_hwp_version   (GHWPFile    *file,
+hwp_file_get_hwp_version_string          (GHWPFile*    self);
+void          hwp_file_get_hwp_version   (GHWPFile    *file,
                                            guint8      *major_version,
                                            guint8      *minor_version,
                                            guint8      *micro_version,

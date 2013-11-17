@@ -2,10 +2,10 @@
 # Versioning
 # *****************************************************************************
 
-m4_define([ghwp_major_version],[0])
-m4_define([ghwp_minor_version],[2])
-m4_define([ghwp_micro_version],[0])
-m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_version])
+m4_define([hwp_major_version],[0])
+m4_define([hwp_minor_version],[2])
+m4_define([hwp_micro_version],[0])
+m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 
 # Libtool versioning. The backend and view libraries have separate versions.
 # Before making a release, the libtool version should be modified.
@@ -17,17 +17,17 @@ m4_define([ghwp_version],[ghwp_major_version.ghwp_minor_version.ghwp_micro_versi
 # - If the interface is the same as the previous version, change to C:R+1:A
 
 # Libtool version
-m4_define([ghwp_lt_current], [1])
-m4_define([ghwp_lt_revision],[0])
-m4_define([ghwp_lt_age],     [0])
-m4_define([ghwp_lt_version_info],[ghwp_lt_current:ghwp_lt_revision:ghwp_lt_age])
-m4_define([ghwp_lt_current_minus_age],[m4_eval(ghwp_lt_current - ghwp_lt_age)])
+m4_define([hwp_lt_current], [1])
+m4_define([hwp_lt_revision],[0])
+m4_define([hwp_lt_age],     [0])
+m4_define([hwp_lt_version_info],[hwp_lt_current:hwp_lt_revision:hwp_lt_age])
+m4_define([hwp_lt_current_minus_age],[m4_eval(hwp_lt_current - hwp_lt_age)])
 
 # *****************************************************************************
 
-AC_INIT([libghwp], [ghwp_version],
-        [https://github.com/cogniti/libghwp/issues], [libghwp],
-        [https://github.com/cogniti/libghwp])
+AC_INIT([libhwp], [hwp_version],
+        [https://github.com/cogniti/libhwp/issues], [libhwp],
+        [https://github.com/cogniti/libhwp])
 
 AC_CONFIG_HEADERS([config.h])
 
@@ -48,7 +48,7 @@ dnl Internationalization
 dnl ***************************************************************************
 IT_PROG_INTLTOOL([0.35.0])
 
-GETTEXT_PACKAGE=libghwp
+GETTEXT_PACKAGE=libhwp
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
@@ -66,19 +66,19 @@ AC_CHECK_LIB(gsf-1, gsf_doc_meta_data_read_from_msole,
 # Versioning
 # **********
 
-AC_SUBST([GHWP_MAJOR_VERSION],[ghwp_major_version])
-AC_SUBST([GHWP_MINOR_VERSION],[ghwp_minor_version])
-AC_SUBST([GHWP_MICRO_VERSION],[ghwp_micro_version])
+AC_SUBST([GHWP_MAJOR_VERSION],[hwp_major_version])
+AC_SUBST([GHWP_MINOR_VERSION],[hwp_minor_version])
+AC_SUBST([GHWP_MICRO_VERSION],[hwp_micro_version])
 
-AC_SUBST([GHWP_LT_VERSION_INFO],[ghwp_lt_version_info])
-AC_SUBST([GHWP_LT_CURRENT_MINUS_AGE],[ghwp_lt_current_minus_age])
+AC_SUBST([GHWP_LT_VERSION_INFO],[hwp_lt_version_info])
+AC_SUBST([GHWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 
 # **********************************
 
 AC_OUTPUT([
     Makefile
     po/Makefile.in
-    src/ghwp-0.2.pc
+    src/hwp-0.2.pc
     src/Makefile
-    src/ghwp-version.h
+    src/hwp-version.h
 ])

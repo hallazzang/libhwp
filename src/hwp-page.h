@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-page.h
+ * hwp-page.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -25,11 +25,11 @@
 #include <cairo.h>
 #include <pango/pango-layout.h>
 
-#include "ghwp-enums.h"
+#include "hwp-enums.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_PAGE             (ghwp_page_get_type ())
+#define GHWP_TYPE_PAGE             (hwp_page_get_type ())
 #define GHWP_PAGE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PAGE, GHWPPage))
 #define GHWP_PAGE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PAGE, GHWPPageClass))
 #define GHWP_IS_PAGE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PAGE))
@@ -81,15 +81,15 @@ struct _GHWPLayout {
     PangoLayout *pango_layout;
 };
 
-GType     ghwp_page_get_type   (void) G_GNUC_CONST;
-GHWPPage *ghwp_page_new        (void);
-void      ghwp_page_get_size   (GHWPPage *page,
+GType     hwp_page_get_type   (void) G_GNUC_CONST;
+GHWPPage *hwp_page_new        (void);
+void      hwp_page_get_size   (GHWPPage *page,
                                 gdouble  *width,
                                 gdouble  *height);
-gboolean  ghwp_page_render     (GHWPPage *page, cairo_t *cr);
+gboolean  hwp_page_render     (GHWPPage *page, cairo_t *cr);
 /* experimental */
 void
-ghwp_page_render_selection     (GHWPPage           *page,
+hwp_page_render_selection     (GHWPPage           *page,
                                 cairo_t            *cr,
                                 GHWPRectangle      *selection,
                                 GHWPRectangle      *old_selection,
@@ -97,15 +97,15 @@ ghwp_page_render_selection     (GHWPPage           *page,
                                 GHWPColor          *glyph_color,
                                 GHWPColor          *background_color);
 char *
-ghwp_page_get_selected_text    (GHWPPage          *page,
+hwp_page_get_selected_text    (GHWPPage          *page,
                                 GHWPSelectionStyle style,
                                 GHWPRectangle     *selection);
 cairo_region_t *
-ghwp_page_get_selection_region (GHWPPage          *page,
+hwp_page_get_selection_region (GHWPPage          *page,
                                 gdouble            scale,
                                 GHWPSelectionStyle style,
                                 GHWPRectangle     *selection);
-void ghwp_rectangle_free       (GHWPRectangle     *rectangle);
+void hwp_rectangle_free       (GHWPRectangle     *rectangle);
 
 G_END_DECLS
 

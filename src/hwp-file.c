@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-file.c
+ * hwp-file.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -28,15 +28,15 @@
 #include <glib-object.h>
 #include <string.h>
 
-#include "ghwp-file.h"
-#include "ghwp-file-ml.h"
-#include "ghwp-file-v3.h"
-#include "ghwp-file-v5.h"
+#include "hwp-file.h"
+#include "hwp-file-ml.h"
+#include "hwp-file-v3.h"
+#include "hwp-file-v5.h"
 
-G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE (GHWPFile, hwp_file, G_TYPE_OBJECT);
 
 /**
- * ghwp_file_error_quark:
+ * hwp_file_error_quark:
  *
  * The error domain for GHWPFile
  *
@@ -44,15 +44,15 @@ G_DEFINE_ABSTRACT_TYPE (GHWPFile, ghwp_file, G_TYPE_OBJECT);
  *
  * Since: 0.2
  */
-GQuark ghwp_file_error_quark (void)
+GQuark hwp_file_error_quark (void)
 {
-    return g_quark_from_string ("ghwp-file-error-quark");
+    return g_quark_from_string ("hwp-file-error-quark");
 }
 
 /**
  * Since: 0.2
  */
-void ghwp_file_get_hwp_version (GHWPFile *file,
+void hwp_file_get_hwp_version (GHWPFile *file,
                                 guint8   *major_version,
                                 guint8   *minor_version,
                                 guint8   *micro_version,
@@ -70,7 +70,7 @@ void ghwp_file_get_hwp_version (GHWPFile *file,
 /**
  * Since: 0.2
  */
-GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
+GHWPDocument *hwp_file_get_document (GHWPFile *file, GError **error)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
 
@@ -80,7 +80,7 @@ GHWPDocument *ghwp_file_get_document (GHWPFile *file, GError **error)
 /**
  * Since: 0.2
  */
-gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
+gchar *hwp_file_get_hwp_version_string (GHWPFile *file)
 {
     g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
 
@@ -88,7 +88,7 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
 }
 
 /**
- * ghwp_file_new_from_uri:
+ * hwp_file_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
@@ -100,12 +100,12 @@ gchar *ghwp_file_get_hwp_version_string (GHWPFile *file)
  *
  * Since: 0.1
  */
-GHWPFile *ghwp_file_new_from_uri (const gchar* uri, GError** error)
+GHWPFile *hwp_file_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     gchar    *filename = g_filename_from_uri (uri, NULL, error);
-    GHWPFile *file     = ghwp_file_new_from_filename (filename, error);
+    GHWPFile *file     = hwp_file_new_from_filename (filename, error);
     g_free (filename);
 
     return file;
@@ -135,7 +135,7 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 /**
  * Since: 0.1
  */
-GHWPFile *ghwp_file_new_from_filename (const gchar *filename, GError **error)
+GHWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
@@ -169,13 +169,13 @@ GHWPFile *ghwp_file_new_from_filename (const gchar *filename, GError **error)
 
     if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
-        retval = GHWP_FILE (ghwp_file_v5_new_from_filename (filename, error));
+        retval = GHWP_FILE (hwp_file_v5_new_from_filename (filename, error));
     } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
-        retval = GHWP_FILE (ghwp_file_v3_new_from_filename (filename, error));
+        retval = GHWP_FILE (hwp_file_v3_new_from_filename (filename, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
-        retval = GHWP_FILE (ghwp_file_ml_new_from_filename (filename, error));
+        retval = GHWP_FILE (hwp_file_ml_new_from_filename (filename, error));
     } else {
         /* invalid hwp file */
         g_set_error (error, GHWP_FILE_ERROR, GHWP_FILE_ERROR_INVALID,
@@ -187,17 +187,17 @@ GHWPFile *ghwp_file_new_from_filename (const gchar *filename, GError **error)
     return retval;
 }
 
-static void ghwp_file_finalize (GObject *obj)
+static void hwp_file_finalize (GObject *obj)
 {
-    G_OBJECT_CLASS (ghwp_file_parent_class)->finalize (obj);
+    G_OBJECT_CLASS (hwp_file_parent_class)->finalize (obj);
 }
 
-static void ghwp_file_class_init (GHWPFileClass *klass)
+static void hwp_file_class_init (GHWPFileClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize = ghwp_file_finalize;
+    object_class->finalize = hwp_file_finalize;
 }
 
-static void ghwp_file_init (GHWPFile *file)
+static void hwp_file_init (GHWPFile *file)
 {
 }

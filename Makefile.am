@@ -2,8 +2,8 @@
 
 SUBDIRS = src 
 
-libghwpdocdir = ${prefix}/share/doc/libghwp
-libghwpdoc_DATA = \
+libhwpdocdir = ${prefix}/share/doc/libhwp
+libhwpdoc_DATA = \
 	README    \
 	COPYING   \
 	AUTHORS   \
@@ -13,9 +13,9 @@ libghwpdoc_DATA = \
 	THANKS
 
 
-EXTRA_DIST = $(libghwpdoc_DATA)
+EXTRA_DIST = $(libhwpdoc_DATA)
 
 
 # Remove doc directory on uninstall
 uninstall-local:
-	-rm -r $(libghwpdocdir)
+	-rm -r $(libhwpdocdir)

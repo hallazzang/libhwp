@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-file-v5.h
+ * hwp-file-v5.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -32,11 +32,11 @@
 #include <gio/gio.h>
 #include <gsf/gsf-infile-msole.h>
 
-#include "ghwp-file.h"
+#include "hwp-file.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_V5             (ghwp_file_v5_get_type ())
+#define GHWP_TYPE_FILE_V5             (hwp_file_v5_get_type ())
 #define GHWP_FILE_V5(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_V5, GHWPFileV5))
 #define GHWP_FILE_V5_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_V5, GHWPFileV5Class))
 #define GHWP_IS_FILE_V5(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_V5))
@@ -89,23 +89,23 @@ struct _GHWPFileV5Private
     GInputStream   *section_stream;
 };
 
-GType         ghwp_file_v5_get_type               (void) G_GNUC_CONST;
-GHWPFileV5   *ghwp_file_v5_new_from_uri           (const gchar *uri,
+GType         hwp_file_v5_get_type               (void) G_GNUC_CONST;
+GHWPFileV5   *hwp_file_v5_new_from_uri           (const gchar *uri,
                                                    GError     **error);
-GHWPFileV5   *ghwp_file_v5_new_from_filename      (const gchar *filename,
+GHWPFileV5   *hwp_file_v5_new_from_filename      (const gchar *filename,
                                                    GError     **error);
-gchar        *ghwp_file_v5_get_hwp_version_string (GHWPFile    *file);
-void          ghwp_file_v5_get_hwp_version        (GHWPFile    *file,
+gchar        *hwp_file_v5_get_hwp_version_string (GHWPFile    *file);
+void          hwp_file_v5_get_hwp_version        (GHWPFile    *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-gboolean      ghwp_file_v5_check_version          (GHWPFileV5 *file,
+gboolean      hwp_file_v5_check_version          (GHWPFileV5 *file,
                                                    guint8      major,
                                                    guint8      minor,
                                                    guint8      micro,
                                                    guint8      extra);
-GHWPDocument *ghwp_file_v5_get_document           (GHWPFile    *file,
+GHWPDocument *hwp_file_v5_get_document           (GHWPFile    *file,
                                                    GError     **error);
 
 G_END_DECLS

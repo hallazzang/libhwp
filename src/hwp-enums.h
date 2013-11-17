@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * ghwp-enums.h
+ * hwp-enums.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -28,14 +28,14 @@
 #ifndef __GHWP_ENUMS__
 #define __GHWP_ENUMS__
 
-#define GHWP_ERROR ghwp_error_quark ()
+#define GHWP_ERROR hwp_error_quark ()
 
 G_BEGIN_DECLS
 
-GQuark      ghwp_error_quark   (void);
-const char *ghwp_get_version   (void);
-const char *ghwp_get_tag_name  (guint   tag_id);
-const char *ghwp_get_ctrl_name (guint32 ctrl_id);
+GQuark      hwp_error_quark   (void);
+const char *hwp_get_version   (void);
+const char *hwp_get_tag_name  (guint   tag_id);
+const char *hwp_get_ctrl_name (guint32 ctrl_id);
 
 G_END_DECLS
 

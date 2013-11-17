@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * ghwp-listener.c
+ * hwp-listener.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -18,15 +18,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ghwp-listener.h"
+#include "hwp-listener.h"
 
-G_DEFINE_INTERFACE (GHWPListener, ghwp_listener, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (GHWPListener, hwp_listener, G_TYPE_OBJECT)
 
-static void ghwp_listener_default_init (GHWPListenerInterface *klass)
+static void hwp_listener_default_init (GHWPListenerInterface *klass)
 {
 }
 
-/*void ghwp_listener_document_version (GHWPListener *listener,*/
+/*void hwp_listener_document_version (GHWPListener *listener,*/
 /*                                     guint8        major_version,*/
 /*                                     guint8        minor_version,*/
 /*                                     guint8        micro_version,*/

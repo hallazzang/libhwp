@@ -1,5 +1,5 @@
 /*
- * ghwp-enums.c
+ * hwp-enums.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -18,46 +18,46 @@
  */
 
 #include "config.h"
-#include "ghwp.h"
+#include "hwp.h"
 
 /**
- * ghwp_error_quark:
+ * hwp_error_quark:
  *
- * Returns:  the #GQuark used to identify libghwp errors in #GError structures.
+ * Returns:  the #GQuark used to identify libhwp errors in #GError structures.
  *  Specific error codes come from the #GHWPError enumeration.
  *
  * Since: 0.2
  **/
-GQuark ghwp_error_quark (void)
+GQuark hwp_error_quark (void)
 {
     static GQuark q = 0;
 
     if (q == 0)
-        q = g_quark_from_static_string ("ghwp-error-quark");
+        q = g_quark_from_static_string ("hwp-error-quark");
 
     return q;
 }
 
-static const char ghwp_version[] = PACKAGE_VERSION;
+static const char hwp_version[] = PACKAGE_VERSION;
 
 /**
- * ghwp_get_version:
+ * hwp_get_version:
  *
- * Returns the version of ghwp in use.  This result is not to be freed.
+ * Returns the version of hwp in use.  This result is not to be freed.
  *
- * Return value: the version of ghwp.
+ * Return value: the version of hwp.
  *
  * Since: 0.2
  **/
-const char *ghwp_get_version (void)
+const char *hwp_get_version (void)
 {
-    return ghwp_version;
+    return hwp_version;
 }
 
 /**
  * Since: TODO
  **/
-const char *ghwp_get_tag_name (guint tag_id)
+const char *hwp_get_tag_name (guint tag_id)
 {
     GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_TAG);
     GEnumValue *tag        = g_enum_get_value (enum_class, tag_id);
@@ -72,7 +72,7 @@ const char *ghwp_get_tag_name (guint tag_id)
 /**
  * Since: TODO
  **/
-const char *ghwp_get_ctrl_name (guint32 ctrl_id)
+const char *hwp_get_ctrl_name (guint32 ctrl_id)
 {
     GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_CTRL_ID);
     GEnumValue *ctrl       = g_enum_get_value (enum_class, ctrl_id);

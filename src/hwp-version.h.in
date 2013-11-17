@@ -1,5 +1,5 @@
 /*
- * libghwp
+ * libhwp
  *
  * Copyright (C) 2012  Hodong Kim <cogniti@gmail.com>
  * 
@@ -18,7 +18,7 @@
  */
 
 /**
- * SECTION:ghwp-version
+ * SECTION:hwp-version
  * @Short_description: Variables and functions to check the GHWP version
  * @Title: Version Information
  *
@@ -28,7 +28,7 @@
  */
 
 #if !defined (__GHWP_H_INSIDE__) && !defined (GHWP_COMPILATION)
-#error "Only <ghwp/ghwp.h> can be included directly."
+#error "Only <hwp/hwp.h> can be included directly."
 #endif
 
 #ifndef __GHWP_VERSION_H__

@@ -1,21 +1,21 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = libghwp.la
+lib_LTLIBRARIES = libhwp.la
 
-ghwp_headers =               \
-	ghwp-context-v3.h    \
-	ghwp-document.h      \
-	ghwp-enums.h         \
-	ghwp-file.h          \
-	ghwp-file-ml.h       \
-	ghwp-file-v3.h       \
-	ghwp-file-v5.h       \
-	ghwp.h               \
-	ghwp-models.h        \
-	ghwp-page.h          \
-	ghwp-listener.h      \
-	ghwp-parser.h        \
-	ghwp-version.h       \
+hwp_headers =               \
+	hwp-context-v3.h    \
+	hwp-document.h      \
+	hwp-enums.h         \
+	hwp-file.h          \
+	hwp-file-ml.h       \
+	hwp-file-v3.h       \
+	hwp-file-v5.h       \
+	hwp.h               \
+	hwp-models.h        \
+	hwp-page.h          \
+	hwp-listener.h      \
+	hwp-parser.h        \
+	hwp-version.h       \
 	gsf-input-stream.h   \
 	hnc2unicode.h        \
 	$(NULL)
@@ -24,94 +24,94 @@ NOINST_H_FILES = \
 	$(NULL)
 
 INST_H_FILES =            \
-	$(ghwp_headers)   \
-	ghwp-enum-types.h \
+	$(hwp_headers)   \
+	hwp-enum-types.h \
 	$(NULL)
 
-ghwpincludedir = $(includedir)/ghwp
-ghwpinclude_HEADERS =   \
+hwpincludedir = $(includedir)/hwp
+hwpinclude_HEADERS =   \
 	$(INST_H_FILES) \
 	$(NULL)
 
 BUILT_SOURCES =           \
-	ghwp-enum-types.h \
-	ghwp-enum-types.c \
+	hwp-enum-types.h \
+	hwp-enum-types.c \
 	$(NULL)
 
-libghwp_la_SOURCES =         \
-	ghwp-context-v3.c    \
-	ghwp-document.c      \
-	ghwp-enums.c         \
-	ghwp-file.c          \
-	ghwp-file-ml.c       \
-	ghwp-file-v3.c       \
-	ghwp-file-v5.c       \
-	ghwp-models.c        \
-	ghwp-page.c          \
-	ghwp-listener.c      \
-	ghwp-parser.c        \
+libhwp_la_SOURCES =         \
+	hwp-context-v3.c    \
+	hwp-document.c      \
+	hwp-enums.c         \
+	hwp-file.c          \
+	hwp-file-ml.c       \
+	hwp-file-v3.c       \
+	hwp-file-v5.c       \
+	hwp-models.c        \
+	hwp-page.c          \
+	hwp-listener.c      \
+	hwp-parser.c        \
 	gsf-input-stream.c   \
 	hnc2unicode.c        \
-	ghwp-enum-types.c    \
+	hwp-enum-types.c    \
 	$(NOINST_H_FILES)    \
 	$(INST_H_FILES)      \
 	$(NULL)
 
-libghwp_la_CPPFLAGS =           \
+libhwp_la_CPPFLAGS =           \
 	-DG_LOG_DOMAIN=\"GHWP\" \
 	-DGHWP_COMPILATION      \
 	$(AM_CPPFLAGS)          \
 	$(NULL)
 
-libghwp_la_CFLAGS =     \
+libhwp_la_CFLAGS =     \
 	$(GHWP_CFLAGS)  \
 	-Wall           \
 	$(AM_CFLAGS)    \
 	$(NULL)
 
-libghwp_la_LDFLAGS =                          \
+libhwp_la_LDFLAGS =                          \
 	-version-info $(GHWP_LT_VERSION_INFO) \
 	-no-undefined                         \
-	-export-symbols-regex "^ghwp_*"       \
+	-export-symbols-regex "^hwp_*"       \
 	$(AM_LDFLAGS)                         \
 	$(NULL)
 
-libghwp_la_LIBADD = $(GHWP_LIBS)
+libhwp_la_LIBADD = $(GHWP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = ghwp-0.2.pc
+pkgconfig_DATA = hwp-0.2.pc
 
 EXTRA_DIST =                       \
-	ghwp-0.2.pc.in             \
-	ghwp-version.h.in          \
-	ghwp-enum-types.h.template \
-	ghwp-enum-types.c.template \
+	hwp-0.2.pc.in             \
+	hwp-version.h.in          \
+	hwp-enum-types.h.template \
+	hwp-enum-types.c.template \
 	$(NULL)
 
 DISTCLEANFILES =          \
-	ghwp-0.2.pc       \
-	ghwp-version.h    \
-	ghwp-enum-types.h \
-	ghwp-enum-types.c \
+	hwp-0.2.pc       \
+	hwp-version.h    \
+	hwp-enum-types.h \
+	hwp-enum-types.c \
 	$(NULL)
 
-ghwp-enum-types.h: $(ghwp_headers) ghwp-enum-types.h.template
+hwp-enum-types.h: $(hwp_headers) hwp-enum-types.h.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix GHWP --template \
-	    ghwp-enum-types.h.template $(ghwp_headers) > ghwp-enum-types.h
+	    hwp-enum-types.h.template $(hwp_headers) > hwp-enum-types.h
 
-ghwp-enum-types.c: $(ghwp_headers) ghwp-enum-types.c.template
+hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix GHWP --template \
-	    ghwp-enum-types.c.template $(ghwp_headers) > ghwp-enum-types.c
+	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
 bin_PROGRAMS = hwp2pdf hwp2svg unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
 hwp2pdf_CFLAGS  = $(GHWP_CFLAGS)
-hwp2pdf_LDADD   = libghwp.la
+hwp2pdf_LDADD   = libhwp.la
 
 hwp2svg_SOURCES = hwp2svg.c
 hwp2svg_CFLAGS  = $(GHWP_CFLAGS)
-hwp2svg_LDADD   = libghwp.la
+hwp2svg_LDADD   = libhwp.la
 
 unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(GHWP_CFLAGS)

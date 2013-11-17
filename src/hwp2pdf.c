@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <glib-object.h>
 #include <cairo-pdf.h>
-#include "ghwp.h"
+#include "hwp.h"
 
 int main (int argc, char **argv)
 {
@@ -38,14 +38,14 @@ int main (int argc, char **argv)
     g_type_init();
 #endif
 
-    GHWPFile *file = ghwp_file_new_from_filename (argv[1], &error);
+    GHWPFile *file = hwp_file_new_from_filename (argv[1], &error);
 
     if (error)
         g_error ("%s", error->message);
 
-    GHWPDocument *document = ghwp_file_get_document (file, &error);
+    GHWPDocument *document = hwp_file_get_document (file, &error);
 
-    guint n_pages = ghwp_document_get_n_pages (document);
+    guint n_pages = hwp_document_get_n_pages (document);
 
     if (n_pages < 1) {
         puts ("There is no page");
@@ -56,10 +56,10 @@ int main (int argc, char **argv)
     cairo_t *cr = cairo_create (surface);
 
     for (guint i = 0; i < n_pages; i++) {
-        page = ghwp_document_get_page (document, i);
-        ghwp_page_get_size (page, &width, &height);
+        page = hwp_document_get_page (document, i);
+        hwp_page_get_size (page, &width, &height);
         cairo_pdf_surface_set_size (surface, width, height);
-        ghwp_page_render (page, cr);
+        hwp_page_render (page, cr);
         cairo_show_page (cr);
     }
 

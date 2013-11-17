@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * ghwp-file-v5.c
+ * hwp-file-v5.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -43,25 +43,25 @@
 #include <pango/pangocairo.h>
 
 #include "gsf-input-stream.h"
-#include "ghwp-file-v5.h"
-#include "ghwp-listener.h"
-#include "ghwp-models.h"
-#include "ghwp-parser.h"
+#include "hwp-file-v5.h"
+#include "hwp-listener.h"
+#include "hwp-models.h"
+#include "hwp-parser.h"
 
-G_DEFINE_TYPE (GHWPFileV5, ghwp_file_v5, GHWP_TYPE_FILE);
+G_DEFINE_TYPE (GHWPFileV5, hwp_file_v5, GHWP_TYPE_FILE);
 
 /**
  * Since: 0.2
  */
-GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
+GHWPDocument *hwp_file_v5_get_document (GHWPFile *file, GError **error)
 {
   g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
 
-  GHWPDocument *document = ghwp_document_new ();
+  GHWPDocument *document = hwp_document_new ();
 
   GHWPParser *parser;
-  parser = ghwp_parser_new (GHWP_LISTENER (document), document);
-  ghwp_parser_parse (parser, GHWP_FILE_V5 (file), error);
+  parser = hwp_parser_new (GHWP_LISTENER (document), document);
+  hwp_parser_parse (parser, GHWP_FILE_V5 (file), error);
   g_object_unref (parser);
 
   if (*error) {
@@ -73,7 +73,7 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
 }
 
 /**
- * ghwp_file_v5_check_version:
+ * hwp_file_v5_check_version:
  * @file: a #GHWPFileV5
  * @major: the major version to check for
  * @minor: the minor version to check for
@@ -85,7 +85,7 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
  * <example>
  * <title>Checking the version of the HWP document</title>
  * <programlisting>
- *   if (ghwp_file_v5_check_version (doc, 5, 0, 0, 7))
+ *   if (hwp_file_v5_check_version (doc, 5, 0, 0, 7))
  *     g_print ("HWP document version is 5.0.0.7 or above");
  * </programlisting>
  * </example>
@@ -95,7 +95,7 @@ GHWPDocument *ghwp_file_v5_get_document (GHWPFile *file, GError **error)
  *
  * Since: TODO
  */
-gboolean ghwp_file_v5_check_version (GHWPFileV5 *file,
+gboolean hwp_file_v5_check_version (GHWPFileV5 *file,
                                      guint8      major,
                                      guint8      minor,
                                      guint8      micro,
@@ -116,7 +116,7 @@ gboolean ghwp_file_v5_check_version (GHWPFileV5 *file,
 }
 
 /**
- * ghwp_file_v5_get_hwp_version:
+ * hwp_file_v5_get_hwp_version:
  * @file: A #GHWPFile
  * @major_version: (out) (allow-none): return location for the HWP major version number
  * @minor_version: (out) (allow-none): return location for the HWP minor version number
@@ -127,7 +127,7 @@ gboolean ghwp_file_v5_check_version (GHWPFileV5 *file,
  *
  * Since: 0.2
  */
-void ghwp_file_v5_get_hwp_version (GHWPFile *file,
+void hwp_file_v5_get_hwp_version (GHWPFile *file,
                                    guint8   *major_version,
                                    guint8   *minor_version,
                                    guint8   *micro_version,
@@ -144,7 +144,7 @@ void ghwp_file_v5_get_hwp_version (GHWPFile *file,
 /**
  * Since: 0.2
  */
-gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
+gchar *hwp_file_v5_get_hwp_version_string (GHWPFile *file)
 {
   g_return_val_if_fail (GHWP_IS_FILE_V5 (file), NULL);
 
@@ -155,7 +155,7 @@ gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
 }
 
 /**
- * ghwp_file_v5_new_from_uri:
+ * hwp_file_v5_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  *
@@ -167,12 +167,12 @@ gchar *ghwp_file_v5_get_hwp_version_string (GHWPFile *file)
  *
  * Since: 0.2
  */
-GHWPFileV5* ghwp_file_v5_new_from_uri (const gchar* uri, GError** error)
+GHWPFileV5* hwp_file_v5_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     gchar      *filename = g_filename_from_uri (uri, NULL, error);
-    GHWPFileV5 *file     = ghwp_file_v5_new_from_filename (filename, error);
+    GHWPFileV5 *file     = hwp_file_v5_new_from_filename (filename, error);
     g_free (filename);
     return file;
 }
@@ -461,7 +461,7 @@ static void make_stream (GHWPFileV5 *file, GError **error)
 /**
  * Since: 0.2
  */
-GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** error)
+GHWPFileV5* hwp_file_v5_new_from_filename (const gchar* filename, GError** error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
     GFile *gfile = g_file_new_for_path (filename);
@@ -496,7 +496,7 @@ GHWPFileV5* ghwp_file_v5_new_from_filename (const gchar* filename, GError** erro
     return file;
 }
 
-static void ghwp_file_v5_finalize (GObject *object)
+static void hwp_file_v5_finalize (GObject *object)
 {
     GHWPFileV5 *file = GHWP_FILE_V5(object);
     g_object_unref (file->priv->olefile);
@@ -508,21 +508,21 @@ static void ghwp_file_v5_finalize (GObject *object)
     g_object_unref (file->priv->section_stream);
     g_object_unref (file->summary_info_stream);
     g_free         (file->signature);
-    G_OBJECT_CLASS (ghwp_file_v5_parent_class)->finalize (object);
+    G_OBJECT_CLASS (hwp_file_v5_parent_class)->finalize (object);
 }
 
-static void ghwp_file_v5_class_init (GHWPFileV5Class *klass)
+static void hwp_file_v5_class_init (GHWPFileV5Class *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   g_type_class_add_private (klass, sizeof (GHWPFileV5Private));
   GHWPFileClass *file_class          = GHWP_FILE_CLASS (klass);
-  file_class->get_document           = ghwp_file_v5_get_document;
-  file_class->get_hwp_version_string = ghwp_file_v5_get_hwp_version_string;
-  file_class->get_hwp_version        = ghwp_file_v5_get_hwp_version;
-  object_class->finalize = ghwp_file_v5_finalize;
+  file_class->get_document           = hwp_file_v5_get_document;
+  file_class->get_hwp_version_string = hwp_file_v5_get_hwp_version_string;
+  file_class->get_hwp_version        = hwp_file_v5_get_hwp_version;
+  object_class->finalize = hwp_file_v5_finalize;
 }
 
-static void ghwp_file_v5_init (GHWPFileV5 *file)
+static void hwp_file_v5_init (GHWPFileV5 *file)
 {
     file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V5,
                                                     GHWPFileV5Private);

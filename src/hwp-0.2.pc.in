@@ -3,11 +3,11 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 datarootdir=@datarootdir@
 datadir=@datadir@
-includedir=@includedir@/ghwp
+includedir=@includedir@/hwp
 
-Name: libghwp
-Description: libghwp is a GObject based library for handling HWP documents.
+Name: libhwp
+Description: libhwp is a GObject based library for handling HWP documents.
 Version: @VERSION@
 Requires: libgsf-1 cairo
-Libs: -L${libdir} -lghwp
+Libs: -L${libdir} -lhwp
 Cflags: -I${includedir}

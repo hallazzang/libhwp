@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-table.c
+ * hwp-table.c
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -39,7 +39,7 @@ typedef struct _GHWPTableCell GHWPTableCell;
 
 /** GHWPParagraph ************************************************************/
 
-#define GHWP_TYPE_PARAGRAPH             (ghwp_paragraph_get_type ())
+#define GHWP_TYPE_PARAGRAPH             (hwp_paragraph_get_type ())
 #define GHWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraph))
 #define GHWP_PARAGRAPH_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PARAGRAPH, GHWPParagraphClass))
 #define GHWP_IS_PARAGRAPH(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARAGRAPH))
@@ -52,7 +52,7 @@ typedef struct _GHWPParagraphClass GHWPParagraphClass;
 struct _GHWPParagraph
 {
     GObject    parent_instance;
-    GHWPText  *ghwp_text;
+    GHWPText  *hwp_text;
     GHWPTable *table;
 };
 
@@ -61,18 +61,18 @@ struct _GHWPParagraphClass
     GObjectClass parent_class;
 };
 
-GType          ghwp_paragraph_get_type      (void) G_GNUC_CONST;
-GHWPParagraph *ghwp_paragraph_new           (void);
-void           ghwp_paragraph_set_ghwp_text (GHWPParagraph *paragraph,
-                                             GHWPText      *ghwp_text);
-GHWPText      *ghwp_paragraph_get_ghwp_text (GHWPParagraph *paragraph);
-GHWPTable     *ghwp_paragraph_get_table     (GHWPParagraph *paragraph);
-void           ghwp_paragraph_set_table     (GHWPParagraph *paragraph,
+GType          hwp_paragraph_get_type      (void) G_GNUC_CONST;
+GHWPParagraph *hwp_paragraph_new           (void);
+void           hwp_paragraph_set_hwp_text (GHWPParagraph *paragraph,
+                                             GHWPText      *hwp_text);
+GHWPText      *hwp_paragraph_get_hwp_text (GHWPParagraph *paragraph);
+GHWPTable     *hwp_paragraph_get_table     (GHWPParagraph *paragraph);
+void           hwp_paragraph_set_table     (GHWPParagraph *paragraph,
                                              GHWPTable     *table);
 
 /** GHWPText *****************************************************************/
 
-#define GHWP_TYPE_TEXT             (ghwp_text_get_type ())
+#define GHWP_TYPE_TEXT             (hwp_text_get_type ())
 #define GHWP_TEXT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TEXT, GHWPText))
 #define GHWP_TEXT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TEXT, GHWPTextClass))
 #define GHWP_IS_TEXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TEXT))
@@ -95,13 +95,13 @@ struct _GHWPTextClass
     GObjectClass parent_class;
 };
 
-GType     ghwp_text_get_type (void) G_GNUC_CONST;
-GHWPText *ghwp_text_new      (const     gchar *text);
-GHWPText *ghwp_text_append   (GHWPText *ghwp_text, const gchar *text);
+GType     hwp_text_get_type (void) G_GNUC_CONST;
+GHWPText *hwp_text_new      (const     gchar *text);
+GHWPText *hwp_text_append   (GHWPText *hwp_text, const gchar *text);
 
 /** GHWPTable ****************************************************************/
 
-#define GHWP_TYPE_TABLE             (ghwp_table_get_type ())
+#define GHWP_TYPE_TABLE             (hwp_table_get_type ())
 #define GHWP_TABLE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TABLE, GHWPTable))
 #define GHWP_TABLE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TABLE, GHWPTableClass))
 #define GHWP_IS_TABLE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TABLE))
@@ -137,15 +137,15 @@ struct _GHWPTable
     GArray  *cells;
 };
 
-GType          ghwp_table_get_type         (void) G_GNUC_CONST;
-GHWPTable     *ghwp_table_new              (void);
-GHWPTableCell *ghwp_table_get_last_cell    (GHWPTable     *table);
-void           ghwp_table_add_cell         (GHWPTable     *table,
+GType          hwp_table_get_type         (void) G_GNUC_CONST;
+GHWPTable     *hwp_table_new              (void);
+GHWPTableCell *hwp_table_get_last_cell    (GHWPTable     *table);
+void           hwp_table_add_cell         (GHWPTable     *table,
                                             GHWPTableCell *cell);
 
 /** GHWPTableCell ************************************************************/
 
-#define GHWP_TYPE_TABLE_CELL             (ghwp_table_cell_get_type ())
+#define GHWP_TYPE_TABLE_CELL             (hwp_table_cell_get_type ())
 #define GHWP_TABLE_CELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TABLE_CELL, GHWPTableCell))
 #define GHWP_TABLE_CELL_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TABLE_CELL, GHWPTableCellClass))
 #define GHWP_IS_TABLE_CELL(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TABLE_CELL))
@@ -191,12 +191,12 @@ struct _GHWPTableCellClass
     GObjectClass parent_class;
 };
 
-GType          ghwp_table_cell_get_type           (void) G_GNUC_CONST;
-GHWPTableCell *ghwp_table_cell_new                (void);
-GHWPParagraph *ghwp_table_cell_get_last_paragraph (GHWPTableCell    *cell);
-void           ghwp_table_cell_add_paragraph      (GHWPTableCell    *cell,
+GType          hwp_table_cell_get_type           (void) G_GNUC_CONST;
+GHWPTableCell *hwp_table_cell_new                (void);
+GHWPParagraph *hwp_table_cell_get_last_paragraph (GHWPTableCell    *cell);
+void           hwp_table_cell_add_paragraph      (GHWPTableCell    *cell,
                                                    GHWPParagraph    *paragraph);
-void           ghwp_table_cell_add_pango_layout   (GHWPTableCell    *cell,
+void           hwp_table_cell_add_pango_layout   (GHWPTableCell    *cell,
                                                    PangoLayout      *layout);
 
 G_END_DECLS

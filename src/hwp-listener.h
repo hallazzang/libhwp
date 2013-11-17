@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * ghwp-listener.h
+ * hwp-listener.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -23,7 +23,7 @@
 
 #include <glib-object.h>
 
-#include "ghwp-models.h"
+#include "hwp-models.h"
 
 G_BEGIN_DECLS
 
@@ -42,7 +42,7 @@ typedef enum {
 
 /* GHWPListenerInterface ********************************************************/
 
-#define GHWP_TYPE_LISTENER            (ghwp_listener_get_type ())
+#define GHWP_TYPE_LISTENER            (hwp_listener_get_type ())
 #define GHWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), GHWP_TYPE_LISTENER, GHWPListener))
 #define GHWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), GHWP_TYPE_LISTENER))
 #define GHWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), GHWP_TYPE_LISTENER, GHWPListenerInterface))
@@ -70,8 +70,8 @@ struct _GHWPListenerInterface
                             GError      **error);
 };
 
-GType ghwp_listener_get_type         (void) G_GNUC_CONST;
-/*void  ghwp_listener_document_version (GHWPListener *listener,*/
+GType hwp_listener_get_type         (void) G_GNUC_CONST;
+/*void  hwp_listener_document_version (GHWPListener *listener,*/
 /*                                      guint8        major_version,*/
 /*                                      guint8        minor_version,*/
 /*                                      guint8        micro_version,*/

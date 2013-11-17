@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-context-v3.c
+ * hwp-context-v3.c
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -18,11 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ghwp-context-v3.h"
+#include "hwp-context-v3.h"
 
-G_DEFINE_TYPE (GHWPContextV3, ghwp_context_v3, G_TYPE_OBJECT);
+G_DEFINE_TYPE (GHWPContextV3, hwp_context_v3, G_TYPE_OBJECT);
 
-GHWPContextV3 *ghwp_context_v3_new (GInputStream *stream)
+GHWPContextV3 *hwp_context_v3_new (GInputStream *stream)
 {
     g_return_val_if_fail (stream != NULL, NULL);
     GHWPContextV3 *context = g_object_new (GHWP_TYPE_CONTEXT_V3, NULL);
@@ -30,7 +30,7 @@ GHWPContextV3 *ghwp_context_v3_new (GInputStream *stream)
     return context;
 }
 
-gboolean ghwp_context_v3_read_uint8 (GHWPContextV3 *context, guint8 *i)
+gboolean hwp_context_v3_read_uint8 (GHWPContextV3 *context, guint8 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -50,7 +50,7 @@ gboolean ghwp_context_v3_read_uint8 (GHWPContextV3 *context, guint8 *i)
     return TRUE;
 }
 
-gboolean ghwp_context_v3_read_uint16 (GHWPContextV3 *context, guint16 *i)
+gboolean hwp_context_v3_read_uint16 (GHWPContextV3 *context, guint16 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -71,7 +71,7 @@ gboolean ghwp_context_v3_read_uint16 (GHWPContextV3 *context, guint16 *i)
     return TRUE;
 }
 
-gboolean ghwp_context_v3_read_uint32 (GHWPContextV3 *context, guint32 *i)
+gboolean hwp_context_v3_read_uint32 (GHWPContextV3 *context, guint32 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -92,7 +92,7 @@ gboolean ghwp_context_v3_read_uint32 (GHWPContextV3 *context, guint32 *i)
     return TRUE;
 }
 
-gboolean ghwp_context_v3_read (GHWPContextV3 *context, void *buffer, gsize count)
+gboolean hwp_context_v3_read (GHWPContextV3 *context, void *buffer, gsize count)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -109,7 +109,7 @@ gboolean ghwp_context_v3_read (GHWPContextV3 *context, void *buffer, gsize count
     return TRUE;
 }
 
-gboolean ghwp_context_v3_skip (GHWPContextV3 *context, guint16 count)
+gboolean hwp_context_v3_skip (GHWPContextV3 *context, guint16 count)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -131,20 +131,20 @@ gboolean ghwp_context_v3_skip (GHWPContextV3 *context, guint16 count)
     return TRUE;
 }
 
-static void ghwp_context_v3_init (GHWPContextV3 *ghwp_context_v3)
+static void hwp_context_v3_init (GHWPContextV3 *hwp_context_v3)
 {
 
 }
 
-static void ghwp_context_v3_finalize (GObject *object)
+static void hwp_context_v3_finalize (GObject *object)
 {
     GHWPContextV3 *context = GHWP_CONTEXT_V3(object);
     g_object_unref (context->stream);
-	G_OBJECT_CLASS (ghwp_context_v3_parent_class)->finalize (object);
+	G_OBJECT_CLASS (hwp_context_v3_parent_class)->finalize (object);
 }
 
-static void ghwp_context_v3_class_init (GHWPContextV3Class *klass)
+static void hwp_context_v3_class_init (GHWPContextV3Class *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	object_class->finalize = ghwp_context_v3_finalize;
+	object_class->finalize = hwp_context_v3_finalize;
 }

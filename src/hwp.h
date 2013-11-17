@@ -1,5 +1,5 @@
 /*
- * ghwp.h
+ * hwp.h
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -24,19 +24,19 @@
 
 #define __GHWP_H_INSIDE__
 
-#include "ghwp-context-v3.h"
-#include "ghwp-document.h"
-#include "ghwp-enums.h"
-#include "ghwp-enum-types.h"
-#include "ghwp-file.h"
-#include "ghwp-file-ml.h"
-#include "ghwp-file-v3.h"
-#include "ghwp-file-v5.h"
-#include "ghwp-models.h"
-#include "ghwp-page.h"
-#include "ghwp-parser.h"
-#include "ghwp-listener.h"
-#include "ghwp-version.h"
+#include "hwp-context-v3.h"
+#include "hwp-document.h"
+#include "hwp-enums.h"
+#include "hwp-enum-types.h"
+#include "hwp-file.h"
+#include "hwp-file-ml.h"
+#include "hwp-file-v3.h"
+#include "hwp-file-v5.h"
+#include "hwp-models.h"
+#include "hwp-page.h"
+#include "hwp-parser.h"
+#include "hwp-listener.h"
+#include "hwp-version.h"
 #include "gsf-input-stream.h"
 #include "hnc2unicode.h"
 

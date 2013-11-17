@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
 /*
- * ghwp-file-v3.h
+ * hwp-file-v3.h
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -30,12 +30,12 @@
 
 #include <glib-object.h>
 
-#include "ghwp-file.h"
-#include "ghwp-models.h"
+#include "hwp-file.h"
+#include "hwp-models.h"
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_V3             (ghwp_file_v3_get_type ())
+#define GHWP_TYPE_FILE_V3             (hwp_file_v3_get_type ())
 #define GHWP_FILE_V3(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_V3, GHWPFileV3))
 #define GHWP_FILE_V3_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_V3, GHWPFileV3Class))
 #define GHWP_IS_FILE_V3(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_V3))
@@ -66,18 +66,18 @@ struct _GHWPFileV3Private {
     GInputStream *stream;
 };
 
-GType         ghwp_file_v3_get_type               (void) G_GNUC_CONST;
-GHWPFileV3   *ghwp_file_v3_new_from_uri           (const gchar *uri,
+GType         hwp_file_v3_get_type               (void) G_GNUC_CONST;
+GHWPFileV3   *hwp_file_v3_new_from_uri           (const gchar *uri,
                                                    GError     **error);
-GHWPFileV3   *ghwp_file_v3_new_from_filename      (const gchar *filename,
+GHWPFileV3   *hwp_file_v3_new_from_filename      (const gchar *filename,
                                                    GError     **error);
-gchar        *ghwp_file_v3_get_hwp_version_string (GHWPFile    *file);
-void          ghwp_file_v3_get_hwp_version        (GHWPFile    *file,
+gchar        *hwp_file_v3_get_hwp_version_string (GHWPFile    *file);
+void          hwp_file_v3_get_hwp_version        (GHWPFile    *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-GHWPDocument *ghwp_file_v3_get_document           (GHWPFile    *file,
+GHWPDocument *hwp_file_v3_get_document           (GHWPFile    *file,
                                                    GError     **error);
 
 G_END_DECLS

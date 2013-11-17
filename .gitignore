@@ -36,12 +36,12 @@ stamp-it
 *.lo
 *.pc
 *.o
-ghwp-version.h
+hwp-version.h
 src/hwp2pdf
 src/hwp2svg
 src/unhwp
-src/ghwp-enum-types.h
-src/ghwp-enum-types.c
+src/hwp-enum-types.h
+src/hwp-enum-types.c
 
 # output files of dpkg-buildpackage
 debian/autoreconf.*
@@ -51,4 +51,4 @@ debian/*.log
 debian/*.substvars
 debian/stamp-*
 debian/tmp/
-debian/libghwp*/
+debian/libhwp*/
