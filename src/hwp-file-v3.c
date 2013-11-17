@@ -30,25 +30,25 @@
 #include "hnc2unicode.h"
 #include <math.h>
 
-G_DEFINE_TYPE (GHWPFileV3, hwp_file_v3, GHWP_TYPE_FILE);
+G_DEFINE_TYPE (HWPFileV3, hwp_file_v3, HWP_TYPE_FILE);
 
 /**
  * hwp_file_v3_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #GHWPFileV3.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * Creates a new #HWPFileV3.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #GHWPFileV3, or %NULL
+ * Return value: A newly created #HWPFileV3, or %NULL
  **/
-GHWPFileV3 *hwp_file_v3_new_from_uri (const gchar *uri, GError **error)
+HWPFileV3 *hwp_file_v3_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     gchar      *filename = g_filename_from_uri (uri, NULL, error);
-    GHWPFileV3 *file     = hwp_file_v3_new_from_filename (filename, error);
+    HWPFileV3 *file     = hwp_file_v3_new_from_filename (filename, error);
     g_free (filename);
     return file;
 }
@@ -56,14 +56,14 @@ GHWPFileV3 *hwp_file_v3_new_from_uri (const gchar *uri, GError **error)
 /**
  * Since: 0.2
  **/
-GHWPFileV3 *hwp_file_v3_new_from_filename (const gchar *filename,
+HWPFileV3 *hwp_file_v3_new_from_filename (const gchar *filename,
                                             GError     **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
     GFile *file = g_file_new_for_path (filename);
     GFileInputStream *fis = g_file_read (file, NULL, error);
     g_object_unref(file);
-    GHWPFileV3 *hwpv3file = g_object_new (GHWP_TYPE_FILE_V3, NULL);
+    HWPFileV3 *hwpv3file = g_object_new (HWP_TYPE_FILE_V3, NULL);
     hwpv3file->priv->stream = G_INPUT_STREAM (fis);
     return hwpv3file;
 }
@@ -71,48 +71,48 @@ GHWPFileV3 *hwp_file_v3_new_from_filename (const gchar *filename,
 /**
  * Since: 0.2
  **/
-gchar *hwp_file_v3_get_hwp_version_string (GHWPFile *file)
+gchar *hwp_file_v3_get_hwp_version_string (HWPFile *file)
 {
-    g_return_val_if_fail (GHWP_IS_FILE_V3 (file), NULL);
+    g_return_val_if_fail (HWP_IS_FILE_V3 (file), NULL);
 
-    return g_strdup_printf ("3.0.0.%d", GHWP_FILE_V3 (file)->rev);
+    return g_strdup_printf ("3.0.0.%d", HWP_FILE_V3 (file)->rev);
 }
 
 /**
  * Since: 0.2
  **/
-void hwp_file_v3_get_hwp_version (GHWPFile *file,
+void hwp_file_v3_get_hwp_version (HWPFile *file,
                                    guint8   *major_version,
                                    guint8   *minor_version,
                                    guint8   *micro_version,
                                    guint8   *extra_version)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 
     if (major_version) *major_version = 3;
     if (minor_version) *minor_version = 0;
     if (micro_version) *micro_version = 0;
-    if (extra_version) *extra_version = GHWP_FILE_V3 (file)->rev;
+    if (extra_version) *extra_version = HWP_FILE_V3 (file)->rev;
 }
 
-static void _hwp_file_v3_parse_signature (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_signature (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
-    GInputStream *stream = GHWP_FILE_V3 (file)->priv->stream;
-    GHWPContextV3 *context = hwp_context_v3_new (stream);
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
+    HWPContextV3 *context = hwp_context_v3_new (stream);
     gchar *signature = g_malloc(30);
     hwp_context_v3_read (context, signature, 30);
     g_free (signature);
     g_object_unref (context);
 }
 
-static void _hwp_file_v3_parse_doc_info (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_doc_info (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
     /* 문서 정보 128 bytes */
     /* 암호 여부 */
     GInputStream  *stream  = file->priv->stream;
-    GHWPContextV3 *context = hwp_context_v3_new (stream);
+    HWPContextV3 *context = hwp_context_v3_new (stream);
 
     hwp_context_v3_skip (context, 96);
     hwp_context_v3_read_uint16 (context, &(file->is_crypt));
@@ -131,12 +131,12 @@ static void _hwp_file_v3_parse_doc_info (GHWPFileV3 *file)
     g_object_unref (context);
 }
 
-static void _hwp_file_v3_parse_summary_info (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_summary_info (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 
     GInputStream  *stream  = file->priv->stream;
-    GHWPContextV3 *context = hwp_context_v3_new (stream);
+    HWPContextV3 *context = hwp_context_v3_new (stream);
 
     gchar   *str;
     GString *string;
@@ -179,9 +179,9 @@ static void _hwp_file_v3_parse_summary_info (GHWPFileV3 *file)
     g_object_unref (context);
 }
 
-static void _hwp_file_v3_parse_info_block (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_info_block (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 
     GInputStream *stream = file->priv->stream;
     g_input_stream_skip (stream, file->info_block_len, NULL, NULL);
@@ -202,14 +202,14 @@ static void _hwp_file_v3_parse_info_block (GHWPFileV3 *file)
     }
 }
 
-static void _hwp_file_v3_parse_font_names (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_font_names (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
     guint16 n_fonts;
     int i = 0;
     guint8 *buffer = NULL;
     gsize bytes_read;
-    GInputStream *stream = GHWP_FILE_V3 (file)->priv->stream;
+    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
     for (i = 0; i < 7; i++) {
         g_input_stream_read_all (stream, &n_fonts, 2, &bytes_read, NULL, NULL);
         buffer = g_malloc (40 * n_fonts);
@@ -218,24 +218,24 @@ static void _hwp_file_v3_parse_font_names (GHWPFileV3 *file)
     }
 }
 
-static void _hwp_file_v3_parse_styles (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_styles (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
     guint16 n_styles;
     guint8 *buffer = NULL;
     gsize bytes_read;
-    GInputStream *stream = GHWP_FILE_V3 (file)->priv->stream;
+    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
     g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, NULL);
     buffer = g_malloc (n_styles * (20 + 31 + 187));
     g_input_stream_read_all (stream, buffer, n_styles * (20 + 31 + 187), &bytes_read, NULL, NULL);
     g_free (buffer);
 }
 
-static gboolean _hwp_file_v3_parse_paragraph (GHWPFileV3 *file)
+static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
 {
-    g_return_val_if_fail (GHWP_IS_FILE_V3 (file), FALSE);
-    GInputStream  *stream  = GHWP_FILE_V3 (file)->priv->stream;
-    GHWPContextV3 *context = hwp_context_v3_new (stream);
+    g_return_val_if_fail (HWP_IS_FILE_V3 (file), FALSE);
+    GInputStream  *stream  = HWP_FILE_V3 (file)->priv->stream;
+    HWPContextV3 *context = hwp_context_v3_new (stream);
     /* 문단 정보 */
     guint8  prev_paragraph_shape;
     guint16 n_chars;
@@ -274,7 +274,7 @@ static gboolean _hwp_file_v3_parse_paragraph (GHWPFileV3 *file)
         }
     }
 
-    GHWPParagraph *paragraph = hwp_paragraph_new ();
+    HWPParagraph *paragraph = hwp_paragraph_new ();
     g_array_append_val (file->document->paragraphs, paragraph);
     GString *string = g_string_new (NULL);
     /* 글자들 */
@@ -376,7 +376,7 @@ static gboolean _hwp_file_v3_parse_paragraph (GHWPFileV3 *file)
         } /* if */
     } /* while */
     gchar *tmp = g_string_free(string, FALSE);
-    GHWPText *hwp_text = hwp_text_new (tmp);
+    HWPText *hwp_text = hwp_text_new (tmp);
     g_free (tmp);
     hwp_paragraph_set_hwp_text (paragraph, hwp_text);
 
@@ -400,7 +400,7 @@ static gboolean _hwp_file_v3_parse_paragraph (GHWPFileV3 *file)
     return TRUE;
 }
 
-static void _hwp_file_v3_parse_paragraphs (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_paragraphs (HWPFileV3 *file)
 {
     /* <문단 리스트> ::= <문단>+ <빈문단> */
     while(_hwp_file_v3_parse_paragraph(file)) {
@@ -409,19 +409,19 @@ static void _hwp_file_v3_parse_paragraphs (GHWPFileV3 *file)
     g_array_append_val (file->document->pages, file->page);
 }
 
-static void _hwp_file_v3_parse_supplementary_info_block1 (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_supplementary_info_block1 (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 }
 
-static void _hwp_file_v3_parse_supplementary_info_block2 (GHWPFileV3 *file)
+static void _hwp_file_v3_parse_supplementary_info_block2 (HWPFileV3 *file)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 }
 
-static void _hwp_file_v3_parse (GHWPFileV3 *file, GError **error)
+static void _hwp_file_v3_parse (HWPFileV3 *file, GError **error)
 {
-    g_return_if_fail (GHWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_FILE_V3 (file));
 
     _hwp_file_v3_parse_signature (file);
     _hwp_file_v3_parse_doc_info (file);
@@ -437,35 +437,35 @@ static void _hwp_file_v3_parse (GHWPFileV3 *file, GError **error)
 /**
  * Since: 0.2
  **/
-GHWPDocument *hwp_file_v3_get_document (GHWPFile *file, GError **error)
+HWPDocument *hwp_file_v3_get_document (HWPFile *file, GError **error)
 {
-    g_return_val_if_fail (GHWP_IS_FILE_V3 (file), NULL);
-    GHWP_FILE_V3 (file)->document = hwp_document_new();
-    _hwp_file_v3_parse (GHWP_FILE_V3 (file), error);
-    return GHWP_FILE_V3 (file)->document;
+    g_return_val_if_fail (HWP_IS_FILE_V3 (file), NULL);
+    HWP_FILE_V3 (file)->document = hwp_document_new();
+    _hwp_file_v3_parse (HWP_FILE_V3 (file), error);
+    return HWP_FILE_V3 (file)->document;
 }
 
-static void hwp_file_v3_init (GHWPFileV3 *file)
+static void hwp_file_v3_init (HWPFileV3 *file)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_V3,
-                                                    GHWPFileV3Private);
+    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_FILE_V3,
+                                                    HWPFileV3Private);
     file->page = hwp_page_new ();
 }
 
 static void hwp_file_v3_finalize (GObject *object)
 {
-    GHWPFileV3 *file = GHWP_FILE_V3(object);
+    HWPFileV3 *file = HWP_FILE_V3(object);
     g_object_unref (file->priv->stream);
     G_OBJECT_CLASS (hwp_file_v3_parent_class)->finalize (object);
 }
 
-static void hwp_file_v3_class_init (GHWPFileV3Class *klass)
+static void hwp_file_v3_class_init (HWPFileV3Class *klass)
 {
     GObjectClass* object_class = G_OBJECT_CLASS (klass);
 
-    g_type_class_add_private (klass, sizeof (GHWPFileV3Private));
-    GHWP_FILE_CLASS (klass)->get_document = hwp_file_v3_get_document;
-    GHWP_FILE_CLASS (klass)->get_hwp_version_string = hwp_file_v3_get_hwp_version_string;
-    GHWP_FILE_CLASS (klass)->get_hwp_version = hwp_file_v3_get_hwp_version;
+    g_type_class_add_private (klass, sizeof (HWPFileV3Private));
+    HWP_FILE_CLASS (klass)->get_document = hwp_file_v3_get_document;
+    HWP_FILE_CLASS (klass)->get_hwp_version_string = hwp_file_v3_get_hwp_version_string;
+    HWP_FILE_CLASS (klass)->get_hwp_version = hwp_file_v3_get_hwp_version;
     object_class->finalize = hwp_file_v3_finalize;
 }

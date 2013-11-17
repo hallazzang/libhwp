@@ -20,17 +20,17 @@
 
 #include "hwp-context-v3.h"
 
-G_DEFINE_TYPE (GHWPContextV3, hwp_context_v3, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HWPContextV3, hwp_context_v3, G_TYPE_OBJECT);
 
-GHWPContextV3 *hwp_context_v3_new (GInputStream *stream)
+HWPContextV3 *hwp_context_v3_new (GInputStream *stream)
 {
     g_return_val_if_fail (stream != NULL, NULL);
-    GHWPContextV3 *context = g_object_new (GHWP_TYPE_CONTEXT_V3, NULL);
+    HWPContextV3 *context = g_object_new (HWP_TYPE_CONTEXT_V3, NULL);
     context->stream = g_object_ref (stream);
     return context;
 }
 
-gboolean hwp_context_v3_read_uint8 (GHWPContextV3 *context, guint8 *i)
+gboolean hwp_context_v3_read_uint8 (HWPContextV3 *context, guint8 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -50,7 +50,7 @@ gboolean hwp_context_v3_read_uint8 (GHWPContextV3 *context, guint8 *i)
     return TRUE;
 }
 
-gboolean hwp_context_v3_read_uint16 (GHWPContextV3 *context, guint16 *i)
+gboolean hwp_context_v3_read_uint16 (HWPContextV3 *context, guint16 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -71,7 +71,7 @@ gboolean hwp_context_v3_read_uint16 (GHWPContextV3 *context, guint16 *i)
     return TRUE;
 }
 
-gboolean hwp_context_v3_read_uint32 (GHWPContextV3 *context, guint32 *i)
+gboolean hwp_context_v3_read_uint32 (HWPContextV3 *context, guint32 *i)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -92,7 +92,7 @@ gboolean hwp_context_v3_read_uint32 (GHWPContextV3 *context, guint32 *i)
     return TRUE;
 }
 
-gboolean hwp_context_v3_read (GHWPContextV3 *context, void *buffer, gsize count)
+gboolean hwp_context_v3_read (HWPContextV3 *context, void *buffer, gsize count)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -109,7 +109,7 @@ gboolean hwp_context_v3_read (GHWPContextV3 *context, void *buffer, gsize count)
     return TRUE;
 }
 
-gboolean hwp_context_v3_skip (GHWPContextV3 *context, guint16 count)
+gboolean hwp_context_v3_skip (HWPContextV3 *context, guint16 count)
 {
     g_return_val_if_fail (context != NULL, FALSE);
 
@@ -131,19 +131,19 @@ gboolean hwp_context_v3_skip (GHWPContextV3 *context, guint16 count)
     return TRUE;
 }
 
-static void hwp_context_v3_init (GHWPContextV3 *hwp_context_v3)
+static void hwp_context_v3_init (HWPContextV3 *hwp_context_v3)
 {
 
 }
 
 static void hwp_context_v3_finalize (GObject *object)
 {
-    GHWPContextV3 *context = GHWP_CONTEXT_V3(object);
+    HWPContextV3 *context = HWP_CONTEXT_V3(object);
     g_object_unref (context->stream);
 	G_OBJECT_CLASS (hwp_context_v3_parent_class)->finalize (object);
 }
 
-static void hwp_context_v3_class_init (GHWPContextV3Class *klass)
+static void hwp_context_v3_class_init (HWPContextV3Class *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	object_class->finalize = hwp_context_v3_finalize;

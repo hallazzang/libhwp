@@ -23,26 +23,26 @@
 #include "hwp-file-ml.h"
 #include <math.h>
 
-G_DEFINE_TYPE (GHWPFileML, hwp_file_ml, GHWP_TYPE_FILE);
+G_DEFINE_TYPE (HWPFileML, hwp_file_ml, HWP_TYPE_FILE);
 
 /**
  * hwp_file_ml_new_from_uri:
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #GHWPFileML.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * Creates a new #HWPFileML.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #GHWPFileML, or %NULL
+ * Return value: A newly created #HWPFileML, or %NULL
  *
  * Since: 0.2
  */
-GHWPFileML *hwp_file_ml_new_from_uri (const gchar *uri, GError **error)
+HWPFileML *hwp_file_ml_new_from_uri (const gchar *uri, GError **error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
-    GHWPFileML *file = g_object_new (GHWP_TYPE_FILE_ML, NULL);
+    HWPFileML *file = g_object_new (HWP_TYPE_FILE_ML, NULL);
     file->priv->uri  = g_strdup (uri);
 
     return file;
@@ -51,12 +51,12 @@ GHWPFileML *hwp_file_ml_new_from_uri (const gchar *uri, GError **error)
 /**
  * Since: 0.2
  */
-GHWPFileML *hwp_file_ml_new_from_filename (const gchar *filename,
+HWPFileML *hwp_file_ml_new_from_filename (const gchar *filename,
                                             GError     **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
-    GHWPFileML *file = g_object_new (GHWP_TYPE_FILE_ML, NULL);
+    HWPFileML *file = g_object_new (HWP_TYPE_FILE_ML, NULL);
     GFile     *gfile = g_file_new_for_path (filename);
     file->priv->uri  = g_file_get_uri (gfile);
     g_object_unref (gfile);
@@ -67,7 +67,7 @@ GHWPFileML *hwp_file_ml_new_from_filename (const gchar *filename,
 /**
  * Since: TODO
  */
-gchar *hwp_file_ml_get_hwp_version_string (GHWPFile *file)
+gchar *hwp_file_ml_get_hwp_version_string (HWPFile *file)
 {
     return NULL;
 }
@@ -75,7 +75,7 @@ gchar *hwp_file_ml_get_hwp_version_string (GHWPFile *file)
 /**
  * Since: TODO
  */
-void hwp_file_ml_get_hwp_version (GHWPFile *file,
+void hwp_file_ml_get_hwp_version (HWPFile *file,
                                     guint8   *major_version,
                                     guint8   *minor_version,
                                     guint8   *micro_version,
@@ -97,9 +97,9 @@ enum HWPParseStateFlags {
 static int   hwp_parse_state = HWP_PARSE_NORMAL;
 static guint tag_p_count = 0;
 
-static void _hwp_file_ml_parse_node(GHWPFileML *file, xmlTextReaderPtr reader)
+static void _hwp_file_ml_parse_node(HWPFileML *file, xmlTextReaderPtr reader)
 {
-    g_return_if_fail (GHWP_IS_FILE_ML (file));
+    g_return_if_fail (HWP_IS_FILE_ML (file));
 
     xmlChar *name, *value;
     int node_type = 0;
@@ -121,8 +121,8 @@ static void _hwp_file_ml_parse_node(GHWPFileML *file, xmlTextReaderPtr reader)
                 hwp_parse_state |= HWP_PARSE_P;
                 tag_p_count++;
                 if (tag_p_count > 1) {
-                    GHWPParagraph *paragraph = hwp_paragraph_new ();
-                    GHWPText *hwp_text = hwp_text_new ("");
+                    HWPParagraph *paragraph = hwp_paragraph_new ();
+                    HWPText *hwp_text = hwp_text_new ("");
                     hwp_paragraph_set_hwp_text (paragraph, hwp_text);
                     g_array_append_val (file->document->paragraphs, paragraph);
                 }
@@ -133,16 +133,16 @@ static void _hwp_file_ml_parse_node(GHWPFileML *file, xmlTextReaderPtr reader)
             break;
         case XML_READER_TYPE_TEXT:
             if ((hwp_parse_state & HWP_PARSE_CHAR) == HWP_PARSE_CHAR) {
-                GHWPParagraph *paragraph = g_array_index (file->document->paragraphs,
-                                                          GHWPParagraph *,
+                HWPParagraph *paragraph = g_array_index (file->document->paragraphs,
+                                                          HWPParagraph *,
                                                           file->document->paragraphs->len - 1);
                 hwp_text_append (paragraph->hwp_text, (const gchar *) value);
             }
             break;
         case XML_READER_TYPE_END_ELEMENT:
             if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
-                GHWPParagraph *paragraph = g_array_index (file->document->paragraphs,
-                                                          GHWPParagraph *,
+                HWPParagraph *paragraph = g_array_index (file->document->paragraphs,
+                                                          HWPParagraph *,
                                                           file->document->paragraphs->len - 1);
 
                 /* 높이 계산 */
@@ -176,9 +176,9 @@ static void _hwp_file_ml_parse_node(GHWPFileML *file, xmlTextReaderPtr reader)
     xmlFree(value);
 }
 
-static void _hwp_file_ml_parse (GHWPFileML *file, GError **error)
+static void _hwp_file_ml_parse (HWPFileML *file, GError **error)
 {
-    g_return_if_fail (GHWP_IS_FILE_ML (file));
+    g_return_if_fail (HWP_IS_FILE_ML (file));
 
     gchar *uri = file->priv->uri;
     
@@ -205,33 +205,33 @@ static void _hwp_file_ml_parse (GHWPFileML *file, GError **error)
 /**
  * Since: 0.2
  */
-GHWPDocument *hwp_file_ml_get_document (GHWPFile *file, GError **error)
+HWPDocument *hwp_file_ml_get_document (HWPFile *file, GError **error)
 {
-    g_return_val_if_fail (GHWP_IS_FILE_ML (file), NULL);
-    GHWP_FILE_ML (file)->document = hwp_document_new();
-    _hwp_file_ml_parse (GHWP_FILE_ML (file), error);
-    return GHWP_FILE_ML (file)->document;
+    g_return_val_if_fail (HWP_IS_FILE_ML (file), NULL);
+    HWP_FILE_ML (file)->document = hwp_document_new();
+    _hwp_file_ml_parse (HWP_FILE_ML (file), error);
+    return HWP_FILE_ML (file)->document;
 }
 
-static void hwp_file_ml_init (GHWPFileML *file)
+static void hwp_file_ml_init (HWPFileML *file)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, GHWP_TYPE_FILE_ML,
-                                                    GHWPFileMLPrivate);
+    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_FILE_ML,
+                                                    HWPFileMLPrivate);
     file->page = hwp_page_new ();
 }
 
 static void hwp_file_ml_finalize (GObject *object)
 {
-    GHWPFileML *file = GHWP_FILE_ML(object);
+    HWPFileML *file = HWP_FILE_ML(object);
     g_free (file->priv->uri);
     G_OBJECT_CLASS (hwp_file_ml_parent_class)->finalize (object);
 }
 
-static void hwp_file_ml_class_init (GHWPFileMLClass *klass)
+static void hwp_file_ml_class_init (HWPFileMLClass *klass)
 {
     GObjectClass  *object_class   = G_OBJECT_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (GHWPFileMLPrivate));
-    GHWPFileClass *hwp_file_class = GHWP_FILE_CLASS (klass);
+    g_type_class_add_private (klass, sizeof (HWPFileMLPrivate));
+    HWPFileClass *hwp_file_class = HWP_FILE_CLASS (klass);
     hwp_file_class->get_document  = hwp_file_ml_get_document;
     hwp_file_class->get_hwp_version_string = hwp_file_ml_get_hwp_version_string;
     hwp_file_class->get_hwp_version = hwp_file_ml_get_hwp_version;

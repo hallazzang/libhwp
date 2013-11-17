@@ -25,8 +25,8 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef _GHWP_FILE_V3_H_
-#define _GHWP_FILE_V3_H_
+#ifndef _HWP_FILE_V3_H_
+#define _HWP_FILE_V3_H_
 
 #include <glib-object.h>
 
@@ -35,51 +35,51 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_V3             (hwp_file_v3_get_type ())
-#define GHWP_FILE_V3(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_V3, GHWPFileV3))
-#define GHWP_FILE_V3_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_V3, GHWPFileV3Class))
-#define GHWP_IS_FILE_V3(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_V3))
-#define GHWP_IS_FILE_V3_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_V3))
-#define GHWP_FILE_V3_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_V3, GHWPFileV3Class))
+#define HWP_TYPE_FILE_V3             (hwp_file_v3_get_type ())
+#define HWP_FILE_V3(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE_V3, HWPFileV3))
+#define HWP_FILE_V3_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE_V3, HWPFileV3Class))
+#define HWP_IS_FILE_V3(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_FILE_V3))
+#define HWP_IS_FILE_V3_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_FILE_V3))
+#define HWP_FILE_V3_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE_V3, HWPFileV3Class))
 
-typedef struct _GHWPFileV3        GHWPFileV3;
-typedef struct _GHWPFileV3Class   GHWPFileV3Class;
-typedef struct _GHWPFileV3Private GHWPFileV3Private;
+typedef struct _HWPFileV3        HWPFileV3;
+typedef struct _HWPFileV3Class   HWPFileV3Class;
+typedef struct _HWPFileV3Private HWPFileV3Private;
 
-struct _GHWPFileV3Class {
-    GHWPFileClass parent_class;
+struct _HWPFileV3Class {
+    HWPFileClass parent_class;
 };
 
-struct _GHWPFileV3 {
-    GHWPFile           parent_instance;
-    GHWPFileV3Private *priv;
+struct _HWPFileV3 {
+    HWPFile           parent_instance;
+    HWPFileV3Private *priv;
 
-    GHWPDocument      *document;
+    HWPDocument      *document;
     guint16            is_crypt;
     guint8             is_compress;
     guint8             rev;
     guint16            info_block_len;
-    GHWPPage          *page;
+    HWPPage          *page;
 };
 
-struct _GHWPFileV3Private {
+struct _HWPFileV3Private {
     GInputStream *stream;
 };
 
 GType         hwp_file_v3_get_type               (void) G_GNUC_CONST;
-GHWPFileV3   *hwp_file_v3_new_from_uri           (const gchar *uri,
+HWPFileV3   *hwp_file_v3_new_from_uri           (const gchar *uri,
                                                    GError     **error);
-GHWPFileV3   *hwp_file_v3_new_from_filename      (const gchar *filename,
+HWPFileV3   *hwp_file_v3_new_from_filename      (const gchar *filename,
                                                    GError     **error);
-gchar        *hwp_file_v3_get_hwp_version_string (GHWPFile    *file);
-void          hwp_file_v3_get_hwp_version        (GHWPFile    *file,
+gchar        *hwp_file_v3_get_hwp_version_string (HWPFile    *file);
+void          hwp_file_v3_get_hwp_version        (HWPFile    *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-GHWPDocument *hwp_file_v3_get_document           (GHWPFile    *file,
+HWPDocument *hwp_file_v3_get_document           (HWPFile    *file,
                                                    GError     **error);
 
 G_END_DECLS
 
-#endif /* _GHWP_FILE_V3_H_ */
+#endif /* _HWP_FILE_V3_H_ */

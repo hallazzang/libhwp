@@ -25,10 +25,10 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef __GHWP_ENUMS__
-#define __GHWP_ENUMS__
+#ifndef __HWP_ENUMS__
+#define __HWP_ENUMS__
 
-#define GHWP_ERROR hwp_error_quark ()
+#define HWP_ERROR hwp_error_quark ()
 
 G_BEGIN_DECLS
 
@@ -40,29 +40,29 @@ const char *hwp_get_ctrl_name (guint32 ctrl_id);
 G_END_DECLS
 
 /**
- * GHWPError:
- * @GHWP_ERROR_INVALID: Generic error when a document opration fails
- * @GHWP_ERROR_ENCRYPTED: Document is encrypted
- * @GHWP_ERROR_OPEN_FILE: File could not be opened for writing when saving document
- * @GHWP_ERROR_DAMAGED: Document is damaged
+ * HWPError:
+ * @HWP_ERROR_INVALID: Generic error when a document opration fails
+ * @HWP_ERROR_ENCRYPTED: Document is encrypted
+ * @HWP_ERROR_OPEN_FILE: File could not be opened for writing when saving document
+ * @HWP_ERROR_DAMAGED: Document is damaged
  *
- * Error codes returned by #GHWPDocument
+ * Error codes returned by #HWPDocument
  *
  * Since: 0.2
  */
 typedef enum
 {
-    GHWP_ERROR_INVALID,
-    GHWP_ERROR_ENCRYPTED,
-    GHWP_ERROR_OPEN_FILE,
-    GHWP_ERROR_DAMAGED
-} GHWPError;
+    HWP_ERROR_INVALID,
+    HWP_ERROR_ENCRYPTED,
+    HWP_ERROR_OPEN_FILE,
+    HWP_ERROR_DAMAGED
+} HWPError;
 
 /**
- * GHWPSelectionStyle:
- * @GHWP_SELECTION_GLYPH: glyph is the minimum unit for selection
- * @GHWP_SELECTION_WORD: word is the minimum unit for selection
- * @GHWP_SELECTION_LINE: line is the minimum unit for selection
+ * HWPSelectionStyle:
+ * @HWP_SELECTION_GLYPH: glyph is the minimum unit for selection
+ * @HWP_SELECTION_WORD: word is the minimum unit for selection
+ * @HWP_SELECTION_LINE: line is the minimum unit for selection
  *
  * Selection styles
  *
@@ -70,68 +70,68 @@ typedef enum
  */
 typedef enum
 {
-    GHWP_SELECTION_GLYPH,
-    GHWP_SELECTION_WORD,
-    GHWP_SELECTION_LINE
-} GHWPSelectionStyle;
+    HWP_SELECTION_GLYPH,
+    HWP_SELECTION_WORD,
+    HWP_SELECTION_LINE
+} HWPSelectionStyle;
 
 /**
  * Since: 0.2
  */
-#define GHWP_TAG_BEGIN                    16
+#define HWP_TAG_BEGIN                    16
 typedef enum
 {
-    GHWP_TAG_DOCUMENT_PROPERTIES       =  16,
-    GHWP_TAG_ID_MAPPINGS               =  17,
-    GHWP_TAG_BIN_DATA                  =  18,
-    GHWP_TAG_FACE_NAME                 =  19,
-    GHWP_TAG_BORDER_FILL               =  20,
-    GHWP_TAG_CHAR_SHAPE                =  21,
-    GHWP_TAG_TAB_DEF                   =  22,
-    GHWP_TAG_NUMBERING                 =  23,
-    GHWP_TAG_BULLET                    =  24,
-    GHWP_TAG_PARA_SHAPE                =  25,
-    GHWP_TAG_STYLE                     =  26,
-    GHWP_TAG_DOC_DATA                  =  27,
-    GHWP_TAG_DISTRIBUTE_DOC_DATA       =  28,
-    GHWP_TAG_RESERVED_29               =  29,
-    GHWP_TAG_COMPATIBLE_DOCUMENT       =  30,
-    GHWP_TAG_LAYOUT_COMPATIBILITY      =  31,
-    GHWP_TAG_DOC_INFO_32               =  32,
+    HWP_TAG_DOCUMENT_PROPERTIES       =  16,
+    HWP_TAG_ID_MAPPINGS               =  17,
+    HWP_TAG_BIN_DATA                  =  18,
+    HWP_TAG_FACE_NAME                 =  19,
+    HWP_TAG_BORDER_FILL               =  20,
+    HWP_TAG_CHAR_SHAPE                =  21,
+    HWP_TAG_TAB_DEF                   =  22,
+    HWP_TAG_NUMBERING                 =  23,
+    HWP_TAG_BULLET                    =  24,
+    HWP_TAG_PARA_SHAPE                =  25,
+    HWP_TAG_STYLE                     =  26,
+    HWP_TAG_DOC_DATA                  =  27,
+    HWP_TAG_DISTRIBUTE_DOC_DATA       =  28,
+    HWP_TAG_RESERVED_29               =  29,
+    HWP_TAG_COMPATIBLE_DOCUMENT       =  30,
+    HWP_TAG_LAYOUT_COMPATIBILITY      =  31,
+    HWP_TAG_DOC_INFO_32               =  32,
 
-    GHWP_TAG_PARA_HEADER               =  66,
-    GHWP_TAG_PARA_TEXT                 =  67,
-    GHWP_TAG_PARA_CHAR_SHAPE           =  68,
-    GHWP_TAG_PARA_LINE_SEG             =  69,
-    GHWP_TAG_PARA_RANGE_TAG            =  70,
-    GHWP_TAG_CTRL_HEADER               =  71,
-    GHWP_TAG_LIST_HEADER               =  72,
-    GHWP_TAG_PAGE_DEF                  =  73,
-    GHWP_TAG_FOOTNOTE_SHAPE            =  74,
-    GHWP_TAG_PAGE_BORDER_FILL          =  75,
-    GHWP_TAG_SHAPE_COMPONENT           =  76,
-    GHWP_TAG_TABLE                     =  77,
-    GHWP_TAG_SHAPE_COMPONENT_LINE      =  78,
-    GHWP_TAG_SHAPE_COMPONENT_RECTANGLE =  79,
-    GHWP_TAG_SHAPE_COMPONENT_ELLIPSE   =  80,
-    GHWP_TAG_SHAPE_COMPONENT_ARC       =  81,
-    GHWP_TAG_SHAPE_COMPONENT_POLYGON   =  82,
-    GHWP_TAG_SHAPE_COMPONENT_CURVE     =  83,
-    GHWP_TAG_SHAPE_COMPONENT_OLE       =  84,
-    GHWP_TAG_SHAPE_COMPONENT_PICTURE   =  85,
-    GHWP_TAG_SHAPE_COMPONENT_CONTAINER =  86,
-    GHWP_TAG_CTRL_DATA                 =  87,
-    GHWP_TAG_EQEDIT                    =  88,
-    GHWP_TAG_RESERVED_89               =  89,
-    GHWP_TAG_SHAPE_COMPONENT_TEXTART   =  90,
-    GHWP_TAG_FORM_OBJECT               =  91,
-    GHWP_TAG_MEMO_SHAPE                =  92,
-    GHWP_TAG_MEMO_LIST                 =  93,
-    GHWP_TAG_FORBIDDEN_CHAR            =  94,
-    GHWP_TAG_CHART_DATA                =  95,
+    HWP_TAG_PARA_HEADER               =  66,
+    HWP_TAG_PARA_TEXT                 =  67,
+    HWP_TAG_PARA_CHAR_SHAPE           =  68,
+    HWP_TAG_PARA_LINE_SEG             =  69,
+    HWP_TAG_PARA_RANGE_TAG            =  70,
+    HWP_TAG_CTRL_HEADER               =  71,
+    HWP_TAG_LIST_HEADER               =  72,
+    HWP_TAG_PAGE_DEF                  =  73,
+    HWP_TAG_FOOTNOTE_SHAPE            =  74,
+    HWP_TAG_PAGE_BORDER_FILL          =  75,
+    HWP_TAG_SHAPE_COMPONENT           =  76,
+    HWP_TAG_TABLE                     =  77,
+    HWP_TAG_SHAPE_COMPONENT_LINE      =  78,
+    HWP_TAG_SHAPE_COMPONENT_RECTANGLE =  79,
+    HWP_TAG_SHAPE_COMPONENT_ELLIPSE   =  80,
+    HWP_TAG_SHAPE_COMPONENT_ARC       =  81,
+    HWP_TAG_SHAPE_COMPONENT_POLYGON   =  82,
+    HWP_TAG_SHAPE_COMPONENT_CURVE     =  83,
+    HWP_TAG_SHAPE_COMPONENT_OLE       =  84,
+    HWP_TAG_SHAPE_COMPONENT_PICTURE   =  85,
+    HWP_TAG_SHAPE_COMPONENT_CONTAINER =  86,
+    HWP_TAG_CTRL_DATA                 =  87,
+    HWP_TAG_EQEDIT                    =  88,
+    HWP_TAG_RESERVED_89               =  89,
+    HWP_TAG_SHAPE_COMPONENT_TEXTART   =  90,
+    HWP_TAG_FORM_OBJECT               =  91,
+    HWP_TAG_MEMO_SHAPE                =  92,
+    HWP_TAG_MEMO_LIST                 =  93,
+    HWP_TAG_FORBIDDEN_CHAR            =  94,
+    HWP_TAG_CHART_DATA                =  95,
 
-    GHWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
-} GHWPTag;
+    HWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
+} HWPTag;
 
 /*typedef enum {*/
 /*    ID_BINARY_DATA      = 0,*/
@@ -268,6 +268,6 @@ typedef enum
   FIELD_REVISION_CHANGE        = MAKE_CTRL_ID('%', '%', 'm', 'r'),
   FIELD_MEMO                   = MAKE_CTRL_ID('%', '%', 'm', 'e'),
   FIELD_PRIVATE_INFO_SECURITY  = MAKE_CTRL_ID('%', 'c', 'p', 'r')
-} GHWPCtrlID;
+} HWPCtrlID;
 
-#endif /* __GHWP_ENUMS__ */
+#endif /* __HWP_ENUMS__ */

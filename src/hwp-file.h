@@ -25,8 +25,8 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef _GHWP_FILE_H_
-#define _GHWP_FILE_H_
+#ifndef _HWP_FILE_H_
+#define _HWP_FILE_H_
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -36,25 +36,25 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE             (hwp_file_get_type ())
-#define GHWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE, GHWPFile))
-#define GHWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE, GHWPFileClass))
-#define GHWP_IS_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE))
-#define GHWP_IS_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE))
-#define GHWP_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE, GHWPFileClass))
+#define HWP_TYPE_FILE             (hwp_file_get_type ())
+#define HWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE, HWPFile))
+#define HWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE, HWPFileClass))
+#define HWP_IS_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_FILE))
+#define HWP_IS_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_FILE))
+#define HWP_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE, HWPFileClass))
 
-typedef struct _GHWPFile      GHWPFile;
-typedef struct _GHWPFileClass GHWPFileClass;
+typedef struct _HWPFile      HWPFile;
+typedef struct _HWPFileClass HWPFileClass;
 
-struct _GHWPFile {
+struct _HWPFile {
     GObject parent_instance;
 };
 
-struct _GHWPFileClass {
+struct _HWPFileClass {
     GObjectClass    parent_class;
-    GHWPDocument* (*get_document)           (GHWPFile *file, GError **error);
-    gchar*        (*get_hwp_version_string) (GHWPFile* file);
-    void          (*get_hwp_version)        (GHWPFile *file,
+    HWPDocument* (*get_document)           (HWPFile *file, GError **error);
+    gchar*        (*get_hwp_version_string) (HWPFile* file);
+    void          (*get_hwp_version)        (HWPFile *file,
                                              guint8   *major_version,
                                              guint8   *minor_version,
                                              guint8   *micro_version,
@@ -62,39 +62,39 @@ struct _GHWPFileClass {
 };
 
 /**
- * GHWP_FILE_ERROR:
+ * HWP_FILE_ERROR:
  *
- * Error domain for #GHWPFile. Errors in this domain will be from
- * the #GHWPFileError enumeration.
+ * Error domain for #HWPFile. Errors in this domain will be from
+ * the #HWPFileError enumeration.
  * See #GError for more information on error domains.
  *
  * Since: 0.2
  */
-#define GHWP_FILE_ERROR          (hwp_file_error_quark ())
+#define HWP_FILE_ERROR          (hwp_file_error_quark ())
 
 /**
- * GHWPFileError:
- * @GHWP_FILE_ERROR_INVALID: The HWP is invalid.
+ * HWPFileError:
+ * @HWP_FILE_ERROR_INVALID: The HWP is invalid.
  *
- * Error codes returned by #GHWPFile functions.
+ * Error codes returned by #HWPFile functions.
  *
  * Since: 0.2
  */
 typedef enum {
-    GHWP_FILE_ERROR_INVALID
-} GHWPFileError;
+    HWP_FILE_ERROR_INVALID
+} HWPFileError;
 
 GType         hwp_file_get_type          (void) G_GNUC_CONST;
 GQuark        hwp_file_error_quark       (void) G_GNUC_CONST;
-GHWPFile     *hwp_file_new_from_uri      (const gchar* uri,
+HWPFile     *hwp_file_new_from_uri      (const gchar* uri,
                                            GError     **error);
-GHWPFile     *hwp_file_new_from_filename (const gchar *filename,
+HWPFile     *hwp_file_new_from_filename (const gchar *filename,
                                            GError     **error);
-GHWPDocument *hwp_file_get_document      (GHWPFile    *file,
+HWPDocument *hwp_file_get_document      (HWPFile    *file,
                                            GError     **error);
 gchar *
-hwp_file_get_hwp_version_string          (GHWPFile*    self);
-void          hwp_file_get_hwp_version   (GHWPFile    *file,
+hwp_file_get_hwp_version_string          (HWPFile*    self);
+void          hwp_file_get_hwp_version   (HWPFile    *file,
                                            guint8      *major_version,
                                            guint8      *minor_version,
                                            guint8      *micro_version,
@@ -102,4 +102,4 @@ void          hwp_file_get_hwp_version   (GHWPFile    *file,
 
 G_END_DECLS
 
-#endif /* _GHWP_FILE_H_ */
+#endif /* _HWP_FILE_H_ */

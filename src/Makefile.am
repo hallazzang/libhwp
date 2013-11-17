@@ -58,25 +58,25 @@ libhwp_la_SOURCES =         \
 	$(NULL)
 
 libhwp_la_CPPFLAGS =           \
-	-DG_LOG_DOMAIN=\"GHWP\" \
-	-DGHWP_COMPILATION      \
+	-DG_LOG_DOMAIN=\"HWP\" \
+	-DHWP_COMPILATION      \
 	$(AM_CPPFLAGS)          \
 	$(NULL)
 
 libhwp_la_CFLAGS =     \
-	$(GHWP_CFLAGS)  \
+	$(HWP_CFLAGS)  \
 	-Wall           \
 	$(AM_CFLAGS)    \
 	$(NULL)
 
 libhwp_la_LDFLAGS =                          \
-	-version-info $(GHWP_LT_VERSION_INFO) \
+	-version-info $(HWP_LT_VERSION_INFO) \
 	-no-undefined                         \
 	-export-symbols-regex "^hwp_*"       \
 	$(AM_LDFLAGS)                         \
 	$(NULL)
 
-libhwp_la_LIBADD = $(GHWP_LIBS)
+libhwp_la_LIBADD = $(HWP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hwp-0.2.pc
@@ -96,23 +96,23 @@ DISTCLEANFILES =          \
 	$(NULL)
 
 hwp-enum-types.h: $(hwp_headers) hwp-enum-types.h.template
-	$(AM_V_GEN) glib-mkenums --identifier-prefix GHWP --template \
+	$(AM_V_GEN) glib-mkenums --identifier-prefix HWP --template \
 	    hwp-enum-types.h.template $(hwp_headers) > hwp-enum-types.h
 
 hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
-	$(AM_V_GEN) glib-mkenums --identifier-prefix GHWP --template \
+	$(AM_V_GEN) glib-mkenums --identifier-prefix HWP --template \
 	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
 bin_PROGRAMS = hwp2pdf hwp2svg unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
-hwp2pdf_CFLAGS  = $(GHWP_CFLAGS)
+hwp2pdf_CFLAGS  = $(HWP_CFLAGS)
 hwp2pdf_LDADD   = libhwp.la
 
 hwp2svg_SOURCES = hwp2svg.c
-hwp2svg_CFLAGS  = $(GHWP_CFLAGS)
+hwp2svg_CFLAGS  = $(HWP_CFLAGS)
 hwp2svg_LDADD   = libhwp.la
 
 unhwp_SOURCES   = unhwp.c
-unhwp_CFLAGS    = $(GHWP_CFLAGS)
+unhwp_CFLAGS    = $(HWP_CFLAGS)
 unhwp_LDADD     = -lgsf-1

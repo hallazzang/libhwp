@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GHWP_PARSER_H__
-#define __GHWP_PARSER_H__
+#ifndef __HWP_PARSER_H__
+#define __HWP_PARSER_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -29,28 +29,28 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_PARSER             (hwp_parser_get_type ())
-#define GHWP_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARSER, GHWPParser))
-#define GHWP_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PARSER, GHWPParserClass))
-#define GHWP_IS_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARSER))
-#define GHWP_IS_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PARSER))
-#define GHWP_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PARSER, GHWPParserClass))
+#define HWP_TYPE_PARSER             (hwp_parser_get_type ())
+#define HWP_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_PARSER, HWPParser))
+#define HWP_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_PARSER, HWPParserClass))
+#define HWP_IS_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_PARSER))
+#define HWP_IS_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PARSER))
+#define HWP_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PARSER, HWPParserClass))
 
-typedef struct _GHWPParser        GHWPParser;
-typedef struct _GHWPParserClass   GHWPParserClass;
-typedef struct _GHWPParserPrivate GHWPParserPrivate;
+typedef struct _HWPParser        HWPParser;
+typedef struct _HWPParserClass   HWPParserClass;
+typedef struct _HWPParserPrivate HWPParserPrivate;
 
-struct _GHWPParserClass
+struct _HWPParserClass
 {
   GObjectClass parent_class;
 };
 
-struct _GHWPParser
+struct _HWPParser
 {
   GObject                  parent_instance;
-  GHWPParserPrivate *priv;
+  HWPParserPrivate *priv;
 
-  GHWPListener            *listener;
+  HWPListener            *listener;
   gpointer                 user_data;
   GInputStream            *stream;
   /* from record header */
@@ -69,7 +69,7 @@ struct _GHWPParser
   guint8                   extra_version;
 };
 
-struct _GHWPParserPrivate
+struct _HWPParserPrivate
 {
   guint32  header;
   gsize    bytes_read;
@@ -77,19 +77,19 @@ struct _GHWPParserPrivate
 };
 
 GType             hwp_parser_get_type (void) G_GNUC_CONST;
-GHWPParser *hwp_parser_new      (GHWPListener       *listener,
+HWPParser *hwp_parser_new      (HWPListener       *listener,
                                                gpointer          user_data);
-void              hwp_parser_parse    (GHWPParser *parser,
-                                               GHWPFileV5       *file,
+void              hwp_parser_parse    (HWPParser *parser,
+                                               HWPFileV5       *file,
                                                GError          **error);
-gboolean     hwp_parser_pull     (GHWPParser  *parser, GError **error);
-gboolean     parser_read_uint16   (GHWPParser  *parser,
+gboolean     hwp_parser_pull     (HWPParser  *parser, GError **error);
+gboolean     parser_read_uint16   (HWPParser  *parser,
                                     guint16      *i);
-gboolean     parser_read_uint32   (GHWPParser  *parser,
+gboolean     parser_read_uint32   (HWPParser  *parser,
                                     guint32      *i);
-gboolean     parser_skip          (GHWPParser  *parser,
+gboolean     parser_skip          (HWPParser  *parser,
                                     guint16       count);
 
 G_END_DECLS
 
-#endif /* __GHWP_PARSER_H__ */
+#endif /* __HWP_PARSER_H__ */

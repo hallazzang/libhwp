@@ -20,13 +20,13 @@
 
 #include "hwp-listener.h"
 
-G_DEFINE_INTERFACE (GHWPListener, hwp_listener, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (HWPListener, hwp_listener, G_TYPE_OBJECT)
 
-static void hwp_listener_default_init (GHWPListenerInterface *klass)
+static void hwp_listener_default_init (HWPListenerInterface *klass)
 {
 }
 
-/*void hwp_listener_document_version (GHWPListener *listener,*/
+/*void hwp_listener_document_version (HWPListener *listener,*/
 /*                                     guint8        major_version,*/
 /*                                     guint8        minor_version,*/
 /*                                     guint8        micro_version,*/
@@ -34,7 +34,7 @@ static void hwp_listener_default_init (GHWPListenerInterface *klass)
 /*                                     gpointer      user_data,*/
 /*                                     GError      **error)*/
 /*{*/
-/*  GHWPListenerInterface *iface = GHWP_LISTENER_GET_IFACE (listener);*/
+/*  HWPListenerInterface *iface = HWP_LISTENER_GET_IFACE (listener);*/
 
 /*  if (!iface->document_version)*/
 /*    return;*/

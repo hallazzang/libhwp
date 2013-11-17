@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GHWP_LISTENER_H__
-#define __GHWP_LISTENER_H__
+#ifndef __HWP_LISTENER_H__
+#define __HWP_LISTENER_H__
 
 #include <glib-object.h>
 
@@ -28,50 +28,50 @@
 G_BEGIN_DECLS
 
 /**
- * GHWPParseState:
+ * HWPParseState:
  *
  * This type indicates the current state of parsing.
  *
  * Since: 0.2
  */
 typedef enum {
-  GHWP_PARSE_STATE_NORMAL,
-  GHWP_PARSE_STATE_PASSING,
-  GHWP_PARSE_STATE_INSIDE_TABLE
-} GHWPParseState;
+  HWP_PARSE_STATE_NORMAL,
+  HWP_PARSE_STATE_PASSING,
+  HWP_PARSE_STATE_INSIDE_TABLE
+} HWPParseState;
 
-/* GHWPListenerInterface ********************************************************/
+/* HWPListenerInterface ********************************************************/
 
-#define GHWP_TYPE_LISTENER            (hwp_listener_get_type ())
-#define GHWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), GHWP_TYPE_LISTENER, GHWPListener))
-#define GHWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), GHWP_TYPE_LISTENER))
-#define GHWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), GHWP_TYPE_LISTENER, GHWPListenerInterface))
+#define HWP_TYPE_LISTENER            (hwp_listener_get_type ())
+#define HWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENER, HWPListener))
+#define HWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), HWP_TYPE_LISTENER))
+#define HWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENER, HWPListenerInterface))
 
-typedef struct _GHWPListener          GHWPListener; /* dummy typedef */
-typedef struct _GHWPListenerInterface GHWPListenerInterface;
+typedef struct _HWPListener          HWPListener; /* dummy typedef */
+typedef struct _HWPListenerInterface HWPListenerInterface;
 
 /**
  * Since: TODO
  */
-struct _GHWPListenerInterface
+struct _HWPListenerInterface
 {
   GTypeInterface            base_iface;
 
-  void (*document_version) (GHWPListener *listener,
+  void (*document_version) (HWPListener *listener,
                             guint8        major_version,
                             guint8        minor_version,
                             guint8        micro_version,
                             guint8        extra_version,
                             gpointer      user_data,
                             GError      **error);
-  void (*object)           (GHWPListener *listener,
+  void (*object)           (HWPListener *listener,
                             GObject      *object,
                             gpointer      user_data,
                             GError      **error);
 };
 
 GType hwp_listener_get_type         (void) G_GNUC_CONST;
-/*void  hwp_listener_document_version (GHWPListener *listener,*/
+/*void  hwp_listener_document_version (HWPListener *listener,*/
 /*                                      guint8        major_version,*/
 /*                                      guint8        minor_version,*/
 /*                                      guint8        micro_version,*/
@@ -81,4 +81,4 @@ GType hwp_listener_get_type         (void) G_GNUC_CONST;
 
 G_END_DECLS
 
-#endif /* __GHWP_LISTENER_H__ */
+#endif /* __HWP_LISTENER_H__ */

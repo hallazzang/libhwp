@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GHWP_PAGE_H__
-#define __GHWP_PAGE_H__
+#ifndef __HWP_PAGE_H__
+#define __HWP_PAGE_H__
 
 #include <glib-object.h>
 #include <cairo.h>
@@ -29,84 +29,84 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_PAGE             (hwp_page_get_type ())
-#define GHWP_PAGE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PAGE, GHWPPage))
-#define GHWP_PAGE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PAGE, GHWPPageClass))
-#define GHWP_IS_PAGE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PAGE))
-#define GHWP_IS_PAGE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PAGE))
-#define GHWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PAGE, GHWPPageClass))
+#define HWP_TYPE_PAGE             (hwp_page_get_type ())
+#define HWP_PAGE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_PAGE, HWPPage))
+#define HWP_PAGE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_PAGE, HWPPageClass))
+#define HWP_IS_PAGE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_PAGE))
+#define HWP_IS_PAGE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PAGE))
+#define HWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PAGE, HWPPageClass))
 
-typedef struct _GHWPPage        GHWPPage;
-typedef struct _GHWPPageClass   GHWPPageClass;
+typedef struct _HWPPage        HWPPage;
+typedef struct _HWPPageClass   HWPPageClass;
 
-struct _GHWPPage {
+struct _HWPPage {
     GObject  parent_instance;
     GArray  *paragraphs;
     GArray  *layouts;
 };
 
-struct _GHWPPageClass {
+struct _HWPPageClass {
     GObjectClass parent_class;
 };
 
-typedef struct _GHWPColor GHWPColor;
+typedef struct _HWPColor HWPColor;
 
 /**
  * Since: 0.2
  */
-struct _GHWPColor {
+struct _HWPColor {
     guint16 red;
     guint16 green;
     guint16 blue;
 };
 
-typedef struct _GHWPRectangle GHWPRectangle;
+typedef struct _HWPRectangle HWPRectangle;
 /**
  * Since: 0.2
  */
-struct _GHWPRectangle {
+struct _HWPRectangle {
     gdouble x1;
     gdouble y1;
     gdouble x2;
     gdouble y2;
 };
 
-typedef struct _GHWPLayout GHWPLayout;
+typedef struct _HWPLayout HWPLayout;
 /**
  * Since: TODO
  */
-struct _GHWPLayout {
+struct _HWPLayout {
     gdouble x;
     gdouble y;
     PangoLayout *pango_layout;
 };
 
 GType     hwp_page_get_type   (void) G_GNUC_CONST;
-GHWPPage *hwp_page_new        (void);
-void      hwp_page_get_size   (GHWPPage *page,
+HWPPage *hwp_page_new        (void);
+void      hwp_page_get_size   (HWPPage *page,
                                 gdouble  *width,
                                 gdouble  *height);
-gboolean  hwp_page_render     (GHWPPage *page, cairo_t *cr);
+gboolean  hwp_page_render     (HWPPage *page, cairo_t *cr);
 /* experimental */
 void
-hwp_page_render_selection     (GHWPPage           *page,
+hwp_page_render_selection     (HWPPage           *page,
                                 cairo_t            *cr,
-                                GHWPRectangle      *selection,
-                                GHWPRectangle      *old_selection,
-                                GHWPSelectionStyle  style, 
-                                GHWPColor          *glyph_color,
-                                GHWPColor          *background_color);
+                                HWPRectangle      *selection,
+                                HWPRectangle      *old_selection,
+                                HWPSelectionStyle  style, 
+                                HWPColor          *glyph_color,
+                                HWPColor          *background_color);
 char *
-hwp_page_get_selected_text    (GHWPPage          *page,
-                                GHWPSelectionStyle style,
-                                GHWPRectangle     *selection);
+hwp_page_get_selected_text    (HWPPage          *page,
+                                HWPSelectionStyle style,
+                                HWPRectangle     *selection);
 cairo_region_t *
-hwp_page_get_selection_region (GHWPPage          *page,
+hwp_page_get_selection_region (HWPPage          *page,
                                 gdouble            scale,
-                                GHWPSelectionStyle style,
-                                GHWPRectangle     *selection);
-void hwp_rectangle_free       (GHWPRectangle     *rectangle);
+                                HWPSelectionStyle style,
+                                HWPRectangle     *selection);
+void hwp_rectangle_free       (HWPRectangle     *rectangle);
 
 G_END_DECLS
 
-#endif /* __GHWP_PAGE_H__ */
+#endif /* __HWP_PAGE_H__ */

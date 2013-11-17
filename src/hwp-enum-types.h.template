@@ -1,6 +1,6 @@
 /*** BEGIN file-header ***/
-#ifndef __GHWP_ENUM_TYPES_H__
-#define __GHWP_ENUM_TYPES_H__
+#ifndef __HWP_ENUM_TYPES_H__
+#define __HWP_ENUM_TYPES_H__
 
 #include <glib-object.h>
 
@@ -20,5 +20,5 @@ GType @enum_name@_get_type (void) G_GNUC_CONST;
 /*** BEGIN file-tail ***/
 G_END_DECLS
 
-#endif /* __GHWP_ENUM_TYPES_H__ */
+#endif /* __HWP_ENUM_TYPES_H__ */
 /*** END file-tail ***/

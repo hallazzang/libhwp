@@ -24,22 +24,22 @@
 
 #include "hwp-models.h"
 
-G_DEFINE_TYPE (GHWPPage, hwp_page, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HWPPage, hwp_page, G_TYPE_OBJECT);
 
 /**
  * Since: 0.1
  */
-void hwp_page_get_size (GHWPPage *page,
+void hwp_page_get_size (HWPPage *page,
                          gdouble  *width,
                          gdouble  *height)
 {
-    g_return_if_fail (GHWP_IS_PAGE (page));
+    g_return_if_fail (HWP_IS_PAGE (page));
 
     *width  = 595.0;
     *height = 842.0;
 }
 
-static void hwp_show_layout (cairo_t *cr, GHWPLayout *layout)
+static void hwp_show_layout (cairo_t *cr, HWPLayout *layout)
 {
     cairo_move_to (cr, layout->x, layout->y);
     pango_cairo_show_layout (cr, layout->pango_layout);
@@ -48,14 +48,14 @@ static void hwp_show_layout (cairo_t *cr, GHWPLayout *layout)
 /**
  * Since: 0.1
  */
-gboolean hwp_page_render (GHWPPage *page, cairo_t *cr)
+gboolean hwp_page_render (HWPPage *page, cairo_t *cr)
 {
-    g_return_val_if_fail (GHWP_IS_PAGE (page) && cr, FALSE);
+    g_return_val_if_fail (HWP_IS_PAGE (page) && cr, FALSE);
 
-    GHWPLayout *layout;
+    HWPLayout *layout;
 
     for (guint i = 0; i < page->layouts->len; i++) {
-        layout = g_array_index (page->layouts, GHWPLayout *, i);
+        layout = g_array_index (page->layouts, HWPLayout *, i);
         hwp_show_layout (cr, layout);
     }
 
@@ -65,22 +65,22 @@ gboolean hwp_page_render (GHWPPage *page, cairo_t *cr)
 /**
  * Since: 0.1
  */
-GHWPPage *hwp_page_new (void)
+HWPPage *hwp_page_new (void)
 {
-    return (GHWPPage *) g_object_new (GHWP_TYPE_PAGE, NULL);
+    return (HWPPage *) g_object_new (HWP_TYPE_PAGE, NULL);
 }
 
 /**
  * Since: TODO
  */
 void
-hwp_page_render_selection (GHWPPage           *page,
+hwp_page_render_selection (HWPPage           *page,
                             cairo_t            *cr,
-                            GHWPRectangle      *selection,
-                            GHWPRectangle      *old_selection,
-                            GHWPSelectionStyle  style, 
-                            GHWPColor          *glyph_color,
-                            GHWPColor          *background_color)
+                            HWPRectangle      *selection,
+                            HWPRectangle      *old_selection,
+                            HWPSelectionStyle  style, 
+                            HWPColor          *glyph_color,
+                            HWPColor          *background_color)
 {
     g_return_if_fail (page != NULL);
     /* TODO */
@@ -90,9 +90,9 @@ hwp_page_render_selection (GHWPPage           *page,
  * Since: TODO
  */
 char *
-hwp_page_get_selected_text (GHWPPage          *page,
-                             GHWPSelectionStyle style,
-                             GHWPRectangle     *selection)
+hwp_page_get_selected_text (HWPPage          *page,
+                             HWPSelectionStyle style,
+                             HWPRectangle     *selection)
 {
     g_return_val_if_fail (page != NULL, NULL);
     /* TODO */
@@ -103,10 +103,10 @@ hwp_page_get_selected_text (GHWPPage          *page,
  * Since: TODO
  */
 cairo_region_t *
-hwp_page_get_selection_region (GHWPPage          *page,
+hwp_page_get_selection_region (HWPPage          *page,
                                 gdouble            scale,
-                                GHWPSelectionStyle style,
-                                GHWPRectangle     *selection)
+                                HWPSelectionStyle style,
+                                HWPRectangle     *selection)
 {
     g_return_val_if_fail (page != NULL, NULL);
     /* TODO */
@@ -115,34 +115,34 @@ hwp_page_get_selection_region (GHWPPage          *page,
 
 /**
  * hwp_rectangle_free:
- * @rectangle: a #GHWPRectangle
+ * @rectangle: a #HWPRectangle
  *
- * Frees the given #GHWPRectangle
+ * Frees the given #HWPRectangle
  *
  * Since: 0.2
  */
-void hwp_rectangle_free (GHWPRectangle *rectangle)
+void hwp_rectangle_free (HWPRectangle *rectangle)
 {
     g_return_if_fail (rectangle != NULL);
-    g_slice_free (GHWPRectangle, rectangle);
+    g_slice_free (HWPRectangle, rectangle);
 }
 
 static void hwp_page_finalize (GObject *obj)
 {
-    GHWPPage *page = GHWP_PAGE (obj);
+    HWPPage *page = HWP_PAGE (obj);
     g_array_free (page->paragraphs, TRUE);
     g_array_free (page->layouts,    TRUE);
     G_OBJECT_CLASS (hwp_page_parent_class)->finalize (obj);
 }
 
-static void hwp_page_class_init (GHWPPageClass * klass)
+static void hwp_page_class_init (HWPPageClass * klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = hwp_page_finalize;
 }
 
-static void hwp_page_init (GHWPPage *page)
+static void hwp_page_init (HWPPage *page)
 {
-    page->paragraphs = g_array_new (TRUE, TRUE, sizeof (GHWPParagraph *));
-    page->layouts    = g_array_new (TRUE, TRUE, sizeof (GHWPLayout   *));
+    page->paragraphs = g_array_new (TRUE, TRUE, sizeof (HWPParagraph *));
+    page->layouts    = g_array_new (TRUE, TRUE, sizeof (HWPLayout   *));
 }

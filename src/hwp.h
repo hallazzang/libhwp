@@ -17,12 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GHWP_H__
-#define __GHWP_H__
+#ifndef __HWP_H__
+#define __HWP_H__
 
 #include <glib-object.h>
 
-#define __GHWP_H_INSIDE__
+#define __HWP_H_INSIDE__
 
 #include "hwp-context-v3.h"
 #include "hwp-document.h"
@@ -40,6 +40,6 @@
 #include "gsf-input-stream.h"
 #include "hnc2unicode.h"
 
-#undef __GHWP_H_INSIDE__
+#undef __HWP_H_INSIDE__
 
-#endif /*__GHWP_H__ */
+#endif /*__HWP_H__ */

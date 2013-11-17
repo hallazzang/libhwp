@@ -25,8 +25,8 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef _GHWP_FILE_V5_H_
-#define _GHWP_FILE_V5_H_
+#ifndef _HWP_FILE_V5_H_
+#define _HWP_FILE_V5_H_
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -36,21 +36,21 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_FILE_V5             (hwp_file_v5_get_type ())
-#define GHWP_FILE_V5(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_FILE_V5, GHWPFileV5))
-#define GHWP_FILE_V5_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_FILE_V5, GHWPFileV5Class))
-#define GHWP_IS_FILE_V5(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_FILE_V5))
-#define GHWP_IS_FILE_V5_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_FILE_V5))
-#define GHWP_FILE_V5_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_FILE_V5, GHWPFileV5Class))
+#define HWP_TYPE_FILE_V5             (hwp_file_v5_get_type ())
+#define HWP_FILE_V5(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE_V5, HWPFileV5))
+#define HWP_FILE_V5_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE_V5, HWPFileV5Class))
+#define HWP_IS_FILE_V5(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_FILE_V5))
+#define HWP_IS_FILE_V5_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_FILE_V5))
+#define HWP_FILE_V5_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE_V5, HWPFileV5Class))
 
-typedef struct _GHWPFileV5        GHWPFileV5;
-typedef struct _GHWPFileV5Class   GHWPFileV5Class;
-typedef struct _GHWPFileV5Private GHWPFileV5Private;
+typedef struct _HWPFileV5        HWPFileV5;
+typedef struct _HWPFileV5Class   HWPFileV5Class;
+typedef struct _HWPFileV5Private HWPFileV5Private;
 
-struct _GHWPFileV5
+struct _HWPFileV5
 {
-    GHWPFile           parent_instance;
-    GHWPFileV5Private *priv;
+    HWPFile           parent_instance;
+    HWPFileV5Private *priv;
 
     GArray            *section_streams;
     GInputStream      *prv_text_stream;
@@ -78,36 +78,36 @@ struct _GHWPFileV5
     gboolean is_ccl;
 };
 
-struct _GHWPFileV5Class
+struct _HWPFileV5Class
 {
-    GHWPFileClass parent_class;
+    HWPFileClass parent_class;
 };
 
-struct _GHWPFileV5Private
+struct _HWPFileV5Private
 {
     GsfInfileMSOle *olefile;
     GInputStream   *section_stream;
 };
 
 GType         hwp_file_v5_get_type               (void) G_GNUC_CONST;
-GHWPFileV5   *hwp_file_v5_new_from_uri           (const gchar *uri,
+HWPFileV5   *hwp_file_v5_new_from_uri           (const gchar *uri,
                                                    GError     **error);
-GHWPFileV5   *hwp_file_v5_new_from_filename      (const gchar *filename,
+HWPFileV5   *hwp_file_v5_new_from_filename      (const gchar *filename,
                                                    GError     **error);
-gchar        *hwp_file_v5_get_hwp_version_string (GHWPFile    *file);
-void          hwp_file_v5_get_hwp_version        (GHWPFile    *file,
+gchar        *hwp_file_v5_get_hwp_version_string (HWPFile    *file);
+void          hwp_file_v5_get_hwp_version        (HWPFile    *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-gboolean      hwp_file_v5_check_version          (GHWPFileV5 *file,
+gboolean      hwp_file_v5_check_version          (HWPFileV5 *file,
                                                    guint8      major,
                                                    guint8      minor,
                                                    guint8      micro,
                                                    guint8      extra);
-GHWPDocument *hwp_file_v5_get_document           (GHWPFile    *file,
+HWPDocument *hwp_file_v5_get_document           (HWPFile    *file,
                                                    GError     **error);
 
 G_END_DECLS
 
-#endif /* _GHWP_FILE_V5_H_ */
+#endif /* _HWP_FILE_V5_H_ */

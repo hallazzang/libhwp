@@ -33,12 +33,12 @@
 #include "hwp-file-v3.h"
 #include "hwp-file-v5.h"
 
-G_DEFINE_ABSTRACT_TYPE (GHWPFile, hwp_file, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE (HWPFile, hwp_file, G_TYPE_OBJECT);
 
 /**
  * hwp_file_error_quark:
  *
- * The error domain for GHWPFile
+ * The error domain for HWPFile
  *
  * Returns: The error domain
  *
@@ -52,15 +52,15 @@ GQuark hwp_file_error_quark (void)
 /**
  * Since: 0.2
  */
-void hwp_file_get_hwp_version (GHWPFile *file,
+void hwp_file_get_hwp_version (HWPFile *file,
                                 guint8   *major_version,
                                 guint8   *minor_version,
                                 guint8   *micro_version,
                                 guint8   *extra_version)
 {
-    g_return_if_fail (GHWP_IS_FILE (file));
+    g_return_if_fail (HWP_IS_FILE (file));
 
-    return GHWP_FILE_GET_CLASS (file)->get_hwp_version (file,
+    return HWP_FILE_GET_CLASS (file)->get_hwp_version (file,
                                                         major_version,
                                                         minor_version,
                                                         micro_version,
@@ -70,21 +70,21 @@ void hwp_file_get_hwp_version (GHWPFile *file,
 /**
  * Since: 0.2
  */
-GHWPDocument *hwp_file_get_document (GHWPFile *file, GError **error)
+HWPDocument *hwp_file_get_document (HWPFile *file, GError **error)
 {
-    g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
+    g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
-    return GHWP_FILE_GET_CLASS (file)->get_document (file, error);
+    return HWP_FILE_GET_CLASS (file)->get_document (file, error);
 }
 
 /**
  * Since: 0.2
  */
-gchar *hwp_file_get_hwp_version_string (GHWPFile *file)
+gchar *hwp_file_get_hwp_version_string (HWPFile *file)
 {
-    g_return_val_if_fail (GHWP_IS_FILE (file), NULL);
+    g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
-    return GHWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
+    return HWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
 }
 
 /**
@@ -92,20 +92,20 @@ gchar *hwp_file_get_hwp_version_string (GHWPFile *file)
  * @uri: uri of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #GHWPFile.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #GHWP_ERROR and #G_FILE_ERROR
+ * Creates a new #HWPFile.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #GHWPFile, or %NULL
+ * Return value: A newly created #HWPFile, or %NULL
  *
  * Since: 0.1
  */
-GHWPFile *hwp_file_new_from_uri (const gchar* uri, GError** error)
+HWPFile *hwp_file_new_from_uri (const gchar* uri, GError** error)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     gchar    *filename = g_filename_from_uri (uri, NULL, error);
-    GHWPFile *file     = hwp_file_new_from_filename (filename, error);
+    HWPFile *file     = hwp_file_new_from_filename (filename, error);
     g_free (filename);
 
     return file;
@@ -135,7 +135,7 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 /**
  * Since: 0.1
  */
-GHWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
+HWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
@@ -165,20 +165,20 @@ GHWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
                              &bytes_read, NULL, error);
     g_object_unref(stream);
 
-    GHWPFile *retval = NULL;
+    HWPFile *retval = NULL;
 
     if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
-        retval = GHWP_FILE (hwp_file_v5_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_v5_new_from_filename (filename, error));
     } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
-        retval = GHWP_FILE (hwp_file_v3_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_v3_new_from_filename (filename, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
-        retval = GHWP_FILE (hwp_file_ml_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_ml_new_from_filename (filename, error));
     } else {
         /* invalid hwp file */
-        g_set_error (error, GHWP_FILE_ERROR, GHWP_FILE_ERROR_INVALID,
+        g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
                             "invalid hwp file");
         retval = NULL;
     }
@@ -192,12 +192,12 @@ static void hwp_file_finalize (GObject *obj)
     G_OBJECT_CLASS (hwp_file_parent_class)->finalize (obj);
 }
 
-static void hwp_file_class_init (GHWPFileClass *klass)
+static void hwp_file_class_init (HWPFileClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize = hwp_file_finalize;
 }
 
-static void hwp_file_init (GHWPFile *file)
+static void hwp_file_init (HWPFile *file)
 {
 }

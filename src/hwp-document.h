@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GHWP_DOCUMENT_H__
-#define __GHWP_DOCUMENT_H__
+#ifndef __HWP_DOCUMENT_H__
+#define __HWP_DOCUMENT_H__
 
 #include <glib-object.h>
 #include <gsf/gsf-doc-meta-data.h>
@@ -28,17 +28,17 @@
 
 G_BEGIN_DECLS
 
-#define GHWP_TYPE_DOCUMENT             (hwp_document_get_type ())
-#define GHWP_DOCUMENT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_DOCUMENT, GHWPDocument))
-#define GHWP_DOCUMENT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_DOCUMENT, GHWPDocumentClass))
-#define GHWP_IS_DOCUMENT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_DOCUMENT))
-#define GHWP_IS_DOCUMENT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_DOCUMENT))
-#define GHWP_DOCUMENT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_DOCUMENT, GHWPDocumentClass))
+#define HWP_TYPE_DOCUMENT             (hwp_document_get_type ())
+#define HWP_DOCUMENT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_DOCUMENT, HWPDocument))
+#define HWP_DOCUMENT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_DOCUMENT, HWPDocumentClass))
+#define HWP_IS_DOCUMENT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_DOCUMENT))
+#define HWP_IS_DOCUMENT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_DOCUMENT))
+#define HWP_DOCUMENT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_DOCUMENT, HWPDocumentClass))
 
-typedef struct _GHWPDocument      GHWPDocument;
-typedef struct _GHWPDocumentClass GHWPDocumentClass;
+typedef struct _HWPDocument      HWPDocument;
+typedef struct _HWPDocumentClass HWPDocumentClass;
 
-struct _GHWPDocument {
+struct _HWPDocument {
     GObject              parent_instance;
     gchar               *prv_text;
     GArray              *paragraphs;
@@ -75,28 +75,28 @@ struct _GHWPDocument {
     const gchar         *hanword_version;
 };
 
-struct _GHWPDocumentClass {
+struct _HWPDocumentClass {
     GObjectClass parent_class;
 };
 
 GType         hwp_document_get_type           (void) G_GNUC_CONST;
-GHWPDocument *hwp_document_new                (void);
-GHWPDocument *hwp_document_new_from_uri       (const gchar  *uri,
+HWPDocument *hwp_document_new                (void);
+HWPDocument *hwp_document_new_from_uri       (const gchar  *uri,
                                                 GError      **error);
-GHWPDocument *hwp_document_new_from_filename  (const gchar  *filename,
+HWPDocument *hwp_document_new_from_filename  (const gchar  *filename,
                                                 GError      **error);
-guint         hwp_document_get_n_pages        (GHWPDocument *doc);
-GHWPPage     *hwp_document_get_page           (GHWPDocument *doc, gint n_page);
+guint         hwp_document_get_n_pages        (HWPDocument *doc);
+HWPPage     *hwp_document_get_page           (HWPDocument *doc, gint n_page);
 /* meta data */
-gchar    *hwp_document_get_title              (GHWPDocument *document);
-gchar    *hwp_document_get_keywords           (GHWPDocument *document);
-gchar    *hwp_document_get_subject            (GHWPDocument *document);
-gchar    *hwp_document_get_creator            (GHWPDocument *document);
-GTime     hwp_document_get_creation_date      (GHWPDocument *document);
-GTime     hwp_document_get_modification_date  (GHWPDocument *document);
-gchar    *hwp_document_get_format             (GHWPDocument *document);
-gchar    *hwp_document_get_hwp_version_string (GHWPDocument *document);
-void      hwp_document_get_hwp_version        (GHWPDocument *document,
+gchar    *hwp_document_get_title              (HWPDocument *document);
+gchar    *hwp_document_get_keywords           (HWPDocument *document);
+gchar    *hwp_document_get_subject            (HWPDocument *document);
+gchar    *hwp_document_get_creator            (HWPDocument *document);
+GTime     hwp_document_get_creation_date      (HWPDocument *document);
+GTime     hwp_document_get_modification_date  (HWPDocument *document);
+gchar    *hwp_document_get_format             (HWPDocument *document);
+gchar    *hwp_document_get_hwp_version_string (HWPDocument *document);
+void      hwp_document_get_hwp_version        (HWPDocument *document,
                                                 guint8       *major_version,
                                                 guint8       *minor_version,
                                                 guint8       *micro_version,
@@ -104,4 +104,4 @@ void      hwp_document_get_hwp_version        (GHWPDocument *document,
 
 G_END_DECLS
 
-#endif /* __GHWP_DOCUMENT_H__ */
+#endif /* __HWP_DOCUMENT_H__ */

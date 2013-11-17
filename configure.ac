@@ -53,7 +53,7 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
 
-PKG_CHECK_MODULES(GHWP, [libgsf-1 pangocairo libxml-2.0])
+PKG_CHECK_MODULES(HWP, [libgsf-1 pangocairo libxml-2.0])
 
 dnl gsf_msole_metadata_read is deprecated since libgsf 1.14.24
 dnl check if your libgsf-1 have gsf_doc_meta_data_read_from_msole
@@ -66,12 +66,12 @@ AC_CHECK_LIB(gsf-1, gsf_doc_meta_data_read_from_msole,
 # Versioning
 # **********
 
-AC_SUBST([GHWP_MAJOR_VERSION],[hwp_major_version])
-AC_SUBST([GHWP_MINOR_VERSION],[hwp_minor_version])
-AC_SUBST([GHWP_MICRO_VERSION],[hwp_micro_version])
+AC_SUBST([HWP_MAJOR_VERSION],[hwp_major_version])
+AC_SUBST([HWP_MINOR_VERSION],[hwp_minor_version])
+AC_SUBST([HWP_MICRO_VERSION],[hwp_micro_version])
 
-AC_SUBST([GHWP_LT_VERSION_INFO],[hwp_lt_version_info])
-AC_SUBST([GHWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
+AC_SUBST([HWP_LT_VERSION_INFO],[hwp_lt_version_info])
+AC_SUBST([HWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 
 # **********************************
 

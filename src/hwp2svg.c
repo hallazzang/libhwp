@@ -26,7 +26,7 @@
 int main (int argc, char **argv)
 {
     GError *error = NULL;
-    GHWPPage *page;
+    HWPPage *page;
     gdouble width = 0.0, height = 0.0;
 
     if (argc < 2) {
@@ -38,8 +38,8 @@ int main (int argc, char **argv)
     g_type_init();
 #endif
 
-    GHWPFile *file = hwp_file_new_from_filename (argv[1], &error);
-    GHWPDocument *document = hwp_file_get_document (file, &error);
+    HWPFile *file = hwp_file_new_from_filename (argv[1], &error);
+    HWPDocument *document = hwp_file_get_document (file, &error);
 
     guint n_pages = hwp_document_get_n_pages (document);
     if (n_pages < 1) {

@@ -24,7 +24,7 @@
  * hwp_error_quark:
  *
  * Returns:  the #GQuark used to identify libhwp errors in #GError structures.
- *  Specific error codes come from the #GHWPError enumeration.
+ *  Specific error codes come from the #HWPError enumeration.
  *
  * Since: 0.2
  **/
@@ -59,7 +59,7 @@ const char *hwp_get_version (void)
  **/
 const char *hwp_get_tag_name (guint tag_id)
 {
-    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_TAG);
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_TAG);
     GEnumValue *tag        = g_enum_get_value (enum_class, tag_id);
     g_type_class_unref (enum_class);
 
@@ -74,7 +74,7 @@ const char *hwp_get_tag_name (guint tag_id)
  **/
 const char *hwp_get_ctrl_name (guint32 ctrl_id)
 {
-    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (GHWP_TYPE_CTRL_ID);
+    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_CTRL_ID);
     GEnumValue *ctrl       = g_enum_get_value (enum_class, ctrl_id);
     g_type_class_unref (enum_class);
 

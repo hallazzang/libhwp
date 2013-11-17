@@ -25,98 +25,98 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef __GHWP_MODELS_H__
-#define __GHWP_MODELS_H__
+#ifndef __HWP_MODELS_H__
+#define __HWP_MODELS_H__
 
 #include <glib-object.h>
 #include <pango/pango-layout.h>
 
 G_BEGIN_DECLS
 
-typedef struct _GHWPText      GHWPText;
-typedef struct _GHWPTable     GHWPTable;
-typedef struct _GHWPTableCell GHWPTableCell;
+typedef struct _HWPText      HWPText;
+typedef struct _HWPTable     HWPTable;
+typedef struct _HWPTableCell HWPTableCell;
 
-/** GHWPParagraph ************************************************************/
+/** HWPParagraph ************************************************************/
 
-#define GHWP_TYPE_PARAGRAPH             (hwp_paragraph_get_type ())
-#define GHWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraph))
-#define GHWP_PARAGRAPH_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_PARAGRAPH, GHWPParagraphClass))
-#define GHWP_IS_PARAGRAPH(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_PARAGRAPH))
-#define GHWP_IS_PARAGRAPH_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_PARAGRAPH))
-#define GHWP_PARAGRAPH_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_PARAGRAPH, GHWPParagraphClass))
+#define HWP_TYPE_PARAGRAPH             (hwp_paragraph_get_type ())
+#define HWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_PARAGRAPH, HWPParagraph))
+#define HWP_PARAGRAPH_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_PARAGRAPH, HWPParagraphClass))
+#define HWP_IS_PARAGRAPH(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_PARAGRAPH))
+#define HWP_IS_PARAGRAPH_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PARAGRAPH))
+#define HWP_PARAGRAPH_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PARAGRAPH, HWPParagraphClass))
 
-typedef struct _GHWPParagraph      GHWPParagraph;
-typedef struct _GHWPParagraphClass GHWPParagraphClass;
+typedef struct _HWPParagraph      HWPParagraph;
+typedef struct _HWPParagraphClass HWPParagraphClass;
 
-struct _GHWPParagraph
+struct _HWPParagraph
 {
     GObject    parent_instance;
-    GHWPText  *hwp_text;
-    GHWPTable *table;
+    HWPText  *hwp_text;
+    HWPTable *table;
 };
 
-struct _GHWPParagraphClass
+struct _HWPParagraphClass
 {
     GObjectClass parent_class;
 };
 
 GType          hwp_paragraph_get_type      (void) G_GNUC_CONST;
-GHWPParagraph *hwp_paragraph_new           (void);
-void           hwp_paragraph_set_hwp_text (GHWPParagraph *paragraph,
-                                             GHWPText      *hwp_text);
-GHWPText      *hwp_paragraph_get_hwp_text (GHWPParagraph *paragraph);
-GHWPTable     *hwp_paragraph_get_table     (GHWPParagraph *paragraph);
-void           hwp_paragraph_set_table     (GHWPParagraph *paragraph,
-                                             GHWPTable     *table);
+HWPParagraph *hwp_paragraph_new           (void);
+void           hwp_paragraph_set_hwp_text (HWPParagraph *paragraph,
+                                             HWPText      *hwp_text);
+HWPText      *hwp_paragraph_get_hwp_text (HWPParagraph *paragraph);
+HWPTable     *hwp_paragraph_get_table     (HWPParagraph *paragraph);
+void           hwp_paragraph_set_table     (HWPParagraph *paragraph,
+                                             HWPTable     *table);
 
-/** GHWPText *****************************************************************/
+/** HWPText *****************************************************************/
 
-#define GHWP_TYPE_TEXT             (hwp_text_get_type ())
-#define GHWP_TEXT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TEXT, GHWPText))
-#define GHWP_TEXT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TEXT, GHWPTextClass))
-#define GHWP_IS_TEXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TEXT))
-#define GHWP_IS_TEXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_TEXT))
-#define GHWP_TEXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_TEXT, GHWPTextClass))
+#define HWP_TYPE_TEXT             (hwp_text_get_type ())
+#define HWP_TEXT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TEXT, HWPText))
+#define HWP_TEXT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_TEXT, HWPTextClass))
+#define HWP_IS_TEXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_TEXT))
+#define HWP_IS_TEXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_TEXT))
+#define HWP_TEXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_TEXT, HWPTextClass))
 
-typedef struct _GHWPText        GHWPText;
-typedef struct _GHWPTextClass   GHWPTextClass;
-typedef struct _GHWPTextPrivate GHWPTextPrivate;
+typedef struct _HWPText        HWPText;
+typedef struct _HWPTextClass   HWPTextClass;
+typedef struct _HWPTextPrivate HWPTextPrivate;
 
-struct _GHWPText
+struct _HWPText
 {
     GObject          parent_instance;
-    GHWPTextPrivate *priv;
+    HWPTextPrivate *priv;
     gchar           *text;
 };
 
-struct _GHWPTextClass
+struct _HWPTextClass
 {
     GObjectClass parent_class;
 };
 
 GType     hwp_text_get_type (void) G_GNUC_CONST;
-GHWPText *hwp_text_new      (const     gchar *text);
-GHWPText *hwp_text_append   (GHWPText *hwp_text, const gchar *text);
+HWPText *hwp_text_new      (const     gchar *text);
+HWPText *hwp_text_append   (HWPText *hwp_text, const gchar *text);
 
-/** GHWPTable ****************************************************************/
+/** HWPTable ****************************************************************/
 
-#define GHWP_TYPE_TABLE             (hwp_table_get_type ())
-#define GHWP_TABLE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TABLE, GHWPTable))
-#define GHWP_TABLE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TABLE, GHWPTableClass))
-#define GHWP_IS_TABLE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TABLE))
-#define GHWP_IS_TABLE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_TABLE))
-#define GHWP_TABLE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_TABLE, GHWPTableClass))
+#define HWP_TYPE_TABLE             (hwp_table_get_type ())
+#define HWP_TABLE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TABLE, HWPTable))
+#define HWP_TABLE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_TABLE, HWPTableClass))
+#define HWP_IS_TABLE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_TABLE))
+#define HWP_IS_TABLE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_TABLE))
+#define HWP_TABLE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_TABLE, HWPTableClass))
 
-typedef struct _GHWPTable      GHWPTable;
-typedef struct _GHWPTableClass GHWPTableClass;
+typedef struct _HWPTable      HWPTable;
+typedef struct _HWPTableClass HWPTableClass;
 
-struct _GHWPTableClass
+struct _HWPTableClass
 {
     GObjectClass parent_class;
 };
 
-struct _GHWPTable
+struct _HWPTable
 {
     GObject  parent_instance;
     guint32  flags;
@@ -138,24 +138,24 @@ struct _GHWPTable
 };
 
 GType          hwp_table_get_type         (void) G_GNUC_CONST;
-GHWPTable     *hwp_table_new              (void);
-GHWPTableCell *hwp_table_get_last_cell    (GHWPTable     *table);
-void           hwp_table_add_cell         (GHWPTable     *table,
-                                            GHWPTableCell *cell);
+HWPTable     *hwp_table_new              (void);
+HWPTableCell *hwp_table_get_last_cell    (HWPTable     *table);
+void           hwp_table_add_cell         (HWPTable     *table,
+                                            HWPTableCell *cell);
 
-/** GHWPTableCell ************************************************************/
+/** HWPTableCell ************************************************************/
 
-#define GHWP_TYPE_TABLE_CELL             (hwp_table_cell_get_type ())
-#define GHWP_TABLE_CELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GHWP_TYPE_TABLE_CELL, GHWPTableCell))
-#define GHWP_TABLE_CELL_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GHWP_TYPE_TABLE_CELL, GHWPTableCellClass))
-#define GHWP_IS_TABLE_CELL(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GHWP_TYPE_TABLE_CELL))
-#define GHWP_IS_TABLE_CELL_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GHWP_TYPE_TABLE_CELL))
-#define GHWP_TABLE_CELL_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GHWP_TYPE_TABLE_CELL, GHWPTableCellClass))
+#define HWP_TYPE_TABLE_CELL             (hwp_table_cell_get_type ())
+#define HWP_TABLE_CELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TABLE_CELL, HWPTableCell))
+#define HWP_TABLE_CELL_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_TABLE_CELL, HWPTableCellClass))
+#define HWP_IS_TABLE_CELL(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_TABLE_CELL))
+#define HWP_IS_TABLE_CELL_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_TABLE_CELL))
+#define HWP_TABLE_CELL_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_TABLE_CELL, HWPTableCellClass))
 
-typedef struct _GHWPTableCell      GHWPTableCell;
-typedef struct _GHWPTableCellClass GHWPTableCellClass;
+typedef struct _HWPTableCell      HWPTableCell;
+typedef struct _HWPTableCellClass HWPTableCellClass;
 
-struct _GHWPTableCell
+struct _HWPTableCell
 {
     GObject parent_instance;
     /* 표 60 list header */
@@ -186,19 +186,19 @@ struct _GHWPTableCell
     GArray *layouts;
 };
 
-struct _GHWPTableCellClass
+struct _HWPTableCellClass
 {
     GObjectClass parent_class;
 };
 
 GType          hwp_table_cell_get_type           (void) G_GNUC_CONST;
-GHWPTableCell *hwp_table_cell_new                (void);
-GHWPParagraph *hwp_table_cell_get_last_paragraph (GHWPTableCell    *cell);
-void           hwp_table_cell_add_paragraph      (GHWPTableCell    *cell,
-                                                   GHWPParagraph    *paragraph);
-void           hwp_table_cell_add_pango_layout   (GHWPTableCell    *cell,
+HWPTableCell *hwp_table_cell_new                (void);
+HWPParagraph *hwp_table_cell_get_last_paragraph (HWPTableCell    *cell);
+void           hwp_table_cell_add_paragraph      (HWPTableCell    *cell,
+                                                   HWPParagraph    *paragraph);
+void           hwp_table_cell_add_pango_layout   (HWPTableCell    *cell,
                                                    PangoLayout      *layout);
 
 G_END_DECLS
 
-#endif /* __GHWP_MODELS_H__ */
+#endif /* __HWP_MODELS_H__ */
