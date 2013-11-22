@@ -53,7 +53,11 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
 
-PKG_CHECK_MODULES(HWP, [libgsf-1 pangocairo libxml-2.0])
+PKG_CHECK_MODULES(HWP, [libgsf-1 cairo pango pangocairo libxml-2.0 gobject-2.0 gobject-introspection-1.0])
+AC_SUBST(HWP_CFLAGS)
+AC_SUBST(HWP_LIBS)
+
+GOBJECT_INTROSPECTION_CHECK([0.10.1])
 
 dnl gsf_msole_metadata_read is deprecated since libgsf 1.14.24
 dnl check if your libgsf-1 have gsf_doc_meta_data_read_from_msole

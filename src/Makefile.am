@@ -1,3 +1,4 @@
+# -*- Mode: makefile-gmake; tab-width: 4; indent-tabs-mode: t -*-
 ## Process this file with automake to produce Makefile.in
 
 lib_LTLIBRARIES = libhwp.la
@@ -107,12 +108,37 @@ bin_PROGRAMS = hwp2pdf hwp2svg unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
 hwp2pdf_CFLAGS  = $(HWP_CFLAGS)
-hwp2pdf_LDADD   = libhwp.la
+hwp2pdf_LDADD   = libhwp.la $(HWP_LIBS)
 
 hwp2svg_SOURCES = hwp2svg.c
 hwp2svg_CFLAGS  = $(HWP_CFLAGS)
-hwp2svg_LDADD   = libhwp.la
+hwp2svg_LDADD   = libhwp.la $(HWP_LIBS)
 
 unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(HWP_CFLAGS)
-unhwp_LDADD     = -lgsf-1
+unhwp_LDADD     = libhwp.la $(HWP_LIBS)
+
+include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS =
+INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all --identifier-prefix=HWP --symbol-prefix=hwp
+INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
+
+if HAVE_INTROSPECTION
+introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c gsf-input-stream.h, $(libhwp_la_SOURCES))
+
+HWP-0.2.gir: libhwp.la
+HWP_0_2_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0
+HWP_0_2_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_CFLAGS)
+HWP_0_2_gir_LIBS = libhwp.la
+HWP_0_2_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
+
+INTROSPECTION_GIRS += HWP-0.2.gir
+
+girdir = $(datadir)/gir-1.2
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES = $(gir_DATA) $(typelib_DATA)
+endif
