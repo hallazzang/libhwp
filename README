@@ -1,9 +1,39 @@
-libhwp is a GObject based library for handling HWP documents.
+LibHWP is a GObject based library for handling HWP documents.
+
+
+Project Homepage
+https://github.com/cogniti/libhwp
+
+Dicussion Homepage
+http://groups.google.com/group/libhwp
+
 
 What is HWP?
 ------------
 HWP is a proprietary document file format developed by Hancom for word
 processing documents.
+
+
+FEATURES
+--------
+ * extract text in hwp v3, v5, ml file.
+ * Bindings based on GObject-Introspection
+   * https://wiki.gnome.org/GObjectIntrospection/Users
+
+
+LISENSE
+-------
+This library is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+You SHOULD NOT REMOVE the following sentences in source files.
+
+This software have been developed with reference to
+the HWP file format open specification by Hancom, Inc.
+http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+
 
 INSTALL
 -------
@@ -19,6 +49,19 @@ sudo ldconfig
 Making deb Package
 ------------------
 cd libhwp
+./autogen.sh (because of po files)
 dch -l custom
 dpkg-buildpackage -b
 ls ..
+
+
+Donation
+--------
+Please donate to continue LibHWP project.
+https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6J4BYJVUB7HUN&lc=KR&item_name=libhwp&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
+
+
+Related Projects
+----------------
+https://github.com/cogniti/ruby-hwp
+https://github.com/cogniti/evince-hwp
