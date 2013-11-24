@@ -150,7 +150,7 @@ static void _hwp_file_v3_parse_summary_info (HWPFileV3 *file)
             hwp_context_v3_read_uint16 (context, &c);
             count += 2;
             if (c != 0) {
-                str = hnchar_to_utf8 (c);
+                str = hwp_hnchar_to_utf8 (c);
                 g_string_append (string, str);
                 g_free (str);
             } else {
@@ -367,7 +367,7 @@ static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
             hwp_context_v3_skip (context, 2);
             continue;
         } else if (c >= 0x0020 && c <= 0xffff) {
-            gchar *tmp = hnchar_to_utf8 (c);
+            gchar *tmp = hwp_hnchar_to_utf8 (c);
             g_string_append (string, tmp);
             g_free (tmp);
             continue;
