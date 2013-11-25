@@ -28,7 +28,7 @@
  *
  * Converts a single character to UTF-8.
  *
- * Return value: a pointer to a newly allocated UTF-8.
+ * Return value: a pointer to a newly allocated UTF-8 string.
  *               This value must be freed with g_free(). If an
  *               error occurs, %NULL will be returned.
  *
