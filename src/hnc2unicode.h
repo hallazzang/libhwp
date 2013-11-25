@@ -18,6 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /*
+  * This file is generated using
+  *
+  * https://raw.github.com/cogniti/ruby-hwp/master/lib/hwp/hnc2unicode.rb
+  * https://github.com/cogniti/ruby-hwp/blob/master/lib/hwp/print-c-header.rb
+  *
+  * To modify this file, modify hnc2unicode.rb and print-c-header.rb.
+  *
+  * For more information about hnc code, please see hnc2unicode.rb
+  */
+
 #ifndef _HNC2UNICODE_H_
 #define _HNC2UNICODE_H_
 
