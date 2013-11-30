@@ -55,12 +55,6 @@ dpkg-buildpackage -b
 ls ..
 
 
-Donation
---------
-Please donate to continue LibHWP project.
-https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6J4BYJVUB7HUN&lc=KR&item_name=libhwp&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
-
-
 Related Projects
 ----------------
 https://github.com/cogniti/ruby-hwp
