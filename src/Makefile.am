@@ -15,7 +15,7 @@ hwp_headers =               \
 	hwp-models.h        \
 	hwp-page.h          \
 	hwp-listener.h      \
-	hwp-parser.h        \
+	hwp-hwp5-parser.h        \
 	hwp-version.h       \
 	gsf-input-stream.h   \
 	hnc2unicode.h        \
@@ -50,7 +50,7 @@ libhwp_la_SOURCES =         \
 	hwp-models.c        \
 	hwp-page.c          \
 	hwp-listener.c      \
-	hwp-parser.c        \
+	hwp-hwp5-parser.c        \
 	gsf-input-stream.c   \
 	hnc2unicode.c        \
 	hwp-enum-types.c    \

@@ -28,7 +28,7 @@
 #include <glib/gprintf.h>
 
 #include "hwp-models.h"
-#include "hwp-parser.h"
+#include "hwp-hwp5-parser.h"
 
 #define _g_free0(var) (var = (g_free (var), NULL))
 

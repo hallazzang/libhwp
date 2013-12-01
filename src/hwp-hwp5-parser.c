@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-parser.c
+ * hwp-hwp5-parser.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
  * 
@@ -27,7 +27,7 @@
 #include <gsf/gsf-msole-utils.h>
 #include <stdio.h>
 #include "gsf-input-stream.h"
-#include "hwp-parser.h"
+#include "hwp-hwp5-parser.h"
 
 G_DEFINE_TYPE (HWPParser, hwp_parser, G_TYPE_OBJECT)
 

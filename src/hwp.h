@@ -34,7 +34,7 @@
 #include "hwp-file-v5.h"
 #include "hwp-models.h"
 #include "hwp-page.h"
-#include "hwp-parser.h"
+#include "hwp-hwp5-parser.h"
 #include "hwp-listener.h"
 #include "hwp-version.h"
 #include "gsf-input-stream.h"

@@ -46,7 +46,7 @@
 #include "hwp-file-v5.h"
 #include "hwp-listener.h"
 #include "hwp-models.h"
-#include "hwp-parser.h"
+#include "hwp-hwp5-parser.h"
 
 G_DEFINE_TYPE (HWPFileV5, hwp_file_v5, HWP_TYPE_FILE);
 
