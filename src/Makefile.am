@@ -127,7 +127,7 @@ if HAVE_INTROSPECTION
 introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c gsf-input-stream.h, $(libhwp_la_SOURCES))
 
 HWP-0.2.gir: libhwp.la
-HWP_0_2_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0
+HWP_0_2_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
 HWP_0_2_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_CFLAGS)
 HWP_0_2_gir_LIBS = libhwp.la
 HWP_0_2_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
