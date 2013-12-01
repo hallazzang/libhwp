@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HWP_PARSER_H__
-#define __HWP_PARSER_H__
+#ifndef __HWP_HWP5_PARSER_H__
+#define __HWP_HWP5_PARSER_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -29,28 +29,28 @@
 
 G_BEGIN_DECLS
 
-#define HWP_TYPE_PARSER             (hwp_parser_get_type ())
-#define HWP_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_PARSER, HWPParser))
-#define HWP_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_PARSER, HWPParserClass))
-#define HWP_IS_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_PARSER))
-#define HWP_IS_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PARSER))
-#define HWP_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PARSER, HWPParserClass))
+#define HWP_TYPE_HWP5_PARSER             (hwp_hwp5_parser_get_type ())
+#define HWP_HWP5_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP5_PARSER, HWPHWP5Parser))
+#define HWP_HWP5_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP5_PARSER, HWPHWP5ParserClass))
+#define HWP_IS_HWP5_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWP5_PARSER))
+#define HWP_IS_HWP5_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWP5_PARSER))
+#define HWP_HWP5_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP5_PARSER, HWPHWP5ParserClass))
 
-typedef struct _HWPParser        HWPParser;
-typedef struct _HWPParserClass   HWPParserClass;
-typedef struct _HWPParserPrivate HWPParserPrivate;
+typedef struct _HWPHWP5Parser        HWPHWP5Parser;
+typedef struct _HWPHWP5ParserClass   HWPHWP5ParserClass;
+typedef struct _HWPHWP5ParserPrivate HWPHWP5ParserPrivate;
 
-struct _HWPParserClass
+struct _HWPHWP5ParserClass
 {
   GObjectClass parent_class;
 };
 
-struct _HWPParser
+struct _HWPHWP5Parser
 {
   GObject                  parent_instance;
-  HWPParserPrivate *priv;
+	HWPHWP5ParserPrivate    *priv;
 
-  HWPListener            *listener;
+  HWPListener             *listener;
   gpointer                 user_data;
   GInputStream            *stream;
   /* from record header */
@@ -69,27 +69,28 @@ struct _HWPParser
   guint8                   extra_version;
 };
 
-struct _HWPParserPrivate
+struct _HWPHWP5ParserPrivate
 {
   guint32  header;
   gsize    bytes_read;
   gboolean ret;
 };
 
-GType             hwp_parser_get_type (void) G_GNUC_CONST;
-HWPParser *hwp_parser_new      (HWPListener       *listener,
-                                               gpointer          user_data);
-void              hwp_parser_parse    (HWPParser *parser,
-                                               HWPFileV5       *file,
-                                               GError          **error);
-gboolean     hwp_parser_pull     (HWPParser  *parser, GError **error);
-gboolean     parser_read_uint16   (HWPParser  *parser,
-                                    guint16      *i);
-gboolean     parser_read_uint32   (HWPParser  *parser,
-                                    guint32      *i);
-gboolean     parser_skip          (HWPParser  *parser,
-                                    guint16       count);
+GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
+HWPHWP5Parser *hwp_hwp5_parser_new         (HWPListener   *listener,
+                                            gpointer       user_data);
+void           hwp_hwp5_parser_parse       (HWPHWP5Parser *parser,
+                                            HWPFileV5     *file,
+                                            GError       **error);
+gboolean       hwp_hwp5_parser_pull        (HWPHWP5Parser *parser,
+                                            GError       **error);
+gboolean       hwp_hwp5_parser_read_uint16 (HWPHWP5Parser *parser,
+                                            guint16       *i);
+gboolean       hwp_hwp5_parser_read_uint32 (HWPHWP5Parser *parser,
+                                            guint32       *i);
+gboolean       hwp_hwp5_parser_skip        (HWPHWP5Parser *parser,
+                                            guint16        count);
 
 G_END_DECLS
 
-#endif /* __HWP_PARSER_H__ */
+#endif /* __HWP_HWP5_PARSER_H__ */

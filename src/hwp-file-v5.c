@@ -59,9 +59,9 @@ HWPDocument *hwp_file_v5_get_document (HWPFile *file, GError **error)
 
   HWPDocument *document = hwp_document_new ();
 
-  HWPParser *parser;
-  parser = hwp_parser_new (HWP_LISTENER (document), document);
-  hwp_parser_parse (parser, HWP_FILE_V5 (file), error);
+  HWPHWP5Parser *parser;
+  parser = hwp_hwp5_parser_new (HWP_LISTENER (document), document);
+  hwp_hwp5_parser_parse (parser, HWP_FILE_V5 (file), error);
   g_object_unref (parser);
 
   if (*error) {

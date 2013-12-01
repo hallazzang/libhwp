@@ -3,17 +3,17 @@
  * hwp-hwp5-parser.c
  *
  * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
- * 
+ *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,12 +29,12 @@
 #include "gsf-input-stream.h"
 #include "hwp-hwp5-parser.h"
 
-G_DEFINE_TYPE (HWPParser, hwp_parser, G_TYPE_OBJECT)
+G_DEFINE_TYPE (HWPHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
 
 static HWPParagraph *
-hwp_parser_get_paragraph (HWPParser *parser, HWPFileV5 *file);
+hwp_hwp5_parser_get_paragraph (HWPHWP5Parser *parser, HWPFileV5 *file);
 
-gboolean parser_skip (HWPParser *parser, guint16 count)
+gboolean parser_skip (HWPHWP5Parser *parser, guint16 count)
 {
   g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -60,7 +60,7 @@ gboolean parser_skip (HWPParser *parser, guint16 count)
   return TRUE;
 }
 
-gboolean parser_read_uint16 (HWPParser *parser, guint16 *i)
+gboolean parser_read_uint16 (HWPHWP5Parser *parser, guint16 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
     g_return_val_if_fail (parser->data_count <= parser->data_len - 2, FALSE);
@@ -82,7 +82,7 @@ gboolean parser_read_uint16 (HWPParser *parser, guint16 *i)
     return TRUE;
 }
 
-gboolean parser_read_uint32 (HWPParser *parser, guint32 *i)
+gboolean parser_read_uint32 (HWPHWP5Parser *parser, guint32 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
     g_return_val_if_fail (parser->data_count <= parser->data_len - 4, FALSE);
@@ -107,9 +107,9 @@ gboolean parser_read_uint32 (HWPParser *parser, guint32 *i)
 /* 에러일 경우 FALSE 반환, error 설정,
  * 성공일 경우 TRUE 반환,
  * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
-gboolean hwp_parser_pull (HWPParser *parser, GError **error)
+gboolean hwp_hwp5_parser_pull (HWPHWP5Parser *parser, GError **error)
 {
-  g_return_val_if_fail (HWP_IS_PARSER (parser), FALSE);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
   if (parser->state == HWP_PARSE_STATE_PASSING) {
       parser->state = HWP_PARSE_STATE_NORMAL;
@@ -194,10 +194,10 @@ gboolean hwp_parser_pull (HWPParser *parser, GError **error)
   return TRUE;
 }
 
-/*HWPParser *hwp_parser_new (GInputStream *stream)*/
+/*HWPHWP5Parser *hwp_hwp5_parser_new (GInputStream *stream)*/
 /*{*/
 /*    g_return_val_if_fail (stream != NULL, NULL);*/
-/*    HWPParser *parser = g_object_new (HWP_TYPE_PARSER, NULL);*/
+/*    HWPHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);*/
 /*    parser->stream = g_object_ref (stream);*/
 /*    return parser;*/
 /*}*/
@@ -205,10 +205,10 @@ gboolean hwp_parser_pull (HWPParser *parser, GError **error)
 /**
  * Since: TODO
  */
-HWPParser *
-hwp_parser_new (HWPListener *listener, gpointer user_data)
+HWPHWP5Parser *
+hwp_hwp5_parser_new (HWPListener *listener, gpointer user_data)
 {
-  HWPParser *parser = g_object_new (HWP_TYPE_PARSER, NULL);
+  HWPHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
   parser->listener           = listener;
   parser->user_data        = user_data;
 
@@ -223,8 +223,8 @@ static void parse_doc_info (HWPFileV5 *file, HWPDocument *document)
 /*    int i;*/
 
 /*    GInputStream *stream  = file->doc_info_stream;
-    HWPParser  *parser = hwp_parser_new (stream);
-    while (hwp_parser_pull (parser, error)) {
+    HWPHWP5Parser  *parser = hwp_hwp5_parser_new (stream);
+    while (hwp_hwp5_parser_pull (parser, error)) {
         switch (parser->tag_id) {
         case HWP_TAG_DOCUMENT_PROPERTIES:*/
             /* TODO */
@@ -246,11 +246,11 @@ static void parse_doc_info (HWPFileV5 *file, HWPDocument *document)
     g_object_unref (parser);*/
 }
 
-static void parse_section_definition (HWPParser *parser)
+static void parse_section_definition (HWPHWP5Parser *parser)
 {
     GError *error = NULL;
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < 2) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -279,11 +279,11 @@ static void parse_section_definition (HWPParser *parser)
 }
 
 /* 머리말 */
-static void parse_header (HWPParser *parser, HWPFileV5 *file)
+static void parse_header (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
     GError *error = NULL;
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < 2) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -301,7 +301,7 @@ static void parse_header (HWPParser *parser, HWPFileV5 *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -312,13 +312,13 @@ static void parse_header (HWPParser *parser, HWPFileV5 *file)
 }
 
 /* 각주 */
-static void parse_footnote (HWPParser *parser, HWPFileV5 *file)
+static void parse_footnote (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -336,7 +336,7 @@ static void parse_footnote (HWPParser *parser, HWPFileV5 *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -346,13 +346,13 @@ static void parse_footnote (HWPParser *parser, HWPFileV5 *file)
     } /* while */
 }
 
-static void parse_tcmt (HWPParser *parser, HWPFileV5 *file)
+static void parse_tcmt (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -370,7 +370,7 @@ static void parse_tcmt (HWPParser *parser, HWPFileV5 *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -410,9 +410,9 @@ static void parse_tcmt (HWPParser *parser, HWPFileV5 *file)
  */
 
 static HWPTable *
-hwp_parser_get_table (HWPParser *parser, HWPFileV5 *file)
+hwp_hwp5_parser_get_table (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
-    g_return_val_if_fail (HWP_IS_PARSER (parser), NULL);
+    g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
     HWPTable *table = hwp_table_new ();
 
     parser_read_uint32 (parser, &table->flags);
@@ -450,9 +450,9 @@ hwp_parser_get_table (HWPParser *parser, HWPFileV5 *file)
     return table;
 }
 
-static HWPTableCell *hwp_parser_get_table_cell (HWPParser *parser)
+static HWPTableCell *hwp_hwp5_parser_get_table_cell (HWPHWP5Parser *parser)
 {
-    g_return_val_if_fail (HWP_IS_PARSER (parser), NULL);
+    g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
     HWPTableCell *table_cell = hwp_table_cell_new ();
     /* 표 60 LIST_HEADER */
@@ -500,7 +500,7 @@ static HWPTableCell *hwp_parser_get_table_cell (HWPParser *parser)
     return table_cell;
 }
 
-static void parse_table (HWPParser *parser, HWPFileV5 *file)
+static void parse_table (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
     GError *error = NULL;
     guint16 level = parser->level + 1;
@@ -509,7 +509,7 @@ static void parse_table (HWPParser *parser, HWPFileV5 *file)
     HWPTableCell *cell      = NULL;
     HWPParagraph *paragraph = NULL;
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -525,15 +525,15 @@ static void parse_table (HWPParser *parser, HWPFileV5 *file)
 
         switch (parser->tag_id) {
         case HWP_TAG_TABLE:
-            table = hwp_parser_get_table (parser, file);
+            table = hwp_hwp5_parser_get_table (parser, file);
             break;
         case HWP_TAG_LIST_HEADER: /* cell */
-            cell = hwp_parser_get_table_cell (parser);
+            cell = hwp_hwp5_parser_get_table_cell (parser);
             hwp_table_add_cell (table, cell);
             break;
         case HWP_TAG_PARA_HEADER:
             parser->state = HWP_PARSE_STATE_INSIDE_TABLE;
-            paragraph = hwp_parser_get_paragraph (parser, file);
+            paragraph = hwp_hwp5_parser_get_paragraph (parser, file);
             break;
         default:
             g_error ("%s:%d:%s not implemented",
@@ -545,7 +545,7 @@ static void parse_table (HWPParser *parser, HWPFileV5 *file)
     /* add table to where ? */
 }
 
-static gchar *hwp_parser_get_text (HWPParser *parser)
+static gchar *hwp_hwp5_parser_get_text (HWPHWP5Parser *parser)
 {
     g_return_val_if_fail (parser != NULL, NULL);
     gunichar2 ch; /* guint16 */
@@ -619,13 +619,13 @@ static gchar *hwp_parser_get_text (HWPParser *parser)
     return g_string_free(text, FALSE);
 }
 
-static void parse_shape_component (HWPParser *parser, HWPFileV5 *file)
+static void parse_shape_component (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -655,13 +655,13 @@ static void parse_shape_component (HWPParser *parser, HWPFileV5 *file)
 }
 
 static void
-parse_drawing_shape_object (HWPParser *parser, HWPFileV5 *file)
+parse_drawing_shape_object (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
   printf("level = %d\n", level);
 
-    while (hwp_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -688,7 +688,7 @@ parse_drawing_shape_object (HWPParser *parser, HWPFileV5 *file)
 }
 
 static HWPParagraph *
-hwp_parser_get_paragraph (HWPParser *parser, HWPFileV5 *file)
+hwp_hwp5_parser_get_paragraph (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
@@ -697,7 +697,7 @@ hwp_parser_get_paragraph (HWPParser *parser, HWPFileV5 *file)
   HWPText      *hwp_text = NULL;
   gchar         *text      = NULL;
 
-  while (hwp_parser_pull(parser, &error)) {
+  while (hwp_hwp5_parser_pull(parser, &error)) {
     if (parser->level < level) {
         parser->state = HWP_PARSE_STATE_PASSING;
         break;
@@ -713,7 +713,7 @@ hwp_parser_get_paragraph (HWPParser *parser, HWPFileV5 *file)
 
     switch (parser->tag_id) {
     case HWP_TAG_PARA_TEXT:
-      text = hwp_parser_get_text (parser);
+      text = hwp_hwp5_parser_get_text (parser);
       hwp_text = hwp_text_new (text);
       hwp_paragraph_set_hwp_text (paragraph, hwp_text);
 /*      printf ("%s\n", text);*/
@@ -780,14 +780,14 @@ hwp_parser_get_paragraph (HWPParser *parser, HWPFileV5 *file)
   return paragraph;
 }
 
-static void parse_section (HWPParser *parser, HWPFileV5  *file)
+static void parse_section (HWPHWP5Parser *parser, HWPFileV5  *file)
 {
   GError        *error     = NULL;
   HWPParagraph *paragraph = NULL;
 
   HWPListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
-  while (hwp_parser_pull(parser, &error))
+  while (hwp_hwp5_parser_pull(parser, &error))
   {
     printf ("%d", parser->level);
     for (int i = 0; i < parser->level; i++) {
@@ -802,7 +802,7 @@ static void parse_section (HWPParser *parser, HWPFileV5  *file)
       if (!iface->object)
         break;
 
-      paragraph = hwp_parser_get_paragraph (parser, file);
+      paragraph = hwp_hwp5_parser_get_paragraph (parser, file);
       iface->object (parser->listener,
                               G_OBJECT (paragraph),
                               parser->user_data,
@@ -817,7 +817,7 @@ static void parse_section (HWPParser *parser, HWPFileV5  *file)
   } /* while */
 }
 
-static void parse_sections (HWPParser *parser, HWPFileV5 *file)
+static void parse_sections (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
   for (guint i = 0; i < file->section_streams->len; i++)
   {
@@ -828,14 +828,14 @@ static void parse_sections (HWPParser *parser, HWPFileV5 *file)
   }
 }
 
-static void parse_body_text (HWPParser *parser, HWPFileV5 *file)
+static void parse_body_text (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
     g_return_if_fail (HWP_IS_FILE_V5 (file));
 
     parse_sections (parser, file);
 }
 
-static void parse_view_text (HWPParser *parser, HWPFileV5 *file)
+static void parse_view_text (HWPHWP5Parser *parser, HWPFileV5 *file)
 {
     g_return_if_fail (HWP_IS_FILE_V5 (file));
 
@@ -987,13 +987,13 @@ static void parse_prv_text (HWPFileV5 *file, HWPDocument *document)
     g_object_unref (gis);
 }
 
-gboolean hwp_parser_check_version (HWPParser *parser,
+gboolean hwp_hwp5_parser_check_version (HWPHWP5Parser *parser,
                                            guint8            major,
                                            guint8            minor,
                                            guint8            micro,
                                            guint8            extra)
 {
-    g_return_val_if_fail (HWP_IS_PARSER (parser), FALSE);
+    g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
     return (parser->major_version >  major)   ||
            (parser->major_version == major &&
@@ -1010,7 +1010,7 @@ gboolean hwp_parser_check_version (HWPParser *parser,
 /*
  * Since: TODO
  */
-void hwp_parser_parse (HWPParser *parser,
+void hwp_hwp5_parser_parse (HWPHWP5Parser *parser,
                                HWPFileV5       *file,
                                GError          **error)
 {
@@ -1038,27 +1038,28 @@ void hwp_parser_parse (HWPParser *parser,
 /*    parse_doc_history    (file, document);*/
 }
 
-static void hwp_parser_init (HWPParser * parser)
+static void hwp_hwp5_parser_init (HWPHWP5Parser *parser)
 {
+  parser->priv = G_TYPE_INSTANCE_GET_PRIVATE (parser,
+                                              HWP_TYPE_HWP5_PARSER,
+                                              HWPHWP5ParserPrivate);
   parser->state = HWP_PARSE_STATE_NORMAL;
-  parser->priv  = G_TYPE_INSTANCE_GET_PRIVATE (parser,
-                                                HWP_TYPE_PARSER,
-                                                HWPParserPrivate);
 }
 
-static void hwp_parser_finalize (GObject *obj)
+static void hwp_hwp5_parser_finalize (GObject *object)
 {
-  HWPParser *parser = HWP_PARSER(obj);
+  HWPHWP5Parser *parser = HWP_HWP5_PARSER (object);
   if (G_IS_INPUT_STREAM (parser->stream)) {
     g_input_stream_close (parser->stream, NULL, NULL);
     g_object_unref (parser->stream);
   }
-  G_OBJECT_CLASS (hwp_parser_parent_class)->finalize (obj);
+
+  G_OBJECT_CLASS (hwp_hwp5_parser_parent_class)->finalize (object);
 }
 
-static void hwp_parser_class_init (HWPParserClass * klass)
+static void hwp_hwp5_parser_class_init (HWPHWP5ParserClass *klass)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (HWPParserPrivate));
-    object_class->finalize = hwp_parser_finalize;
+  GObjectClass* object_class = G_OBJECT_CLASS (klass);
+  g_type_class_add_private (klass, sizeof (HWPHWP5ParserPrivate));
+  object_class->finalize = hwp_hwp5_parser_finalize;
 }

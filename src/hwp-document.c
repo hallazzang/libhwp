@@ -63,6 +63,7 @@ HWPDocument *hwp_document_new_from_uri (const gchar *uri, GError **error)
 }
 
 /**
+ * hwp_document_new_from_filename:
  * Since: 0.1
  */
 HWPDocument *
