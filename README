@@ -32,8 +32,8 @@ the HWP file format open specification by Hancom, Inc.
 http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 
 
-INSTALL
--------
+INSTALL for Developer
+---------------------
 sudo apt-get update
 sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libpango1.0-dev libxml2-dev
 
@@ -43,10 +43,10 @@ sudo make install
 sudo ldconfig
 
 
-Making deb Package
-------------------
+Making deb Package for end user
+-------------------------------
 cd libhwp
-./autogen.sh # because of po files
+./autogen.sh # because of .po files
 dch -l custom
 dpkg-buildpackage -b
 ls ..
