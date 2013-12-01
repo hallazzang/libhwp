@@ -46,7 +46,7 @@ sudo ldconfig
 Making deb Package
 ------------------
 cd libhwp
-./autogen.sh (because of po files)
+./autogen.sh # because of po files
 dch -l custom
 dpkg-buildpackage -b
 ls ..
