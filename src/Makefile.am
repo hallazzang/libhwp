@@ -3,10 +3,10 @@
 
 lib_LTLIBRARIES = libhwp.la
 
-hwp_headers =               \
-	hwp-context-v3.h    \
+INST_H_FILES =          \
 	hwp-document.h      \
 	hwp-enums.h         \
+	hwp-enum-types.h    \
 	hwp-file.h          \
 	hwp-file-ml.h       \
 	hwp-file-v3.h       \
@@ -15,32 +15,27 @@ hwp_headers =               \
 	hwp-models.h        \
 	hwp-page.h          \
 	hwp-listener.h      \
-	hwp-hwp5-parser.h        \
+	hwp-hwp3-parser.h   \
+	hwp-hwp5-parser.h   \
 	hwp-version.h       \
-	gsf-input-stream.h   \
-	hnc2unicode.h        \
+	hnc2unicode.h       \
 	$(NULL)
 
-NOINST_H_FILES = \
-	$(NULL)
-
-INST_H_FILES =            \
-	$(hwp_headers)   \
-	hwp-enum-types.h \
+NOINST_H_FILES =        \
+	gsf-input-stream.h  \
 	$(NULL)
 
 hwpincludedir = $(includedir)/hwp
 hwpinclude_HEADERS =   \
-	$(INST_H_FILES) \
+	$(INST_H_FILES)    \
 	$(NULL)
 
-BUILT_SOURCES =           \
+BUILT_SOURCES =      \
 	hwp-enum-types.h \
 	hwp-enum-types.c \
 	$(NULL)
 
-libhwp_la_SOURCES =         \
-	hwp-context-v3.c    \
+libhwp_la_SOURCES =     \
 	hwp-document.c      \
 	hwp-enums.c         \
 	hwp-file.c          \
@@ -50,31 +45,32 @@ libhwp_la_SOURCES =         \
 	hwp-models.c        \
 	hwp-page.c          \
 	hwp-listener.c      \
-	hwp-hwp5-parser.c        \
-	gsf-input-stream.c   \
-	hnc2unicode.c        \
+	hwp-hwp3-parser.c   \
+	hwp-hwp5-parser.c   \
+	gsf-input-stream.c  \
+	hnc2unicode.c       \
 	hwp-enum-types.c    \
-	$(NOINST_H_FILES)    \
-	$(INST_H_FILES)      \
+	$(NOINST_H_FILES)   \
+	$(INST_H_FILES)     \
 	$(NULL)
 
-libhwp_la_CPPFLAGS =           \
-	-DG_LOG_DOMAIN=\"HWP\" \
-	-DHWP_COMPILATION      \
+libhwp_la_CPPFLAGS =        \
+	-DG_LOG_DOMAIN=\"HWP\"  \
+	-DHWP_COMPILATION       \
 	$(AM_CPPFLAGS)          \
 	$(NULL)
 
-libhwp_la_CFLAGS =     \
-	$(HWP_CFLAGS)  \
+libhwp_la_CFLAGS =  \
+	$(HWP_CFLAGS)   \
 	-Wall           \
 	$(AM_CFLAGS)    \
 	$(NULL)
 
-libhwp_la_LDFLAGS =                          \
+libhwp_la_LDFLAGS =                      \
 	-version-info $(HWP_LT_VERSION_INFO) \
-	-no-undefined                         \
+	-no-undefined                        \
 	-export-symbols-regex "^hwp_*"       \
-	$(AM_LDFLAGS)                         \
+	$(AM_LDFLAGS)                        \
 	$(NULL)
 
 libhwp_la_LIBADD = $(HWP_LIBS)
@@ -82,19 +78,21 @@ libhwp_la_LIBADD = $(HWP_LIBS)
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hwp-0.2.pc
 
-EXTRA_DIST =                       \
+EXTRA_DIST =                  \
 	hwp-0.2.pc.in             \
 	hwp-version.h.in          \
 	hwp-enum-types.h.template \
 	hwp-enum-types.c.template \
 	$(NULL)
 
-DISTCLEANFILES =          \
+DISTCLEANFILES =     \
 	hwp-0.2.pc       \
 	hwp-version.h    \
 	hwp-enum-types.h \
 	hwp-enum-types.c \
 	$(NULL)
+
+hwp_headers = $(filter-out hwp-enum-types.h, $(INST_H_FILES))
 
 hwp-enum-types.h: $(hwp_headers) hwp-enum-types.h.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix HWP --template \
@@ -118,13 +116,16 @@ unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(HWP_CFLAGS)
 unhwp_LDADD     = libhwp.la $(HWP_LIBS)
 
-include $(INTROSPECTION_MAKEFILE)
+CLEANFILES = $(gir_DATA) $(typelib_DATA)
+
+-include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all --identifier-prefix=HWP --symbol-prefix=hwp
+INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) --warn-all \
+                              --identifier-prefix=HWP --symbol-prefix=hwp
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c gsf-input-stream.h, $(libhwp_la_SOURCES))
+introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c, $(libhwp_la_SOURCES))
 
 HWP-0.2.gir: libhwp.la
 HWP_0_2_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
@@ -140,5 +141,4 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
-CLEANFILES = $(gir_DATA) $(typelib_DATA)
 endif

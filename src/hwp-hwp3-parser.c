@@ -1,6 +1,6 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-context-v3.c
+ * hwp-hwp3-parser.c
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -18,52 +18,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hwp-context-v3.h"
+#include "hwp-hwp3-parser.h"
 
-G_DEFINE_TYPE (HWPContextV3, hwp_context_v3, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HWPHWP3Parser, hwp_hwp3_parser, G_TYPE_OBJECT);
 
-HWPContextV3 *hwp_context_v3_new (GInputStream *stream)
+HWPHWP3Parser *hwp_hwp3_parser_new (GInputStream *stream)
 {
     g_return_val_if_fail (stream != NULL, NULL);
-    HWPContextV3 *context = g_object_new (HWP_TYPE_CONTEXT_V3, NULL);
-    context->stream = g_object_ref (stream);
-    return context;
+    HWPHWP3Parser *parser = g_object_new (HWP_TYPE_HWP3_PARSER, NULL);
+    parser->stream = g_object_ref (stream);
+    return parser;
 }
 
-gboolean hwp_context_v3_read_uint8 (HWPContextV3 *context, guint8 *i)
+gboolean hwp_hwp3_parser_read_uint8 (HWPHWP3Parser *parser, guint8 *i)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, i, 1,
-                                          &context->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, i, 1,
+                                          &parser->bytes_read,
                                           NULL, NULL);
     if ((is_success == FALSE) ||
-        (context->bytes_read != 1) ||
-        (context->bytes_read == 0))
+        (parser->bytes_read != 1) ||
+        (parser->bytes_read == 0))
     {
         *i = 0;
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
 
     return TRUE;
 }
 
-gboolean hwp_context_v3_read_uint16 (HWPContextV3 *context, guint16 *i)
+gboolean hwp_hwp3_parser_read_uint16 (HWPHWP3Parser *parser, guint16 *i)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, i, 2,
-                                          &context->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, i, 2,
+                                          &parser->bytes_read,
                                           NULL, NULL);
     if ((is_success == FALSE) ||
-        (context->bytes_read != 2) ||
-        (context->bytes_read == 0))
+        (parser->bytes_read != 2) ||
+        (parser->bytes_read == 0))
     {
         *i = 0;
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
     *i = GUINT16_FROM_LE(*i);
@@ -71,20 +71,20 @@ gboolean hwp_context_v3_read_uint16 (HWPContextV3 *context, guint16 *i)
     return TRUE;
 }
 
-gboolean hwp_context_v3_read_uint32 (HWPContextV3 *context, guint32 *i)
+gboolean hwp_hwp3_parser_read_uint32 (HWPHWP3Parser *parser, guint32 *i)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, i, 4,
-                                          &context->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, i, 4,
+                                          &parser->bytes_read,
                                           NULL, NULL);
     if ((is_success == FALSE) ||
-        (context->bytes_read != 4) ||
-        (context->bytes_read == 0))
+        (parser->bytes_read != 4) ||
+        (parser->bytes_read == 0))
     {
         *i = 0;
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
     *i = GUINT32_FROM_LE(*i);
@@ -92,59 +92,64 @@ gboolean hwp_context_v3_read_uint32 (HWPContextV3 *context, guint32 *i)
     return TRUE;
 }
 
-gboolean hwp_context_v3_read (HWPContextV3 *context, void *buffer, gsize count)
+gboolean hwp_hwp3_parser_read (HWPHWP3Parser *parser, void *buffer, gsize count)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
 
     gboolean is_success = FALSE;
-    is_success = g_input_stream_read_all (context->stream, buffer, count,
-                                          &context->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, buffer, count,
+                                          &parser->bytes_read,
                                           NULL, NULL);
-    if ((is_success == FALSE) || (context->bytes_read == 0))
+    if ((is_success == FALSE) || (parser->bytes_read == 0))
     {
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
 
     return TRUE;
 }
 
-gboolean hwp_context_v3_skip (HWPContextV3 *context, guint16 count)
+gboolean hwp_hwp3_parser_skip (HWPHWP3Parser *parser, guint16 count)
 {
-    g_return_val_if_fail (context != NULL, FALSE);
+    g_return_val_if_fail (parser != NULL, FALSE);
 
     gboolean is_success = FALSE;
     guint8  *buf        = g_malloc (count);
 
-    is_success = g_input_stream_read_all (context->stream, buf, (gsize) count,
-                                          &context->bytes_read,
+    is_success = g_input_stream_read_all (parser->stream, buf, (gsize) count,
+                                          &parser->bytes_read,
                                           NULL, NULL);
     g_free (buf);
 
-    if ((is_success == FALSE) || (context->bytes_read != (gsize) count))
+    if ((is_success == FALSE) || (parser->bytes_read != (gsize) count))
     {
         g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
-        g_input_stream_close (context->stream, NULL, NULL);
+        g_input_stream_close (parser->stream, NULL, NULL);
         return FALSE;
     }
 
     return TRUE;
 }
 
-static void hwp_context_v3_init (HWPContextV3 *hwp_context_v3)
+static void hwp_hwp3_parser_init (HWPHWP3Parser *parser)
 {
-
+  parser->priv = G_TYPE_INSTANCE_GET_PRIVATE (parser,
+                                              HWP_TYPE_HWP3_PARSER,
+                                              HWPHWP3ParserPrivate);
 }
 
-static void hwp_context_v3_finalize (GObject *object)
+static void
+hwp_hwp3_parser_finalize (GObject *object)
 {
-    HWPContextV3 *context = HWP_CONTEXT_V3(object);
-    g_object_unref (context->stream);
-	G_OBJECT_CLASS (hwp_context_v3_parent_class)->finalize (object);
+  HWPHWP3Parser *parser = HWP_HWP3_PARSER (object);
+  g_object_unref (parser->stream);
+
+  G_OBJECT_CLASS (hwp_hwp3_parser_parent_class)->finalize (object);
 }
 
-static void hwp_context_v3_class_init (HWPContextV3Class *klass)
+static void hwp_hwp3_parser_class_init (HWPHWP3ParserClass *klass)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	object_class->finalize = hwp_context_v3_finalize;
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  g_type_class_add_private (klass, sizeof (HWPHWP3ParserPrivate));
+  object_class->finalize = hwp_hwp3_parser_finalize;
 }

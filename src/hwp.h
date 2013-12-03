@@ -24,7 +24,7 @@
 
 #define __HWP_H_INSIDE__
 
-#include "hwp-context-v3.h"
+#include "hwp-hwp3-parser.h"
 #include "hwp-document.h"
 #include "hwp-enums.h"
 #include "hwp-enum-types.h"

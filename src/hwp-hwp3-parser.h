@@ -1,6 +1,6 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-context-v3.h
+ * hwp-hwp3-parser.h
  *
  * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
  *
@@ -18,49 +18,56 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _HWP_CONTEXT_V3_H_
-#define _HWP_CONTEXT_V3_H_
+#ifndef __HWP_HWP3_PARSER_H__
+#define __HWP_HWP3_PARSER_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
 
-#define HWP_TYPE_CONTEXT_V3             (hwp_context_v3_get_type ())
-#define HWP_CONTEXT_V3(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_CONTEXT_V3, HWPContextV3))
-#define HWP_CONTEXT_V3_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_CONTEXT_V3, HWPContextV3Class))
-#define HWP_IS_CONTEXT_V3(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_CONTEXT_V3))
-#define HWP_IS_CONTEXT_V3_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_CONTEXT_V3))
-#define HWP_CONTEXT_V3_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_CONTEXT_V3, HWPContextV3Class))
+#define HWP_TYPE_HWP3_PARSER             (hwp_hwp3_parser_get_type ())
+#define HWP_HWP3_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP3_PARSER, HWPHWP3Parser))
+#define HWP_HWP3_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP3_PARSER, HWPHWP3ParserClass))
+#define HWP_IS_HWP3_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWP3_PARSER))
+#define HWP_IS_HWP3_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWP3_PARSER))
+#define HWP_HWP3_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP3_PARSER, HWPHWP3ParserClass))
 
-typedef struct _HWPContextV3Class HWPContextV3Class;
-typedef struct _HWPContextV3      HWPContextV3;
+typedef struct _HWPHWP3Parser        HWPHWP3Parser;
+typedef struct _HWPHWP3ParserClass   HWPHWP3ParserClass;
+typedef struct _HWPHWP3ParserPrivate HWPHWP3ParserPrivate;
 
-struct _HWPContextV3Class
+struct _HWPHWP3ParserClass
 {
-	GObjectClass parent_class;
+  GObjectClass parent_class;
 };
 
-struct _HWPContextV3
+struct _HWPHWP3Parser
 {
-	GObject       parent_instance;
-    GInputStream *stream;
-    gsize         bytes_read;
+  GObject               parent_instance;
+  HWPHWP3ParserPrivate *priv;
+
+  GInputStream         *stream;
+  gsize                 bytes_read;
 };
 
-GType          hwp_context_v3_get_type    (void) G_GNUC_CONST;
-HWPContextV3 *hwp_context_v3_new         (GInputStream  *stream);
-gboolean       hwp_context_v3_read_uint8  (HWPContextV3 *context,
+struct _HWPHWP3ParserPrivate
+{
+};
+
+GType          hwp_hwp3_parser_get_type    (void) G_GNUC_CONST;
+HWPHWP3Parser *hwp_hwp3_parser_new         (GInputStream  *stream);
+gboolean       hwp_hwp3_parser_read_uint8  (HWPHWP3Parser *parser,
                                             guint8        *i);
-gboolean       hwp_context_v3_read_uint16 (HWPContextV3 *context,
+gboolean       hwp_hwp3_parser_read_uint16 (HWPHWP3Parser *parser,
                                             guint16       *i);
-gboolean       hwp_context_v3_read_uint32 (HWPContextV3 *context,
+gboolean       hwp_hwp3_parser_read_uint32 (HWPHWP3Parser *parser,
                                             guint32       *i);
-gboolean       hwp_context_v3_read        (HWPContextV3 *context,
+gboolean       hwp_hwp3_parser_read        (HWPHWP3Parser *parser,
                                             void          *buffer,
                                             gsize          count);
-gboolean       hwp_context_v3_skip        (HWPContextV3 *context,
+gboolean       hwp_hwp3_parser_skip        (HWPHWP3Parser *parser,
                                             guint16        count);
 G_END_DECLS
 
-#endif /* _HWP_CONTEXT_V3_H_ */
+#endif /* __HWP_HWP3_PARSER_H__ */
