@@ -2,7 +2,7 @@ LibHWP is a GObject based library for handling HWP documents.
 
 
 Project Homepage
-https://github.com/cogniti/libhwp
+https://bitbucket.org/hodong/libhwp
 
 
 What is HWP?
@@ -15,7 +15,7 @@ FEATURES
 --------
  * extract text in hwp v3, v5, ml file.
  * Bindings based on GObject-Introspection
-   * https://wiki.gnome.org/GObjectIntrospection/Users
+   * https://wiki.gnome.org/Projects/GObjectIntrospection/Users
 
 
 LISENSE
@@ -32,8 +32,8 @@ the HWP file format open specification by Hancom, Inc.
 http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 
 
-INSTALL for Developer
----------------------
+INSTALL for Developers
+----------------------
 sudo apt-get update
 sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libpango1.0-dev libxml2-dev
 
@@ -43,8 +43,8 @@ sudo make install
 sudo ldconfig
 
 
-Making deb Package for end user
--------------------------------
+Making deb Package for end users
+--------------------------------
 cd libhwp
 ./autogen.sh # because of .po files
 dch -l custom
@@ -54,8 +54,8 @@ ls ..
 
 Related Projects
 ----------------
-https://github.com/cogniti/ruby-hwp
-https://github.com/cogniti/evince-hwp
+https://bitbucket.org/hodong/ruby-hwp
+https://bitbucket.org/hodong/evince-hwp
 
 
 Disclosure
