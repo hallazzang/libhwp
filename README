@@ -35,7 +35,7 @@ http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 INSTALL for Developers
 ----------------------
 sudo apt-get update
-sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libpango1.0-dev libxml2-dev
+sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool libgsf-1-dev libcairo2-dev libpango1.0-dev libxml2-dev libgirepository1.0-dev
 
 ./autogen.sh
 make
