@@ -37,7 +37,6 @@
 #include "hwp-hwp5-parser.h"
 #include "hwp-listener.h"
 #include "hwp-version.h"
-#include "gsf-input-stream.h"
 #include "hnc2unicode.h"
 
 #undef __HWP_H_INSIDE__
