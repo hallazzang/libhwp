@@ -42,6 +42,8 @@ src/hwp2svg
 src/unhwp
 src/hwp-enum-types.h
 src/hwp-enum-types.c
+src/*.gir
+src/*.typelib
 
 # output files of dpkg-buildpackage
 debian/autoreconf.*
