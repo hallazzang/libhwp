@@ -2,7 +2,7 @@
 /*
  * hwp-document.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -37,41 +37,26 @@
 static void hwp_document_listener_iface_init (HWPListenerInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (HWPDocument, hwp_document, G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER,hwp_document_listener_iface_init))
+  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER, hwp_document_listener_iface_init))
 
 /**
- * hwp_document_new_from_uri:
- * @uri: uri of the file to load
+ * hwp_document_new_from_file:
+ * @filename: the path of a file, in the GLib filename encoding
  * @error: (allow-none): Return location for an error, or %NULL
  * 
  * Creates a new #HWPDocument.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #HWPDocument, or %NULL
+ * Returns: a new #HWPDocument, or %NULL
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
-HWPDocument *hwp_document_new_from_uri (const gchar *uri, GError **error)
-{
-    g_return_val_if_fail (uri != NULL, NULL);
-
-    gchar        *filename = g_filename_from_uri (uri, NULL, error);
-    HWPDocument *document = hwp_document_new_from_filename (filename, error);
-    g_free (filename);
-    return document;
-}
-
-/**
- * hwp_document_new_from_filename:
- * Since: 0.1
- */
-HWPDocument *
-hwp_document_new_from_filename (const gchar *filename, GError **error)
+HWPDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
-    HWPFile *file = hwp_file_new_from_filename (filename, error);
+    HWPFile *file = hwp_file_new_for_path (filename, error);
 
     if (file == NULL || *error) {
         return NULL;
@@ -81,12 +66,19 @@ hwp_document_new_from_filename (const gchar *filename, GError **error)
 }
 
 /**
- * Since: 0.1
+ * hwp_document_get_n_pages:
+ * @document: a #HWPDocument
+ *
+ * Gets the number of pages in a notebook.
+ *
+ * Return value: the number of pages in the document
+ *
+ * Since: 0.0.1
  */
-guint hwp_document_get_n_pages (HWPDocument *doc)
+guint hwp_document_get_n_pages (HWPDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (doc), 0U);
-    return doc->pages->len;
+    g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0U);
+    return document->pages->len;
 }
 
 /**
@@ -99,7 +91,7 @@ guint hwp_document_get_n_pages (HWPDocument *doc)
  * Returns: (transfer none): a #HWPPage
  *     DO NOT FREE the page.
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 HWPPage *hwp_document_get_page (HWPDocument *doc, gint n_page)
 {
@@ -113,9 +105,9 @@ HWPPage *hwp_document_get_page (HWPDocument *doc, gint n_page)
  * 
  * Creates a new #HWPDocument.
  * 
- * Return value: A newly created #HWPDocument
+ * Return value: a new #HWPDocument
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 HWPDocument *hwp_document_new (void)
 {
@@ -131,7 +123,7 @@ HWPDocument *hwp_document_new (void)
  * Return value: a new allocated string containing the title
  *               of @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_title (HWPDocument *document)
 {
@@ -148,7 +140,7 @@ gchar *hwp_document_get_title (HWPDocument *document)
  * Return value: a new allocated string containing keywords associated
  *               to @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_keywords (HWPDocument *document)
 {
@@ -165,7 +157,7 @@ gchar *hwp_document_get_keywords (HWPDocument *document)
  * Return value: a new allocated string containing the subject
  *               of @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_subject (HWPDocument *document)
 {
@@ -182,7 +174,7 @@ gchar *hwp_document_get_subject (HWPDocument *document)
  * Return value: a new allocated string containing the creator
  *               of @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_creator (HWPDocument *document)
 {
@@ -198,7 +190,7 @@ gchar *hwp_document_get_creator (HWPDocument *document)
  *
  * Return value: the date the document was created, or -1
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 GTime hwp_document_get_creation_date (HWPDocument *document)
 {
@@ -214,7 +206,7 @@ GTime hwp_document_get_creation_date (HWPDocument *document)
  *
  * Return value: the date the document was most recently modified, or -1
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 GTime hwp_document_get_modification_date (HWPDocument *document)
 {
@@ -231,7 +223,7 @@ GTime hwp_document_get_modification_date (HWPDocument *document)
  * Return value: a new allocated string containing the HWP format
  *               of @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_format (HWPDocument *document)
 {
@@ -253,7 +245,7 @@ gchar *hwp_document_get_format (HWPDocument *document)
  * Return value: a new allocated string containing the HWP version
  *               of @document, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 gchar *hwp_document_get_hwp_version_string (HWPDocument *document)
 {
@@ -274,7 +266,7 @@ gchar *hwp_document_get_hwp_version_string (HWPDocument *document)
  *
  * Returns: the major and minor and micro and extra HWP version numbers
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 void hwp_document_get_hwp_version (HWPDocument *document,
                                     guint8       *major_version,

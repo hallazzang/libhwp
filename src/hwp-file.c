@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -87,30 +87,6 @@ gchar *hwp_file_get_hwp_version_string (HWPFile *file)
     return HWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
 }
 
-/**
- * hwp_file_new_from_uri:
- * @uri: uri of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
- * 
- * Creates a new #HWPFile.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
- * domains.
- * 
- * Return value: A newly created #HWPFile, or %NULL
- *
- * Since: 0.1
- */
-HWPFile *hwp_file_new_from_uri (const gchar* uri, GError** error)
-{
-    g_return_val_if_fail (uri != NULL, NULL);
-
-    gchar    *filename = g_filename_from_uri (uri, NULL, error);
-    HWPFile *file     = hwp_file_new_from_filename (filename, error);
-    g_free (filename);
-
-    return file;
-}
-
 static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 {
     gchar *ptr1;
@@ -133,11 +109,21 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 }
 
 /**
- * Since: 0.1
+ * hwp_file_new_for_path:
+ * @path: path of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ * 
+ * Creates a new #HWPFile.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * domains.
+ * 
+ * Return value: A newly created #HWPFile, or %NULL
+ *
+ * Since: 0.0.1
  */
-HWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
+HWPFile *hwp_file_new_for_path (const gchar *path, GError **error)
 {
-    g_return_val_if_fail (filename != NULL, NULL);
+    g_return_val_if_fail (path != NULL, NULL);
 
     /* check signature */
     static const guint8 const signature_ole[] = {
@@ -152,7 +138,7 @@ HWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
         0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
     };
 
-    GFile            *file   = g_file_new_for_path (filename);
+    GFile            *file   = g_file_new_for_path (path);
     GFileInputStream *stream = g_file_read (file, NULL, error);
     g_object_unref (file);
 
@@ -169,13 +155,13 @@ HWPFile *hwp_file_new_from_filename (const gchar *filename, GError **error)
 
     if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
-        retval = HWP_FILE (hwp_file_v5_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_v5_new_for_path (path, error));
     } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
-        retval = HWP_FILE (hwp_file_v3_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_v3_new_for_path (path, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
-        retval = HWP_FILE (hwp_file_ml_new_from_filename (filename, error));
+        retval = HWP_FILE (hwp_file_ml_new_for_path (path, error));
     } else {
         /* invalid hwp file */
         g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,

@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp2svg.c
  * 
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -25,47 +25,47 @@
 
 int main (int argc, char **argv)
 {
-    GError *error = NULL;
-    HWPPage *page;
-    gdouble width = 0.0, height = 0.0;
+  GError  *error = NULL;
+  HWPPage *page;
+  gdouble  width = 0.0, height = 0.0;
 
-    if (argc < 2) {
-        puts ("Usage: hwp2svg file.hwp");
-        return 0;
-    }
+  if (argc < 2) {
+    puts ("Usage: hwp2svg file.hwp");
+    return 0;
+  }
 
 #if (!GLIB_CHECK_VERSION(2, 35, 0))
-    g_type_init();
+  g_type_init();
 #endif
 
-    HWPFile *file = hwp_file_new_from_filename (argv[1], &error);
-    HWPDocument *document = hwp_file_get_document (file, &error);
+  HWPFile     *file     = hwp_file_new_for_path (argv[1], &error);
+  HWPDocument *document = hwp_file_get_document (file,    &error);
 
-    guint n_pages = hwp_document_get_n_pages (document);
-    if (n_pages < 1) {
-        puts ("There is no page");
-        return -1;
-    }
+  guint n_pages = hwp_document_get_n_pages (document);
+  if (n_pages < 1) {
+    puts ("There is no page");
+    return -1;
+  }
 
-    cairo_surface_t *surface;
-    cairo_t *cr;
-    gchar *filename;
-    for (guint i = 0; i < n_pages; i++) {
-        hwp_page_get_size (page, &width, &height);
-        filename = g_strdup_printf("page%d.svg", i);
-        surface = cairo_svg_surface_create (filename, width, height);
-        cr = cairo_create (surface);
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  gchar *filename;
+  for (guint i = 0; i < n_pages; i++) {
+    hwp_page_get_size (page, &width, &height);
+    filename = g_strdup_printf("page%d.svg", i);
+    surface = cairo_svg_surface_create (filename, width, height);
+    cr = cairo_create (surface);
 
-        page = hwp_document_get_page (document, i);
-        hwp_page_render (page, cr);
-        cairo_show_page (cr);
+    page = hwp_document_get_page (document, i);
+    hwp_page_render (page, cr);
+    cairo_show_page (cr);
 
-        g_free (filename);
-        cairo_destroy (cr);
-        cairo_surface_destroy (surface);
-    }
+    g_free (filename);
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+  }
 
-    g_object_unref (document);
-    g_object_unref (file);
-    return 0;
+  g_object_unref (document);
+  g_object_unref (file);
+  return 0;
 }

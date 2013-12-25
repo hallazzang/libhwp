@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file-ml.c
  *
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -26,8 +26,8 @@
 G_DEFINE_TYPE (HWPFileML, hwp_file_ml, HWP_TYPE_FILE);
 
 /**
- * hwp_file_ml_new_from_uri:
- * @uri: uri of the file to load
+ * hwp_file_ml_new_for_path:
+ * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
  * Creates a new #HWPFileML.  If %NULL is returned, then @error will be
@@ -36,32 +36,18 @@ G_DEFINE_TYPE (HWPFileML, hwp_file_ml, HWP_TYPE_FILE);
  * 
  * Return value: A newly created #HWPFileML, or %NULL
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
-HWPFileML *hwp_file_ml_new_from_uri (const gchar *uri, GError **error)
+HWPFileML *hwp_file_ml_new_for_path (const gchar *path, GError **error)
 {
-    g_return_val_if_fail (uri != NULL, NULL);
+  g_return_val_if_fail (path != NULL, NULL);
 
-    HWPFileML *file = g_object_new (HWP_TYPE_FILE_ML, NULL);
-    file->priv->uri  = g_strdup (uri);
+  HWPFileML *file  = g_object_new (HWP_TYPE_FILE_ML, NULL);
+  GFile     *gfile = g_file_new_for_path (path);
+  file->priv->uri  = g_file_get_uri (gfile);
+  g_object_unref (gfile);
 
-    return file;
-}
-
-/**
- * Since: 0.2
- */
-HWPFileML *hwp_file_ml_new_from_filename (const gchar *filename,
-                                            GError     **error)
-{
-    g_return_val_if_fail (filename != NULL, NULL);
-
-    HWPFileML *file = g_object_new (HWP_TYPE_FILE_ML, NULL);
-    GFile     *gfile = g_file_new_for_path (filename);
-    file->priv->uri  = g_file_get_uri (gfile);
-    g_object_unref (gfile);
-
-    return file;
+  return file;
 }
 
 /**

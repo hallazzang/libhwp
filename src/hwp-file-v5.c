@@ -2,7 +2,7 @@
 /*
  * hwp-file-v5.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -152,29 +152,6 @@ gchar *hwp_file_v5_get_hwp_version_string (HWPFile *file)
                                          HWP_FILE_V5(file)->minor_version,
                                          HWP_FILE_V5(file)->micro_version,
                                          HWP_FILE_V5(file)->extra_version);
-}
-
-/**
- * hwp_file_v5_new_from_uri:
- * @uri: uri of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
- *
- * Creates a new #HWPFileV5.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
- * domains.
- *
- * Return value: A newly created #HWPFileV5, or %NULL
- *
- * Since: 0.2
- */
-HWPFileV5* hwp_file_v5_new_from_uri (const gchar* uri, GError** error)
-{
-    g_return_val_if_fail (uri != NULL, NULL);
-
-    gchar      *filename = g_filename_from_uri (uri, NULL, error);
-    HWPFileV5 *file     = hwp_file_v5_new_from_filename (filename, error);
-    g_free (filename);
-    return file;
 }
 
 /* TODO 에러 감지/전파 코드 있어야 한다. */
@@ -459,20 +436,26 @@ static void make_stream (HWPFileV5 *file, GError **error)
 }
 
 /**
- * Since: 0.2
+ * hwp_file_v5_new_for_path:
+ * @path: path of the file to load
+ * @error: (allow-none): Return location for an error, or %NULL
+ *
+ * Creates a new #HWPFileV5.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * domains.
+ *
+ * Return value: A newly created #HWPFileV5, or %NULL
+ *
+ * Since: 0.0.1
  */
-HWPFileV5* hwp_file_v5_new_from_filename (const gchar* filename, GError** error)
+HWPFileV5* hwp_file_v5_new_for_path (const gchar* path, GError** error)
 {
-    g_return_val_if_fail (filename != NULL, NULL);
-    GFile *gfile = g_file_new_for_path (filename);
+    g_return_val_if_fail (path != NULL, NULL);
 
     GsfInputStdio  *input;
     GsfInfileMSOle *olefile;
 
-    gchar *path = g_file_get_path(gfile);
-    g_object_unref (gfile);
     input = (GsfInputStdio*) gsf_input_stdio_new (path, error);
-    g_free (path);
 
     if (input == NULL) {
         g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);

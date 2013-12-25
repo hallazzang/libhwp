@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -25,8 +25,8 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#ifndef _HWP_FILE_H_
-#define _HWP_FILE_H_
+#ifndef __HWP_FILE_H__
+#define __HWP_FILE_H__
 
 #include <glib-object.h>
 #include <gio/gio.h>
@@ -47,18 +47,18 @@ typedef struct _HWPFile      HWPFile;
 typedef struct _HWPFileClass HWPFileClass;
 
 struct _HWPFile {
-    GObject parent_instance;
+  GObject parent_instance;
 };
 
 struct _HWPFileClass {
-    GObjectClass    parent_class;
-    HWPDocument* (*get_document)           (HWPFile *file, GError **error);
-    gchar*        (*get_hwp_version_string) (HWPFile* file);
-    void          (*get_hwp_version)        (HWPFile *file,
-                                             guint8   *major_version,
-                                             guint8   *minor_version,
-                                             guint8   *micro_version,
-                                             guint8   *extra_version);
+  GObjectClass   parent_class;
+  HWPDocument* (*get_document)           (HWPFile *file, GError **error);
+  gchar*       (*get_hwp_version_string) (HWPFile *file);
+  void         (*get_hwp_version)        (HWPFile *file,
+                                          guint8  *major_version,
+                                          guint8  *minor_version,
+                                          guint8  *micro_version,
+                                          guint8  *extra_version);
 };
 
 /**
@@ -81,25 +81,22 @@ struct _HWPFileClass {
  * Since: 0.2
  */
 typedef enum {
-    HWP_FILE_ERROR_INVALID
+  HWP_FILE_ERROR_INVALID
 } HWPFileError;
 
-GType         hwp_file_get_type          (void) G_GNUC_CONST;
-GQuark        hwp_file_error_quark       (void) G_GNUC_CONST;
-HWPFile     *hwp_file_new_from_uri      (const gchar* uri,
-                                           GError     **error);
-HWPFile     *hwp_file_new_from_filename (const gchar *filename,
-                                           GError     **error);
-HWPDocument *hwp_file_get_document      (HWPFile    *file,
-                                           GError     **error);
-gchar *
-hwp_file_get_hwp_version_string          (HWPFile*    self);
-void          hwp_file_get_hwp_version   (HWPFile    *file,
-                                           guint8      *major_version,
-                                           guint8      *minor_version,
-                                           guint8      *micro_version,
-                                           guint8      *extra_version);
+GType        hwp_file_get_type               (void) G_GNUC_CONST;
+GQuark       hwp_file_error_quark            (void) G_GNUC_CONST;
+HWPFile     *hwp_file_new_for_path           (const gchar *filename,
+                                              GError     **error);
+HWPDocument *hwp_file_get_document           (HWPFile     *file,
+                                              GError     **error);
+gchar       *hwp_file_get_hwp_version_string (HWPFile*     self);
+void         hwp_file_get_hwp_version        (HWPFile     *file,
+                                              guint8      *major_version,
+                                              guint8      *minor_version,
+                                              guint8      *micro_version,
+                                              guint8      *extra_version);
 
 G_END_DECLS
 
-#endif /* _HWP_FILE_H_ */
+#endif /* __HWP_FILE_H__ */

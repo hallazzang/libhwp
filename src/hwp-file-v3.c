@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file-v3.c
  *
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -33,34 +33,23 @@
 G_DEFINE_TYPE (HWPFileV3, hwp_file_v3, HWP_TYPE_FILE);
 
 /**
- * hwp_file_v3_new_from_uri:
- * @uri: uri of the file to load
+ * hwp_file_v3_new_for_path:
+ * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
- * 
+ *
  * Creates a new #HWPFileV3.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
- * 
+ *
  * Return value: A newly created #HWPFileV3, or %NULL
- **/
-HWPFileV3 *hwp_file_v3_new_from_uri (const gchar *uri, GError **error)
-{
-    g_return_val_if_fail (uri != NULL, NULL);
-
-    gchar      *filename = g_filename_from_uri (uri, NULL, error);
-    HWPFileV3 *file     = hwp_file_v3_new_from_filename (filename, error);
-    g_free (filename);
-    return file;
-}
-
-/**
- * Since: 0.2
- **/
-HWPFileV3 *hwp_file_v3_new_from_filename (const gchar *filename,
+ *
+ * Since: 0.0.1
+ */
+HWPFileV3 *hwp_file_v3_new_for_path (const gchar *path,
                                             GError     **error)
 {
-    g_return_val_if_fail (filename != NULL, NULL);
-    GFile *file = g_file_new_for_path (filename);
+    g_return_val_if_fail (path != NULL, NULL);
+    GFile *file = g_file_new_for_path (path);
     GFileInputStream *fis = g_file_read (file, NULL, error);
     g_object_unref(file);
     HWPFileV3 *hwpv3file = g_object_new (HWP_TYPE_FILE_V3, NULL);

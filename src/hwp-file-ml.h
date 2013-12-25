@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file-ml.h
  *
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _HWP_FILE_ML_H_
-#define _HWP_FILE_ML_H_
+#ifndef __HWP_FILE_ML_H__
+#define __HWP_FILE_ML_H__
 
 #include <glib-object.h>
 
@@ -40,35 +40,33 @@ typedef struct _HWPFileMLClass   HWPFileMLClass;
 typedef struct _HWPFileMLPrivate HWPFileMLPrivate;
 
 struct _HWPFileMLClass {
-    HWPFileClass parent_class;
+  HWPFileClass parent_class;
 };
 
 struct _HWPFileML {
-    HWPFile           parent_instance;
-    HWPFileMLPrivate *priv;
+  HWPFile           parent_instance;
+  HWPFileMLPrivate *priv;
 
-    HWPDocument      *document;
-    HWPPage          *page;
+  HWPDocument      *document;
+  HWPPage          *page;
 };
 
 struct _HWPFileMLPrivate {
-    gchar *uri;
+  gchar *uri;
 };
 
-GType         hwp_file_ml_get_type               (void) G_GNUC_CONST;
-HWPFileML   *hwp_file_ml_new_from_uri           (const gchar *uri,
-                                                   GError     **error);
-HWPFileML   *hwp_file_ml_new_from_filename      (const gchar *filename,
-                                                   GError     **error);
-gchar        *hwp_file_ml_get_hwp_version_string (HWPFile    *file);
-void          hwp_file_ml_get_hwp_version        (HWPFile    *file,
-                                                   guint8      *major_version,
-                                                   guint8      *minor_version,
-                                                   guint8      *micro_version,
-                                                   guint8      *extra_version);
-HWPDocument *hwp_file_ml_get_document           (HWPFile    *file,
-                                                   GError     **error);
+GType        hwp_file_ml_get_type               (void) G_GNUC_CONST;
+HWPFileML   *hwp_file_ml_new_for_path           (const gchar *path,
+                                                 GError     **error);
+gchar       *hwp_file_ml_get_hwp_version_string (HWPFile     *file);
+void         hwp_file_ml_get_hwp_version        (HWPFile     *file,
+                                                 guint8      *major_version,
+                                                 guint8      *minor_version,
+                                                 guint8      *micro_version,
+                                                 guint8      *extra_version);
+HWPDocument *hwp_file_ml_get_document           (HWPFile     *file,
+                                                 GError     **error);
 
 G_END_DECLS
 
-#endif /* _HWP_FILE_ML_H_ */
+#endif /* __HWP_FILE_ML_H__ */
