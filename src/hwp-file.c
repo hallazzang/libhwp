@@ -29,9 +29,9 @@
 #include <string.h>
 
 #include "hwp-file.h"
-#include "hwp-file-ml.h"
-#include "hwp-file-v3.h"
-#include "hwp-file-v5.h"
+#include "hwp-hwp3-file.h"
+#include "hwp-hwp5-file.h"
+#include "hwp-hwpml-file.h"
 
 G_DEFINE_ABSTRACT_TYPE (HWPFile, hwp_file, G_TYPE_OBJECT);
 

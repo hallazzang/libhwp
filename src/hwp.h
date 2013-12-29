@@ -24,20 +24,20 @@
 
 #define __HWP_H_INSIDE__
 
-#include "hwp-hwp3-parser.h"
+#include "hnc2unicode.h"
 #include "hwp-document.h"
 #include "hwp-enums.h"
 #include "hwp-enum-types.h"
 #include "hwp-file.h"
-#include "hwp-file-ml.h"
-#include "hwp-file-v3.h"
-#include "hwp-file-v5.h"
+#include "hwp-hwp3-file.h"
+#include "hwp-hwp3-parser.h"
+#include "hwp-hwp5-file.h"
+#include "hwp-hwp5-parser.h"
+#include "hwp-hwpml-file.h"
+#include "hwp-listener.h"
 #include "hwp-models.h"
 #include "hwp-page.h"
-#include "hwp-hwp5-parser.h"
-#include "hwp-listener.h"
 #include "hwp-version.h"
-#include "hnc2unicode.h"
 
 #undef __HWP_H_INSIDE__
 

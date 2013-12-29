@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-file-ml.c
+ * hwp-hwpml-file.c
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 
@@ -20,7 +20,7 @@
 
 #include <libxml/xmlreader.h>
 #include <string.h>
-#include "hwp-file-ml.h"
+#include "hwp-hwpml-file.h"
 #include <math.h>
 
 G_DEFINE_TYPE (HWPFileML, hwp_file_ml, HWP_TYPE_FILE);

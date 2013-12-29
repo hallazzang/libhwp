@@ -4,21 +4,21 @@
 lib_LTLIBRARIES = libhwp.la
 
 INST_H_FILES =          \
+	hnc2unicode.h       \
 	hwp-document.h      \
 	hwp-enums.h         \
 	hwp-enum-types.h    \
 	hwp-file.h          \
-	hwp-file-ml.h       \
-	hwp-file-v3.h       \
-	hwp-file-v5.h       \
 	hwp.h               \
+	hwp-hwp3-file.h     \
+	hwp-hwp3-parser.h   \
+	hwp-hwp5-file.h     \
+	hwp-hwp5-parser.h   \
+	hwp-hwpml-file.h    \
+	hwp-listener.h      \
 	hwp-models.h        \
 	hwp-page.h          \
-	hwp-listener.h      \
-	hwp-hwp3-parser.h   \
-	hwp-hwp5-parser.h   \
 	hwp-version.h       \
-	hnc2unicode.h       \
 	$(NULL)
 
 NOINST_H_FILES =        \
@@ -36,20 +36,20 @@ BUILT_SOURCES =      \
 	$(NULL)
 
 libhwp_la_SOURCES =     \
-	hwp-document.c      \
-	hwp-enums.c         \
-	hwp-file.c          \
-	hwp-file-ml.c       \
-	hwp-file-v3.c       \
-	hwp-file-v5.c       \
-	hwp-models.c        \
-	hwp-page.c          \
-	hwp-listener.c      \
-	hwp-hwp3-parser.c   \
-	hwp-hwp5-parser.c   \
 	gsf-input-stream.c  \
 	hnc2unicode.c       \
+	hwp-document.c      \
+	hwp-enums.c         \
 	hwp-enum-types.c    \
+	hwp-file.c          \
+	hwp-hwp3-file.c     \
+	hwp-hwp3-parser.c   \
+	hwp-hwp5-file.c     \
+	hwp-hwp5-parser.c   \
+	hwp-hwpml-file.c    \
+	hwp-listener.c      \
+	hwp-models.c        \
+	hwp-page.c          \
 	$(NOINST_H_FILES)   \
 	$(INST_H_FILES)     \
 	$(NULL)
@@ -61,8 +61,8 @@ libhwp_la_CPPFLAGS =        \
 	$(NULL)
 
 libhwp_la_CFLAGS =  \
-	$(HWP_CFLAGS)   \
 	-Wall           \
+	$(HWP_CFLAGS)   \
 	$(AM_CFLAGS)    \
 	$(NULL)
 
@@ -79,17 +79,17 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hwp-0.0.1.pc
 
 EXTRA_DIST =                  \
-	hwp-0.0.1.pc.in             \
-	hwp-version.h.in          \
-	hwp-enum-types.h.template \
+	hwp-0.0.1.pc.in           \
 	hwp-enum-types.c.template \
+	hwp-enum-types.h.template \
+	hwp-version.h.in          \
 	$(NULL)
 
 DISTCLEANFILES =     \
-	hwp-0.0.1.pc       \
-	hwp-version.h    \
-	hwp-enum-types.h \
+	hwp-0.0.1.pc     \
 	hwp-enum-types.c \
+	hwp-enum-types.h \
+	hwp-version.h    \
 	$(NULL)
 
 hwp_headers = $(filter-out hwp-enum-types.h, $(INST_H_FILES))

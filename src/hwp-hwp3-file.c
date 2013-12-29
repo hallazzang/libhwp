@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-file-v3.c
+ * hwp-hwp3-file.c
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  *
@@ -25,7 +25,7 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include "hwp-file-v3.h"
+#include "hwp-hwp3-file.h"
 #include "hwp-hwp3-parser.h"
 #include "hnc2unicode.h"
 #include <math.h>

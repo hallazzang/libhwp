@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-file-v3.h
+ * hwp-hwp3-file.h
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 

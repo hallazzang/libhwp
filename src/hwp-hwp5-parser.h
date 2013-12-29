@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
-#include "hwp-file-v5.h"
+#include "hwp-hwp5-file.h"
 #include "hwp-listener.h"
 
 G_BEGIN_DECLS

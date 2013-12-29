@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-file-ml.h
+ * hwp-hwpml-file.h
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 

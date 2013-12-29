@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-file-v5.c
+ * hwp-hwp5-file.c
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  *
@@ -43,7 +43,7 @@
 #include <pango/pangocairo.h>
 
 #include "gsf-input-stream.h"
-#include "hwp-file-v5.h"
+#include "hwp-hwp5-file.h"
 #include "hwp-listener.h"
 #include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
