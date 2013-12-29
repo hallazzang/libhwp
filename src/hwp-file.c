@@ -155,13 +155,13 @@ HWPFile *hwp_file_new_for_path (const gchar *path, GError **error)
 
     if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
-        retval = HWP_FILE (hwp_file_v5_new_for_path (path, error));
+        retval = HWP_FILE (hwp_hwp5_file_new_for_path (path, error));
     } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
         /* hwp v3 */
-        retval = HWP_FILE (hwp_file_v3_new_for_path (path, error));
+        retval = HWP_FILE (hwp_hwp3_file_new_for_path (path, error));
     } else if (is_hwpml((gchar *) buffer, bytes_read)) {
         /* hwp ml */
-        retval = HWP_FILE (hwp_file_ml_new_for_path (path, error));
+        retval = HWP_FILE (hwp_hwpml_file_new_for_path (path, error));
     } else {
         /* invalid hwp file */
         g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,

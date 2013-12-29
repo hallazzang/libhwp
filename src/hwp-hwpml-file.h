@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HWP_FILE_ML_H__
-#define __HWP_FILE_ML_H__
+#ifndef __HWP_HWPML_FILE_H__
+#define __HWP_HWPML_FILE_H__
 
 #include <glib-object.h>
 
@@ -28,45 +28,45 @@
 
 G_BEGIN_DECLS
 
-#define HWP_TYPE_FILE_ML             (hwp_file_ml_get_type ())
-#define HWP_FILE_ML(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE_ML, HWPFileML))
-#define HWP_FILE_ML_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE_ML, HWPFileMLClass))
-#define HWP_IS_FILE_ML(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_FILE_ML))
-#define HWP_IS_FILE_ML_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_FILE_ML))
-#define HWP_FILE_ML_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE_ML, HWPFileMLClass))
+#define HWP_TYPE_HWPML_FILE             (hwp_hwpml_file_get_type ())
+#define HWP_HWPML_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWPML_FILE, HWPHWPMLFile))
+#define HWP_HWPML_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWPML_FILE, HWPHWPMLFileClass))
+#define HWP_IS_HWPML_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWPML_FILE))
+#define HWP_IS_HWPML_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWPML_FILE))
+#define HWP_HWPML_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWPML_FILE, HWPHWPMLFileClass))
 
-typedef struct _HWPFileML        HWPFileML;
-typedef struct _HWPFileMLClass   HWPFileMLClass;
-typedef struct _HWPFileMLPrivate HWPFileMLPrivate;
+typedef struct _HWPHWPMLFile        HWPHWPMLFile;
+typedef struct _HWPHWPMLFileClass   HWPHWPMLFileClass;
+typedef struct _HWPHWPMLFilePrivate HWPHWPMLFilePrivate;
 
-struct _HWPFileMLClass {
+struct _HWPHWPMLFileClass {
   HWPFileClass parent_class;
 };
 
-struct _HWPFileML {
-  HWPFile           parent_instance;
-  HWPFileMLPrivate *priv;
+struct _HWPHWPMLFile {
+  HWPFile              parent_instance;
+  HWPHWPMLFilePrivate *priv;
 
-  HWPDocument      *document;
-  HWPPage          *page;
+  HWPDocument         *document;
+  HWPPage             *page;
 };
 
-struct _HWPFileMLPrivate {
+struct _HWPHWPMLFilePrivate {
   gchar *uri;
 };
 
-GType        hwp_file_ml_get_type               (void) G_GNUC_CONST;
-HWPFileML   *hwp_file_ml_new_for_path           (const gchar *path,
-                                                 GError     **error);
-gchar       *hwp_file_ml_get_hwp_version_string (HWPFile     *file);
-void         hwp_file_ml_get_hwp_version        (HWPFile     *file,
-                                                 guint8      *major_version,
-                                                 guint8      *minor_version,
-                                                 guint8      *micro_version,
-                                                 guint8      *extra_version);
-HWPDocument *hwp_file_ml_get_document           (HWPFile     *file,
-                                                 GError     **error);
+GType         hwp_hwpml_file_get_type               (void) G_GNUC_CONST;
+HWPHWPMLFile *hwp_hwpml_file_new_for_path           (const gchar *path,
+                                                     GError     **error);
+gchar        *hwp_hwpml_file_get_hwp_version_string (HWPFile     *file);
+void          hwp_hwpml_file_get_hwp_version        (HWPFile     *file,
+                                                     guint8      *major_version,
+                                                     guint8      *minor_version,
+                                                     guint8      *micro_version,
+                                                     guint8      *extra_version);
+HWPDocument  *hwp_hwpml_file_get_document           (HWPFile     *file,
+                                                     GError     **error);
 
 G_END_DECLS
 
-#endif /* __HWP_FILE_ML_H__ */
+#endif /* __HWP_HWPML_FILE_H__ */

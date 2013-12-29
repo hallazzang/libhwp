@@ -80,7 +80,7 @@ GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
 HWPHWP5Parser *hwp_hwp5_parser_new         (HWPListener   *listener,
                                             gpointer       user_data);
 void           hwp_hwp5_parser_parse       (HWPHWP5Parser *parser,
-                                            HWPFileV5     *file,
+                                            HWPHWP5File   *file,
                                             GError       **error);
 gboolean       hwp_hwp5_parser_pull        (HWPHWP5Parser *parser,
                                             GError       **error);

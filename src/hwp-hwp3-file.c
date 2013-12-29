@@ -30,29 +30,29 @@
 #include "hnc2unicode.h"
 #include <math.h>
 
-G_DEFINE_TYPE (HWPFileV3, hwp_file_v3, HWP_TYPE_FILE);
+G_DEFINE_TYPE (HWPHWP3File, hwp_hwp3_file, HWP_TYPE_FILE);
 
 /**
- * hwp_file_v3_new_for_path:
+ * hwp_hwp3_file_new_for_path:
  * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  *
- * Creates a new #HWPFileV3.  If %NULL is returned, then @error will be
+ * Creates a new #HWPHWP3File.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  *
- * Return value: A newly created #HWPFileV3, or %NULL
+ * Return value: A newly created #HWPHWP3File, or %NULL
  *
  * Since: 0.0.1
  */
-HWPFileV3 *hwp_file_v3_new_for_path (const gchar *path,
+HWPHWP3File *hwp_hwp3_file_new_for_path (const gchar *path,
                                             GError     **error)
 {
     g_return_val_if_fail (path != NULL, NULL);
     GFile *file = g_file_new_for_path (path);
     GFileInputStream *fis = g_file_read (file, NULL, error);
     g_object_unref(file);
-    HWPFileV3 *hwpv3file = g_object_new (HWP_TYPE_FILE_V3, NULL);
+    HWPHWP3File *hwpv3file = g_object_new (HWP_TYPE_HWP3_FILE, NULL);
     hwpv3file->priv->stream = G_INPUT_STREAM (fis);
     return hwpv3file;
 }
@@ -60,34 +60,34 @@ HWPFileV3 *hwp_file_v3_new_for_path (const gchar *path,
 /**
  * Since: 0.2
  **/
-gchar *hwp_file_v3_get_hwp_version_string (HWPFile *file)
+gchar *hwp_hwp3_file_get_hwp_version_string (HWPFile *file)
 {
-    g_return_val_if_fail (HWP_IS_FILE_V3 (file), NULL);
+    g_return_val_if_fail (HWP_IS_HWP3_FILE (file), NULL);
 
-    return g_strdup_printf ("3.0.0.%d", HWP_FILE_V3 (file)->rev);
+    return g_strdup_printf ("3.0.0.%d", HWP_HWP3_FILE (file)->rev);
 }
 
 /**
  * Since: 0.2
  **/
-void hwp_file_v3_get_hwp_version (HWPFile *file,
-                                   guint8   *major_version,
-                                   guint8   *minor_version,
-                                   guint8   *micro_version,
-                                   guint8   *extra_version)
+void hwp_hwp3_file_get_hwp_version (HWPFile *file,
+                                    guint8  *major_version,
+                                    guint8  *minor_version,
+                                    guint8  *micro_version,
+                                    guint8  *extra_version)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
     if (major_version) *major_version = 3;
     if (minor_version) *minor_version = 0;
     if (micro_version) *micro_version = 0;
-    if (extra_version) *extra_version = HWP_FILE_V3 (file)->rev;
+    if (extra_version) *extra_version = HWP_HWP3_FILE (file)->rev;
 }
 
-static void _hwp_file_v3_parse_signature (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_signature (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
-    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
+    GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
     HWPHWP3Parser *parser = hwp_hwp3_parser_new (stream);
     gchar *signature = g_malloc(30);
     hwp_hwp3_parser_read (parser, signature, 30);
@@ -95,9 +95,9 @@ static void _hwp_file_v3_parse_signature (HWPFileV3 *file)
     g_object_unref (parser);
 }
 
-static void _hwp_file_v3_parse_doc_info (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_doc_info (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
     /* 문서 정보 128 bytes */
     /* 암호 여부 */
     GInputStream  *stream  = file->priv->stream;
@@ -120,9 +120,9 @@ static void _hwp_file_v3_parse_doc_info (HWPFileV3 *file)
     g_object_unref (parser);
 }
 
-static void _hwp_file_v3_parse_summary_info (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_summary_info (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
     GInputStream  *stream  = file->priv->stream;
     HWPHWP3Parser *parser = hwp_hwp3_parser_new (stream);
@@ -168,9 +168,9 @@ static void _hwp_file_v3_parse_summary_info (HWPFileV3 *file)
     g_object_unref (parser);
 }
 
-static void _hwp_file_v3_parse_info_block (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_info_block (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
     GInputStream *stream = file->priv->stream;
     g_input_stream_skip (stream, file->info_block_len, NULL, NULL);
@@ -191,14 +191,14 @@ static void _hwp_file_v3_parse_info_block (HWPFileV3 *file)
     }
 }
 
-static void _hwp_file_v3_parse_font_names (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_font_names (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
     guint16 n_fonts;
     int i = 0;
     guint8 *buffer = NULL;
     gsize bytes_read;
-    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
+    GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
     for (i = 0; i < 7; i++) {
         g_input_stream_read_all (stream, &n_fonts, 2, &bytes_read, NULL, NULL);
         buffer = g_malloc (40 * n_fonts);
@@ -207,23 +207,23 @@ static void _hwp_file_v3_parse_font_names (HWPFileV3 *file)
     }
 }
 
-static void _hwp_file_v3_parse_styles (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_styles (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
     guint16 n_styles;
     guint8 *buffer = NULL;
     gsize bytes_read;
-    GInputStream *stream = HWP_FILE_V3 (file)->priv->stream;
+    GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
     g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, NULL);
     buffer = g_malloc (n_styles * (20 + 31 + 187));
     g_input_stream_read_all (stream, buffer, n_styles * (20 + 31 + 187), &bytes_read, NULL, NULL);
     g_free (buffer);
 }
 
-static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
+static gboolean _hwp_hwp3_file_parse_paragraph (HWPHWP3File *file)
 {
-    g_return_val_if_fail (HWP_IS_FILE_V3 (file), FALSE);
-    GInputStream  *stream  = HWP_FILE_V3 (file)->priv->stream;
+    g_return_val_if_fail (HWP_IS_HWP3_FILE (file), FALSE);
+    GInputStream  *stream  = HWP_HWP3_FILE (file)->priv->stream;
     HWPHWP3Parser *parser = hwp_hwp3_parser_new (stream);
     /* 문단 정보 */
     guint8  prev_paragraph_shape;
@@ -298,12 +298,12 @@ static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
             /* <셀 문단 리스트>+ */
             for (i = 0; i < n_cells; i++) {
                 /* <셀 문단 리스트> ::= <셀 문단>+ <빈문단> */
-                while(_hwp_file_v3_parse_paragraph(file)) {
+                while(_hwp_hwp3_file_parse_paragraph(file)) {
                 }
             }
 
             /* <캡션 문단 리스트> ::= <캡션 문단>+ <빈문단> */
-            while(_hwp_file_v3_parse_paragraph(file)) {
+            while(_hwp_hwp3_file_parse_paragraph(file)) {
             }
             continue;
         } else if (c == 11) {
@@ -314,7 +314,7 @@ static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
             hwp_hwp3_parser_skip (parser, 344);
             hwp_hwp3_parser_skip (parser, len);
             /* <캡션 문단 리스트> ::= <캡션 문단>+ <빈문단> */
-            while(_hwp_file_v3_parse_paragraph(file)) {
+            while(_hwp_hwp3_file_parse_paragraph(file)) {
             }
             continue;
         } else if (c == 13) { /* 글자들 끝 */
@@ -325,14 +325,14 @@ static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
             hwp_hwp3_parser_skip (parser, 6);
             hwp_hwp3_parser_skip (parser, 10);
             /* <문단 리스트> ::= <문단>+ <빈문단> */
-            while(_hwp_file_v3_parse_paragraph(file)) {
+            while(_hwp_hwp3_file_parse_paragraph(file)) {
             }
             continue;
         } else if (c == 17) { /* 각주/미주 */
             n_chars_read += 3;
             hwp_hwp3_parser_skip (parser, 6);
             hwp_hwp3_parser_skip (parser, 14);
-            while(_hwp_file_v3_parse_paragraph(file)) {
+            while(_hwp_hwp3_file_parse_paragraph(file)) {
             }
             continue;
         } else if (c == 18 || c == 19 || c == 20 || c == 21) {
@@ -389,72 +389,72 @@ static gboolean _hwp_file_v3_parse_paragraph (HWPFileV3 *file)
     return TRUE;
 }
 
-static void _hwp_file_v3_parse_paragraphs (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_paragraphs (HWPHWP3File *file)
 {
     /* <문단 리스트> ::= <문단>+ <빈문단> */
-    while(_hwp_file_v3_parse_paragraph(file)) {
+    while(_hwp_hwp3_file_parse_paragraph(file)) {
     }
     /* 마지막 페이지 더하기 */
     g_array_append_val (file->document->pages, file->page);
 }
 
-static void _hwp_file_v3_parse_supplementary_info_block1 (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_supplementary_info_block1 (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 }
 
-static void _hwp_file_v3_parse_supplementary_info_block2 (HWPFileV3 *file)
+static void _hwp_hwp3_file_parse_supplementary_info_block2 (HWPHWP3File *file)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 }
 
-static void _hwp_file_v3_parse (HWPFileV3 *file, GError **error)
+static void _hwp_hwp3_file_parse (HWPHWP3File *file, GError **error)
 {
-    g_return_if_fail (HWP_IS_FILE_V3 (file));
+    g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
-    _hwp_file_v3_parse_signature (file);
-    _hwp_file_v3_parse_doc_info (file);
-    _hwp_file_v3_parse_summary_info (file);
-    _hwp_file_v3_parse_info_block (file);
-    _hwp_file_v3_parse_font_names (file);
-    _hwp_file_v3_parse_styles (file);
-    _hwp_file_v3_parse_paragraphs (file);
-    _hwp_file_v3_parse_supplementary_info_block1 (file);
-    _hwp_file_v3_parse_supplementary_info_block2 (file);
+    _hwp_hwp3_file_parse_signature (file);
+    _hwp_hwp3_file_parse_doc_info (file);
+    _hwp_hwp3_file_parse_summary_info (file);
+    _hwp_hwp3_file_parse_info_block (file);
+    _hwp_hwp3_file_parse_font_names (file);
+    _hwp_hwp3_file_parse_styles (file);
+    _hwp_hwp3_file_parse_paragraphs (file);
+    _hwp_hwp3_file_parse_supplementary_info_block1 (file);
+    _hwp_hwp3_file_parse_supplementary_info_block2 (file);
 }
 
 /**
  * Since: 0.2
  **/
-HWPDocument *hwp_file_v3_get_document (HWPFile *file, GError **error)
+HWPDocument *hwp_hwp3_file_get_document (HWPFile *file, GError **error)
 {
-    g_return_val_if_fail (HWP_IS_FILE_V3 (file), NULL);
-    HWP_FILE_V3 (file)->document = hwp_document_new();
-    _hwp_file_v3_parse (HWP_FILE_V3 (file), error);
-    return HWP_FILE_V3 (file)->document;
+    g_return_val_if_fail (HWP_IS_HWP3_FILE (file), NULL);
+    HWP_HWP3_FILE (file)->document = hwp_document_new();
+    _hwp_hwp3_file_parse (HWP_HWP3_FILE (file), error);
+    return HWP_HWP3_FILE (file)->document;
 }
 
-static void hwp_file_v3_init (HWPFileV3 *file)
+static void hwp_hwp3_file_init (HWPHWP3File *file)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_FILE_V3,
-                                                    HWPFileV3Private);
+    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWP3_FILE,
+                                                    HWPHWP3FilePrivate);
     file->page = hwp_page_new ();
 }
 
-static void hwp_file_v3_finalize (GObject *object)
+static void hwp_hwp3_file_finalize (GObject *object)
 {
-    HWPFileV3 *file = HWP_FILE_V3(object);
+    HWPHWP3File *file = HWP_HWP3_FILE(object);
     g_object_unref (file->priv->stream);
-    G_OBJECT_CLASS (hwp_file_v3_parent_class)->finalize (object);
+    G_OBJECT_CLASS (hwp_hwp3_file_parent_class)->finalize (object);
 }
 
-static void hwp_file_v3_class_init (HWPFileV3Class *klass)
+static void hwp_hwp3_file_class_init (HWPHWP3FileClass *klass)
 {
     GObjectClass* object_class = G_OBJECT_CLASS (klass);
 
-    g_type_class_add_private (klass, sizeof (HWPFileV3Private));
-    HWP_FILE_CLASS (klass)->get_document = hwp_file_v3_get_document;
-    HWP_FILE_CLASS (klass)->get_hwp_version_string = hwp_file_v3_get_hwp_version_string;
-    HWP_FILE_CLASS (klass)->get_hwp_version = hwp_file_v3_get_hwp_version;
-    object_class->finalize = hwp_file_v3_finalize;
+    g_type_class_add_private (klass, sizeof (HWPHWP3FilePrivate));
+    HWP_FILE_CLASS (klass)->get_document = hwp_hwp3_file_get_document;
+    HWP_FILE_CLASS (klass)->get_hwp_version_string = hwp_hwp3_file_get_hwp_version_string;
+    HWP_FILE_CLASS (klass)->get_hwp_version = hwp_hwp3_file_get_hwp_version;
+    object_class->finalize = hwp_hwp3_file_finalize;
 }
