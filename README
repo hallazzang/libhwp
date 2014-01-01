@@ -43,10 +43,10 @@ sudo make install
 sudo ldconfig
 
 
-Making deb Package for end users
+Making deb Package for End Users
 --------------------------------
 cd libhwp
-./autogen.sh # because of .po files
+intltoolize --copy --force --automake
 dch -l custom
 dpkg-buildpackage -b
 ls ..
