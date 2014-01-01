@@ -133,9 +133,6 @@ gboolean hwp_hwp3_parser_skip (HWPHWP3Parser *parser, guint16 count)
 
 static void hwp_hwp3_parser_init (HWPHWP3Parser *parser)
 {
-  parser->priv = G_TYPE_INSTANCE_GET_PRIVATE (parser,
-                                              HWP_TYPE_HWP3_PARSER,
-                                              HWPHWP3ParserPrivate);
 }
 
 static void
@@ -150,6 +147,6 @@ hwp_hwp3_parser_finalize (GObject *object)
 static void hwp_hwp3_parser_class_init (HWPHWP3ParserClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  g_type_class_add_private (klass, sizeof (HWPHWP3ParserPrivate));
+
   object_class->finalize = hwp_hwp3_parser_finalize;
 }

@@ -45,14 +45,9 @@ struct _HWPHWP3ParserClass
 struct _HWPHWP3Parser
 {
   GObject               parent_instance;
-  HWPHWP3ParserPrivate *priv;
 
   GInputStream         *stream;
   gsize                 bytes_read;
-};
-
-struct _HWPHWP3ParserPrivate
-{
 };
 
 GType          hwp_hwp3_parser_get_type    (void) G_GNUC_CONST;
