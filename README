@@ -46,7 +46,6 @@ sudo ldconfig
 Making deb Package for End Users
 --------------------------------
 cd libhwp
-intltoolize --copy --force --automake
 dch -l custom
 dpkg-buildpackage -b
 ls ..
