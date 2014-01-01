@@ -28,7 +28,9 @@ touch README INSTALL
 
 autoreconf --force --install --verbose || exit $?
 
-intltoolize --copy --force --automake
+if (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null); then
+  intltoolize --copy --force --automake
+fi
 
 cd "$olddir"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
