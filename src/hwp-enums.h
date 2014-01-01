@@ -2,7 +2,7 @@
 /*
  * hwp-enums.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -40,13 +40,13 @@ const char *hwp_get_ctrl_name (guint32 ctrl_id);
 G_END_DECLS
 
 /**
- * HWPError:
+ * HwpError:
  * @HWP_ERROR_INVALID: Generic error when a document opration fails
  * @HWP_ERROR_ENCRYPTED: Document is encrypted
  * @HWP_ERROR_OPEN_FILE: File could not be opened for writing when saving document
  * @HWP_ERROR_DAMAGED: Document is damaged
  *
- * Error codes returned by #HWPDocument
+ * Error codes returned by #HwpDocument
  *
  * Since: 0.2
  */
@@ -56,10 +56,10 @@ typedef enum
     HWP_ERROR_ENCRYPTED,
     HWP_ERROR_OPEN_FILE,
     HWP_ERROR_DAMAGED
-} HWPError;
+} HwpError;
 
 /**
- * HWPSelectionStyle:
+ * HwpSelectionStyle:
  * @HWP_SELECTION_GLYPH: glyph is the minimum unit for selection
  * @HWP_SELECTION_WORD: word is the minimum unit for selection
  * @HWP_SELECTION_LINE: line is the minimum unit for selection
@@ -73,7 +73,7 @@ typedef enum
     HWP_SELECTION_GLYPH,
     HWP_SELECTION_WORD,
     HWP_SELECTION_LINE
-} HWPSelectionStyle;
+} HwpSelectionStyle;
 
 /**
  * Since: 0.2
@@ -131,7 +131,7 @@ typedef enum
     HWP_TAG_CHART_DATA                =  95,
 
     HWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
-} HWPTag;
+} HwpTag;
 
 /*typedef enum {*/
 /*    ID_BINARY_DATA      = 0,*/
@@ -268,6 +268,6 @@ typedef enum
   FIELD_REVISION_CHANGE        = MAKE_CTRL_ID('%', '%', 'm', 'r'),
   FIELD_MEMO                   = MAKE_CTRL_ID('%', '%', 'm', 'e'),
   FIELD_PRIVATE_INFO_SECURITY  = MAKE_CTRL_ID('%', 'c', 'p', 'r')
-} HWPCtrlID;
+} HwpCtrlID;
 
 #endif /* __HWP_ENUMS__ */

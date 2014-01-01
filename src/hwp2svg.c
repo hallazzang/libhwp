@@ -2,7 +2,7 @@
 /*
  * hwp2svg.c
  * 
- * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -26,7 +26,7 @@
 int main (int argc, char **argv)
 {
   GError  *error = NULL;
-  HWPPage *page;
+  HwpPage *page;
   gdouble  width = 0.0, height = 0.0;
 
   if (argc < 2) {
@@ -38,8 +38,8 @@ int main (int argc, char **argv)
   g_type_init();
 #endif
 
-  HWPFile     *file     = hwp_file_new_for_path (argv[1], &error);
-  HWPDocument *document = hwp_file_get_document (file,    &error);
+  HwpFile     *file     = hwp_file_new_for_path (argv[1], &error);
+  HwpDocument *document = hwp_file_get_document (file,    &error);
 
   guint n_pages = hwp_document_get_n_pages (document);
   if (n_pages < 1) {

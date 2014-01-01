@@ -2,7 +2,7 @@
 /*
  * hwp-document.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -34,9 +34,9 @@
 #include "hwp-listener.h"
 #include <pango/pangocairo.h>
 
-static void hwp_document_listener_iface_init (HWPListenerInterface *iface);
+static void hwp_document_listener_iface_init (HwpListenerInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (HWPDocument, hwp_document, G_TYPE_OBJECT,
+G_DEFINE_TYPE_WITH_CODE (HwpDocument, hwp_document, G_TYPE_OBJECT,
   G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER, hwp_document_listener_iface_init))
 
 /**
@@ -44,19 +44,19 @@ G_DEFINE_TYPE_WITH_CODE (HWPDocument, hwp_document, G_TYPE_OBJECT,
  * @filename: the path of a file, in the GLib filename encoding
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #HWPDocument.  If %NULL is returned, then @error will be
+ * Creates a new #HwpDocument.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Returns: a new #HWPDocument, or %NULL
+ * Returns: a new #HwpDocument, or %NULL
  *
  * Since: 0.0.1
  */
-HWPDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
+HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
 {
     g_return_val_if_fail (filename != NULL, NULL);
 
-    HWPFile *file = hwp_file_new_for_path (filename, error);
+    HwpFile *file = hwp_file_new_for_path (filename, error);
 
     if (file == NULL || *error) {
         return NULL;
@@ -67,7 +67,7 @@ HWPDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
 
 /**
  * hwp_document_get_n_pages:
- * @document: a #HWPDocument
+ * @document: a #HwpDocument
  *
  * Gets the number of pages in a notebook.
  *
@@ -75,7 +75,7 @@ HWPDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
  *
  * Since: 0.0.1
  */
-guint hwp_document_get_n_pages (HWPDocument *document)
+guint hwp_document_get_n_pages (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0U);
     return document->pages->len;
@@ -83,40 +83,40 @@ guint hwp_document_get_n_pages (HWPDocument *document)
 
 /**
  * hwp_document_get_page:
- * @doc: a #HWPDocument
+ * @document: a #HwpDocument
  * @n_page: the index of the page to get
  *
- * Returns a #HWPPage representing the page at index
+ * Returns a #HwpPage representing the page at index
  *
- * Returns: (transfer none): a #HWPPage
+ * Returns: (transfer none): a #HwpPage
  *     DO NOT FREE the page.
  *
  * Since: 0.0.1
  */
-HWPPage *hwp_document_get_page (HWPDocument *doc, gint n_page)
+HwpPage *hwp_document_get_page (HwpDocument *doc, gint n_page)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (doc), NULL);
-    HWPPage *page = g_array_index (doc->pages, HWPPage *, (guint) n_page);
+    HwpPage *page = g_array_index (doc->pages, HwpPage *, (guint) n_page);
     return g_object_ref (page);
 }
 
 /**
  * hwp_document_new:
  * 
- * Creates a new #HWPDocument.
+ * Creates a new #HwpDocument.
  * 
- * Return value: a new #HWPDocument
+ * Return value: a new #HwpDocument
  *
  * Since: 0.0.1
  */
-HWPDocument *hwp_document_new (void)
+HwpDocument *hwp_document_new (void)
 {
-    return (HWPDocument*) g_object_new (HWP_TYPE_DOCUMENT, NULL);
+    return (HwpDocument*) g_object_new (HWP_TYPE_DOCUMENT, NULL);
 }
 
 /**
  * hwp_document_get_title:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the document's title
  *
@@ -125,7 +125,7 @@ HWPDocument *hwp_document_new (void)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_title (HWPDocument *document)
+gchar *hwp_document_get_title (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->title);
@@ -133,7 +133,7 @@ gchar *hwp_document_get_title (HWPDocument *document)
 
 /**
  * hwp_document_get_keywords:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the keywords associated to the document
  *
@@ -142,7 +142,7 @@ gchar *hwp_document_get_title (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_keywords (HWPDocument *document)
+gchar *hwp_document_get_keywords (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->keywords);
@@ -150,7 +150,7 @@ gchar *hwp_document_get_keywords (HWPDocument *document)
 
 /**
  * hwp_document_get_subject:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the subject of the document
  *
@@ -159,7 +159,7 @@ gchar *hwp_document_get_keywords (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_subject (HWPDocument *document)
+gchar *hwp_document_get_subject (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->subject);
@@ -167,7 +167,7 @@ gchar *hwp_document_get_subject (HWPDocument *document)
 
 /**
  * hwp_document_get_creator:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the creator of the document.
  *
@@ -176,7 +176,7 @@ gchar *hwp_document_get_subject (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_creator (HWPDocument *document)
+gchar *hwp_document_get_creator (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
     return g_strdup (document->creator);
@@ -184,7 +184,7 @@ gchar *hwp_document_get_creator (HWPDocument *document)
 
 /**
  * hwp_document_get_creation_date:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the date the document was created as seconds since the Epoch
  *
@@ -192,7 +192,7 @@ gchar *hwp_document_get_creator (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-GTime hwp_document_get_creation_date (HWPDocument *document)
+GTime hwp_document_get_creation_date (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
     return document->creation_date;
@@ -200,7 +200,7 @@ GTime hwp_document_get_creation_date (HWPDocument *document)
 
 /**
  * hwp_document_get_modification_date:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the date the document was most recently modified as seconds since the Epoch
  *
@@ -208,7 +208,7 @@ GTime hwp_document_get_creation_date (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-GTime hwp_document_get_modification_date (HWPDocument *document)
+GTime hwp_document_get_modification_date (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
     return document->mod_date;
@@ -216,7 +216,7 @@ GTime hwp_document_get_modification_date (HWPDocument *document)
 
 /**
  * hwp_document_get_hwp_format:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the HWP format of @document as a string (e.g. HWP v5.0.0.6)
  *
@@ -225,7 +225,7 @@ GTime hwp_document_get_modification_date (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_format (HWPDocument *document)
+gchar *hwp_document_get_format (HwpDocument *document)
 {
     gchar *format;
 
@@ -238,7 +238,7 @@ gchar *hwp_document_get_format (HWPDocument *document)
 
 /**
  * hwp_document_get_hwp_version_string:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  *
  * Returns the HWP version of @document as a string (e.g. 5.0.0.6)
  *
@@ -247,7 +247,7 @@ gchar *hwp_document_get_format (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-gchar *hwp_document_get_hwp_version_string (HWPDocument *document)
+gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
 {
     g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
     return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
@@ -258,7 +258,7 @@ gchar *hwp_document_get_hwp_version_string (HWPDocument *document)
 
 /**
  * hwp_document_get_hwp_version:
- * @document: A #HWPDocument
+ * @document: A #HwpDocument
  * @major_version: (out) (allow-none): return location for the HWP major version number
  * @minor_version: (out) (allow-none): return location for the HWP minor version number
  * @micro_version: (out) (allow-none): return location for the HWP micro version number
@@ -268,7 +268,7 @@ gchar *hwp_document_get_hwp_version_string (HWPDocument *document)
  *
  * Since: 0.0.1
  */
-void hwp_document_get_hwp_version (HWPDocument *document,
+void hwp_document_get_hwp_version (HwpDocument *document,
                                     guint8       *major_version,
                                     guint8       *minor_version,
                                     guint8       *micro_version,
@@ -283,7 +283,7 @@ void hwp_document_get_hwp_version (HWPDocument *document,
 
 static void hwp_document_finalize (GObject *obj)
 {
-    HWPDocument *doc = HWP_DOCUMENT(obj);
+    HwpDocument *doc = HWP_DOCUMENT(obj);
     g_free (doc->prv_text);
     g_array_free (doc->paragraphs, TRUE);
     g_array_free (doc->pages, TRUE);
@@ -291,19 +291,19 @@ static void hwp_document_finalize (GObject *obj)
     G_OBJECT_CLASS (hwp_document_parent_class)->finalize (obj);
 }
 
-static void hwp_document_class_init (HWPDocumentClass *klass)
+static void hwp_document_class_init (HwpDocumentClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = hwp_document_finalize;
 }
 
-static void hwp_document_init (HWPDocument *doc)
+static void hwp_document_init (HwpDocument *doc)
 {
-    doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (HWPParagraph *));
-    doc->pages      = g_array_new (TRUE, TRUE, sizeof (HWPPage *));
+    doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
+    doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
 }
 
-void listen_document_version (HWPListener *listener,
+void listen_document_version (HwpListener *listener,
                               guint8        major_version,
                               guint8        minor_version,
                               guint8        micro_version,
@@ -311,27 +311,27 @@ void listen_document_version (HWPListener *listener,
                               gpointer      user_data,
                               GError      **error)
 {
-  HWPDocument *document  = (HWPDocument *) listener;
+  HwpDocument *document  = (HwpDocument *) listener;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;
   document->extra_version = extra_version;
 }
 
-void hwp_document_paginate (HWPDocument *document, PangoLayout *layout)
+void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
 {
   /* TODO */
 }
 
-void listen_object (HWPListener *listener,
+void listen_object (HwpListener *listener,
                     GObject      *object,
                     gpointer      user_data,
                     GError      **error)
 {
   if (HWP_IS_PARAGRAPH (object)) {
-    HWPParagraph *paragraph = HWP_PARAGRAPH (object);
-    HWPText *hwp_text = hwp_paragraph_get_hwp_text (paragraph);
-    HWPDocument *document  = (HWPDocument *) listener;
+    HwpParagraph *paragraph = HWP_PARAGRAPH (object);
+    HwpText *hwp_text = hwp_paragraph_get_hwp_text (paragraph);
+    HwpDocument *document  = (HwpDocument *) listener;
     if (hwp_text) {
       printf("%s\n", hwp_text->text);
       PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
@@ -345,7 +345,7 @@ void listen_object (HWPListener *listener,
   }
 }
 
-static void hwp_document_listener_iface_init (HWPListenerInterface *iface)
+static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = listen_document_version;
   iface->object           = listen_object;

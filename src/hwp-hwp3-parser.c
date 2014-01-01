@@ -2,7 +2,7 @@
 /*
  * hwp-hwp3-parser.c
  *
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -20,17 +20,17 @@
 
 #include "hwp-hwp3-parser.h"
 
-G_DEFINE_TYPE (HWPHWP3Parser, hwp_hwp3_parser, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HwpHWP3Parser, hwp_hwp3_parser, G_TYPE_OBJECT);
 
-HWPHWP3Parser *hwp_hwp3_parser_new (GInputStream *stream)
+HwpHWP3Parser *hwp_hwp3_parser_new (GInputStream *stream)
 {
     g_return_val_if_fail (stream != NULL, NULL);
-    HWPHWP3Parser *parser = g_object_new (HWP_TYPE_HWP3_PARSER, NULL);
+    HwpHWP3Parser *parser = g_object_new (HWP_TYPE_HWP3_PARSER, NULL);
     parser->stream = g_object_ref (stream);
     return parser;
 }
 
-gboolean hwp_hwp3_parser_read_uint8 (HWPHWP3Parser *parser, guint8 *i)
+gboolean hwp_hwp3_parser_read_uint8 (HwpHWP3Parser *parser, guint8 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -50,7 +50,7 @@ gboolean hwp_hwp3_parser_read_uint8 (HWPHWP3Parser *parser, guint8 *i)
     return TRUE;
 }
 
-gboolean hwp_hwp3_parser_read_uint16 (HWPHWP3Parser *parser, guint16 *i)
+gboolean hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser, guint16 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -71,7 +71,7 @@ gboolean hwp_hwp3_parser_read_uint16 (HWPHWP3Parser *parser, guint16 *i)
     return TRUE;
 }
 
-gboolean hwp_hwp3_parser_read_uint32 (HWPHWP3Parser *parser, guint32 *i)
+gboolean hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser, guint32 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -92,7 +92,7 @@ gboolean hwp_hwp3_parser_read_uint32 (HWPHWP3Parser *parser, guint32 *i)
     return TRUE;
 }
 
-gboolean hwp_hwp3_parser_read (HWPHWP3Parser *parser, void *buffer, gsize count)
+gboolean hwp_hwp3_parser_read (HwpHWP3Parser *parser, void *buffer, gsize count)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -109,7 +109,7 @@ gboolean hwp_hwp3_parser_read (HWPHWP3Parser *parser, void *buffer, gsize count)
     return TRUE;
 }
 
-gboolean hwp_hwp3_parser_skip (HWPHWP3Parser *parser, guint16 count)
+gboolean hwp_hwp3_parser_skip (HwpHWP3Parser *parser, guint16 count)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -131,20 +131,20 @@ gboolean hwp_hwp3_parser_skip (HWPHWP3Parser *parser, guint16 count)
     return TRUE;
 }
 
-static void hwp_hwp3_parser_init (HWPHWP3Parser *parser)
+static void hwp_hwp3_parser_init (HwpHWP3Parser *parser)
 {
 }
 
 static void
 hwp_hwp3_parser_finalize (GObject *object)
 {
-  HWPHWP3Parser *parser = HWP_HWP3_PARSER (object);
+  HwpHWP3Parser *parser = HWP_HWP3_PARSER (object);
   g_object_unref (parser->stream);
 
   G_OBJECT_CLASS (hwp_hwp3_parser_parent_class)->finalize (object);
 }
 
-static void hwp_hwp3_parser_class_init (HWPHWP3ParserClass *klass)
+static void hwp_hwp3_parser_class_init (HwpHWP3ParserClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 

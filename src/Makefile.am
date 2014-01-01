@@ -95,11 +95,11 @@ DISTCLEANFILES =     \
 hwp_headers = $(filter-out hwp-enum-types.h, $(INST_H_FILES))
 
 hwp-enum-types.h: $(hwp_headers) hwp-enum-types.h.template
-	$(AM_V_GEN) glib-mkenums --identifier-prefix HWP --template \
+	$(AM_V_GEN) glib-mkenums --identifier-prefix Hwp --template \
 	    hwp-enum-types.h.template $(hwp_headers) > hwp-enum-types.h
 
 hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
-	$(AM_V_GEN) glib-mkenums --identifier-prefix HWP --template \
+	$(AM_V_GEN) glib-mkenums --identifier-prefix Hwp --template \
 	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
 bin_PROGRAMS = hwp2pdf hwp2svg unhwp
@@ -121,7 +121,7 @@ CLEANFILES = $(gir_DATA) $(typelib_DATA)
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
 INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) --warn-all \
-                              --identifier-prefix=HWP --symbol-prefix=hwp
+                              --identifier-prefix=Hwp --symbol-prefix=hwp
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION

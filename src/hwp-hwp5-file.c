@@ -2,7 +2,7 @@
 /*
  * hwp-hwp5-file.c
  *
- * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -48,18 +48,24 @@
 #include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
 
-G_DEFINE_TYPE (HWPHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
+G_DEFINE_TYPE (HwpHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
 
 /**
- * Since: 0.2
+ * hwp_hwp5_file_get_document:
+ * @file: a #HwpFile
+ * @error: a #GError
+ *
+ * Return value: (transfer none): A #HwpDocument, or %NULL
+ *
+ * Since: 0.0.1
  */
-HWPDocument *hwp_hwp5_file_get_document (HWPFile *file, GError **error)
+HwpDocument *hwp_hwp5_file_get_document (HwpFile *file, GError **error)
 {
   g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
 
-  HWPDocument *document = hwp_document_new ();
+  HwpDocument *document = hwp_document_new ();
 
-  HWPHWP5Parser *parser;
+  HwpHWP5Parser *parser;
   parser = hwp_hwp5_parser_new (HWP_LISTENER (document), document);
   hwp_hwp5_parser_parse (parser, HWP_HWP5_FILE (file), error);
   g_object_unref (parser);
@@ -74,7 +80,7 @@ HWPDocument *hwp_hwp5_file_get_document (HWPFile *file, GError **error)
 
 /**
  * hwp_hwp5_file_check_version:
- * @file: a #HWPHWP5File
+ * @file: a #HwpHWP5File
  * @major: the major version to check for
  * @minor: the minor version to check for
  * @micro: the micro version to check for
@@ -95,7 +101,7 @@ HWPDocument *hwp_hwp5_file_get_document (HWPFile *file, GError **error)
  *
  * Since: TODO
  */
-gboolean hwp_hwp5_file_check_version (HWPHWP5File *file,
+gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
                                      guint8      major,
                                      guint8      minor,
                                      guint8      micro,
@@ -117,7 +123,7 @@ gboolean hwp_hwp5_file_check_version (HWPHWP5File *file,
 
 /**
  * hwp_hwp5_file_get_hwp_version:
- * @file: A #HWPFile
+ * @file: A #HwpFile
  * @major_version: (out) (allow-none): return location for the HWP major version number
  * @minor_version: (out) (allow-none): return location for the HWP minor version number
  * @micro_version: (out) (allow-none): return location for the HWP micro version number
@@ -127,7 +133,7 @@ gboolean hwp_hwp5_file_check_version (HWPHWP5File *file,
  *
  * Since: 0.2
  */
-void hwp_hwp5_file_get_hwp_version (HWPFile *file,
+void hwp_hwp5_file_get_hwp_version (HwpFile *file,
                                    guint8   *major_version,
                                    guint8   *minor_version,
                                    guint8   *micro_version,
@@ -144,7 +150,7 @@ void hwp_hwp5_file_get_hwp_version (HWPFile *file,
 /**
  * Since: 0.2
  */
-gchar *hwp_hwp5_file_get_hwp_version_string (HWPFile *file)
+gchar *hwp_hwp5_file_get_hwp_version_string (HwpFile *file)
 {
   g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
 
@@ -155,7 +161,7 @@ gchar *hwp_hwp5_file_get_hwp_version_string (HWPFile *file)
 }
 
 /* TODO 에러 감지/전파 코드 있어야 한다. */
-static void parse_file_header (HWPHWP5File *file)
+static void parse_file_header (HwpHWP5File *file)
 {
     g_return_if_fail (file != NULL);
 
@@ -237,7 +243,7 @@ static gint compare_entry_names (gconstpointer a, gconstpointer b)
     return i - j;
 }
 
-static void make_stream (HWPHWP5File *file, GError **error)
+static void make_stream (HwpHWP5File *file, GError **error)
 {
   g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -440,15 +446,15 @@ static void make_stream (HWPHWP5File *file, GError **error)
  * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  *
- * Creates a new #HWPHWP5File.  If %NULL is returned, then @error will be
+ * Creates a new #HwpHWP5File.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  *
- * Return value: A newly created #HWPHWP5File, or %NULL
+ * Return value: A newly created #HwpHWP5File, or %NULL
  *
  * Since: 0.0.1
  */
-HWPHWP5File* hwp_hwp5_file_new_for_path (const gchar* path, GError** error)
+HwpHWP5File* hwp_hwp5_file_new_for_path (const gchar* path, GError** error)
 {
     g_return_val_if_fail (path != NULL, NULL);
 
@@ -471,7 +477,7 @@ HWPHWP5File* hwp_hwp5_file_new_for_path (const gchar* path, GError** error)
         return NULL;
     }
 
-    HWPHWP5File *file = g_object_new (HWP_TYPE_HWP5_FILE, NULL);
+    HwpHWP5File *file = g_object_new (HWP_TYPE_HWP5_FILE, NULL);
     file->priv->olefile = olefile;
     g_object_unref (input);
     make_stream (file, error);
@@ -481,7 +487,7 @@ HWPHWP5File* hwp_hwp5_file_new_for_path (const gchar* path, GError** error)
 
 static void hwp_hwp5_file_finalize (GObject *object)
 {
-    HWPHWP5File *file = HWP_HWP5_FILE(object);
+    HwpHWP5File *file = HWP_HWP5_FILE(object);
     g_object_unref (file->priv->olefile);
     g_object_unref (file->prv_text_stream);
     g_object_unref (file->prv_image_stream);
@@ -494,19 +500,19 @@ static void hwp_hwp5_file_finalize (GObject *object)
     G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
 }
 
-static void hwp_hwp5_file_class_init (HWPHWP5FileClass *klass)
+static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  g_type_class_add_private (klass, sizeof (HWPHWP5FilePrivate));
-  HWPFileClass *file_class          = HWP_FILE_CLASS (klass);
+  g_type_class_add_private (klass, sizeof (HwpHWP5FilePrivate));
+  HwpFileClass *file_class          = HWP_FILE_CLASS (klass);
   file_class->get_document           = hwp_hwp5_file_get_document;
   file_class->get_hwp_version_string = hwp_hwp5_file_get_hwp_version_string;
   file_class->get_hwp_version        = hwp_hwp5_file_get_hwp_version;
   object_class->finalize = hwp_hwp5_file_finalize;
 }
 
-static void hwp_hwp5_file_init (HWPHWP5File *file)
+static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
     file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWP5_FILE,
-                                                    HWPHWP5FilePrivate);
+                                                    HwpHWP5FilePrivate);
 }

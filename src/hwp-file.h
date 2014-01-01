@@ -2,7 +2,7 @@
 /*
  * hwp-file.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -37,24 +37,24 @@
 G_BEGIN_DECLS
 
 #define HWP_TYPE_FILE             (hwp_file_get_type ())
-#define HWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE, HWPFile))
-#define HWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE, HWPFileClass))
+#define HWP_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_FILE, HwpFile))
+#define HWP_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_FILE, HwpFileClass))
 #define HWP_IS_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_FILE))
 #define HWP_IS_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_FILE))
-#define HWP_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE, HWPFileClass))
+#define HWP_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_FILE, HwpFileClass))
 
-typedef struct _HWPFile      HWPFile;
-typedef struct _HWPFileClass HWPFileClass;
+typedef struct _HwpFile      HwpFile;
+typedef struct _HwpFileClass HwpFileClass;
 
-struct _HWPFile {
+struct _HwpFile {
   GObject parent_instance;
 };
 
-struct _HWPFileClass {
+struct _HwpFileClass {
   GObjectClass   parent_class;
-  HWPDocument* (*get_document)           (HWPFile *file, GError **error);
-  gchar*       (*get_hwp_version_string) (HWPFile *file);
-  void         (*get_hwp_version)        (HWPFile *file,
+  HwpDocument* (*get_document)           (HwpFile *file, GError **error);
+  gchar*       (*get_hwp_version_string) (HwpFile *file);
+  void         (*get_hwp_version)        (HwpFile *file,
                                           guint8  *major_version,
                                           guint8  *minor_version,
                                           guint8  *micro_version,
@@ -64,8 +64,8 @@ struct _HWPFileClass {
 /**
  * HWP_FILE_ERROR:
  *
- * Error domain for #HWPFile. Errors in this domain will be from
- * the #HWPFileError enumeration.
+ * Error domain for #HwpFile. Errors in this domain will be from
+ * the #HwpFileError enumeration.
  * See #GError for more information on error domains.
  *
  * Since: 0.2
@@ -73,25 +73,25 @@ struct _HWPFileClass {
 #define HWP_FILE_ERROR          (hwp_file_error_quark ())
 
 /**
- * HWPFileError:
+ * HwpFileError:
  * @HWP_FILE_ERROR_INVALID: The HWP is invalid.
  *
- * Error codes returned by #HWPFile functions.
+ * Error codes returned by #HwpFile functions.
  *
  * Since: 0.2
  */
 typedef enum {
   HWP_FILE_ERROR_INVALID
-} HWPFileError;
+} HwpFileError;
 
 GType        hwp_file_get_type               (void) G_GNUC_CONST;
 GQuark       hwp_file_error_quark            (void) G_GNUC_CONST;
-HWPFile     *hwp_file_new_for_path           (const gchar *filename,
+HwpFile     *hwp_file_new_for_path           (const gchar *path,
                                               GError     **error);
-HWPDocument *hwp_file_get_document           (HWPFile     *file,
+HwpDocument *hwp_file_get_document           (HwpFile     *file,
                                               GError     **error);
-gchar       *hwp_file_get_hwp_version_string (HWPFile*     self);
-void         hwp_file_get_hwp_version        (HWPFile     *file,
+gchar       *hwp_file_get_hwp_version_string (HwpFile*     self);
+void         hwp_file_get_hwp_version        (HwpFile     *file,
                                               guint8      *major_version,
                                               guint8      *minor_version,
                                               guint8      *micro_version,

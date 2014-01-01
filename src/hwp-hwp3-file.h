@@ -2,7 +2,7 @@
 /*
  * hwp-hwp3-file.h
  *
- * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -36,46 +36,46 @@
 G_BEGIN_DECLS
 
 #define HWP_TYPE_HWP3_FILE             (hwp_hwp3_file_get_type ())
-#define HWP_HWP3_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP3_FILE, HWPHWP3File))
-#define HWP_HWP3_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP3_FILE, HWPHWP3FileClass))
+#define HWP_HWP3_FILE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP3_FILE, HwpHWP3File))
+#define HWP_HWP3_FILE_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP3_FILE, HwpHWP3FileClass))
 #define HWP_IS_HWP3_FILE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWP3_FILE))
 #define HWP_IS_HWP3_FILE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWP3_FILE))
-#define HWP_HWP3_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP3_FILE, HWPHWP3FileClass))
+#define HWP_HWP3_FILE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP3_FILE, HwpHWP3FileClass))
 
-typedef struct _HWPHWP3File        HWPHWP3File;
-typedef struct _HWPHWP3FileClass   HWPHWP3FileClass;
-typedef struct _HWPHWP3FilePrivate HWPHWP3FilePrivate;
+typedef struct _HwpHWP3File        HwpHWP3File;
+typedef struct _HwpHWP3FileClass   HwpHWP3FileClass;
+typedef struct _HwpHWP3FilePrivate HwpHWP3FilePrivate;
 
-struct _HWPHWP3FileClass {
-  HWPFileClass parent_class;
+struct _HwpHWP3FileClass {
+  HwpFileClass parent_class;
 };
 
-struct _HWPHWP3File {
-  HWPFile             parent_instance;
-  HWPHWP3FilePrivate *priv;
+struct _HwpHWP3File {
+  HwpFile             parent_instance;
+  HwpHWP3FilePrivate *priv;
 
-  HWPDocument        *document;
+  HwpDocument        *document;
   guint16             is_crypt;
   guint8              is_compress;
   guint8              rev;
   guint16             info_block_len;
-  HWPPage            *page;
+  HwpPage            *page;
 };
 
-struct _HWPHWP3FilePrivate {
+struct _HwpHWP3FilePrivate {
   GInputStream *stream;
 };
 
 GType        hwp_hwp3_file_get_type               (void) G_GNUC_CONST;
-HWPHWP3File *hwp_hwp3_file_new_for_path           (const gchar *path,
+HwpHWP3File *hwp_hwp3_file_new_for_path           (const gchar *path,
                                                    GError     **error);
-gchar       *hwp_hwp3_file_get_hwp_version_string (HWPFile     *file);
-void         hwp_hwp3_file_get_hwp_version        (HWPFile     *file,
+gchar       *hwp_hwp3_file_get_hwp_version_string (HwpFile     *file);
+void         hwp_hwp3_file_get_hwp_version        (HwpFile     *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,
                                                    guint8      *micro_version,
                                                    guint8      *extra_version);
-HWPDocument *hwp_hwp3_file_get_document           (HWPFile     *file,
+HwpDocument *hwp_hwp3_file_get_document           (HwpFile     *file,
                                                    GError     **error);
 
 G_END_DECLS

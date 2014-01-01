@@ -2,7 +2,7 @@
 /*
  * hwp-hwpml-file.c
  *
- * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -23,26 +23,26 @@
 #include "hwp-hwpml-file.h"
 #include <math.h>
 
-G_DEFINE_TYPE (HWPHWPMLFile, hwp_hwpml_file, HWP_TYPE_FILE);
+G_DEFINE_TYPE (HwpHWPMLFile, hwp_hwpml_file, HWP_TYPE_FILE);
 
 /**
  * hwp_hwpml_file_new_for_path:
  * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #HWPHWPMLFile.  If %NULL is returned, then @error will be
+ * Creates a new #HwpHWPMLFile.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #HWPHWPMLFile, or %NULL
+ * Return value: A newly created #HwpHWPMLFile, or %NULL
  *
  * Since: 0.0.1
  */
-HWPHWPMLFile *hwp_hwpml_file_new_for_path (const gchar *path, GError **error)
+HwpHWPMLFile *hwp_hwpml_file_new_for_path (const gchar *path, GError **error)
 {
   g_return_val_if_fail (path != NULL, NULL);
 
-  HWPHWPMLFile *file  = g_object_new (HWP_TYPE_HWPML_FILE, NULL);
+  HwpHWPMLFile *file  = g_object_new (HWP_TYPE_HWPML_FILE, NULL);
   GFile     *gfile = g_file_new_for_path (path);
   file->priv->uri  = g_file_get_uri (gfile);
   g_object_unref (gfile);
@@ -53,7 +53,7 @@ HWPHWPMLFile *hwp_hwpml_file_new_for_path (const gchar *path, GError **error)
 /**
  * Since: TODO
  */
-gchar *hwp_hwpml_file_get_hwp_version_string (HWPFile *file)
+gchar *hwp_hwpml_file_get_hwp_version_string (HwpFile *file)
 {
     return NULL;
 }
@@ -61,7 +61,7 @@ gchar *hwp_hwpml_file_get_hwp_version_string (HWPFile *file)
 /**
  * Since: TODO
  */
-void hwp_hwpml_file_get_hwp_version (HWPFile *file,
+void hwp_hwpml_file_get_hwp_version (HwpFile *file,
                                     guint8   *major_version,
                                     guint8   *minor_version,
                                     guint8   *micro_version,
@@ -83,7 +83,7 @@ enum HWPParseStateFlags {
 static int   hwp_parse_state = HWP_PARSE_NORMAL;
 static guint tag_p_count = 0;
 
-static void _hwp_hwpml_file_parse_node(HWPHWPMLFile *file, xmlTextReaderPtr reader)
+static void _hwp_hwpml_file_parse_node(HwpHWPMLFile *file, xmlTextReaderPtr reader)
 {
     g_return_if_fail (HWP_IS_HWPML_FILE (file));
 
@@ -107,8 +107,8 @@ static void _hwp_hwpml_file_parse_node(HWPHWPMLFile *file, xmlTextReaderPtr read
                 hwp_parse_state |= HWP_PARSE_P;
                 tag_p_count++;
                 if (tag_p_count > 1) {
-                    HWPParagraph *paragraph = hwp_paragraph_new ();
-                    HWPText *hwp_text = hwp_text_new ("");
+                    HwpParagraph *paragraph = hwp_paragraph_new ();
+                    HwpText *hwp_text = hwp_text_new ("");
                     hwp_paragraph_set_hwp_text (paragraph, hwp_text);
                     g_array_append_val (file->document->paragraphs, paragraph);
                 }
@@ -119,16 +119,16 @@ static void _hwp_hwpml_file_parse_node(HWPHWPMLFile *file, xmlTextReaderPtr read
             break;
         case XML_READER_TYPE_TEXT:
             if ((hwp_parse_state & HWP_PARSE_CHAR) == HWP_PARSE_CHAR) {
-                HWPParagraph *paragraph = g_array_index (file->document->paragraphs,
-                                                          HWPParagraph *,
+                HwpParagraph *paragraph = g_array_index (file->document->paragraphs,
+                                                          HwpParagraph *,
                                                           file->document->paragraphs->len - 1);
                 hwp_text_append (paragraph->hwp_text, (const gchar *) value);
             }
             break;
         case XML_READER_TYPE_END_ELEMENT:
             if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
-                HWPParagraph *paragraph = g_array_index (file->document->paragraphs,
-                                                          HWPParagraph *,
+                HwpParagraph *paragraph = g_array_index (file->document->paragraphs,
+                                                          HwpParagraph *,
                                                           file->document->paragraphs->len - 1);
 
                 /* 높이 계산 */
@@ -162,7 +162,7 @@ static void _hwp_hwpml_file_parse_node(HWPHWPMLFile *file, xmlTextReaderPtr read
     xmlFree(value);
 }
 
-static void _hwp_hwpml_file_parse (HWPHWPMLFile *file, GError **error)
+static void _hwp_hwpml_file_parse (HwpHWPMLFile *file, GError **error)
 {
     g_return_if_fail (HWP_IS_HWPML_FILE (file));
 
@@ -189,9 +189,15 @@ static void _hwp_hwpml_file_parse (HWPHWPMLFile *file, GError **error)
 }
 
 /**
- * Since: 0.2
+ * hwp_hwpml_file_get_document:
+ * @file: a #HwpFile
+ * @error: a #GError
+ *
+ * Return value: (transfer none): A #HwpDocument, or %NULL
+ *
+ * Since: 0.0.1
  */
-HWPDocument *hwp_hwpml_file_get_document (HWPFile *file, GError **error)
+HwpDocument *hwp_hwpml_file_get_document (HwpFile *file, GError **error)
 {
     g_return_val_if_fail (HWP_IS_HWPML_FILE (file), NULL);
     HWP_HWPML_FILE (file)->document = hwp_document_new();
@@ -199,25 +205,25 @@ HWPDocument *hwp_hwpml_file_get_document (HWPFile *file, GError **error)
     return HWP_HWPML_FILE (file)->document;
 }
 
-static void hwp_hwpml_file_init (HWPHWPMLFile *file)
+static void hwp_hwpml_file_init (HwpHWPMLFile *file)
 {
     file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWPML_FILE,
-                                                    HWPHWPMLFilePrivate);
+                                                    HwpHWPMLFilePrivate);
     file->page = hwp_page_new ();
 }
 
 static void hwp_hwpml_file_finalize (GObject *object)
 {
-    HWPHWPMLFile *file = HWP_HWPML_FILE(object);
+    HwpHWPMLFile *file = HWP_HWPML_FILE(object);
     g_free (file->priv->uri);
     G_OBJECT_CLASS (hwp_hwpml_file_parent_class)->finalize (object);
 }
 
-static void hwp_hwpml_file_class_init (HWPHWPMLFileClass *klass)
+static void hwp_hwpml_file_class_init (HwpHWPMLFileClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (HWPHWPMLFilePrivate));
-    HWPFileClass *hwp_file_class = HWP_FILE_CLASS (klass);
+    g_type_class_add_private (klass, sizeof (HwpHWPMLFilePrivate));
+    HwpFileClass *hwp_file_class = HWP_FILE_CLASS (klass);
     hwp_file_class->get_document = hwp_hwpml_file_get_document;
     hwp_file_class->get_hwp_version_string = hwp_hwpml_file_get_hwp_version_string;
     hwp_file_class->get_hwp_version = hwp_hwpml_file_get_hwp_version;

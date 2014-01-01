@@ -2,7 +2,7 @@
 /*
  * hwp-hwp5-parser.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -30,27 +30,27 @@
 G_BEGIN_DECLS
 
 #define HWP_TYPE_HWP5_PARSER             (hwp_hwp5_parser_get_type ())
-#define HWP_HWP5_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP5_PARSER, HWPHWP5Parser))
-#define HWP_HWP5_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP5_PARSER, HWPHWP5ParserClass))
+#define HWP_HWP5_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP5_PARSER, HwpHWP5Parser))
+#define HWP_HWP5_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP5_PARSER, HwpHWP5ParserClass))
 #define HWP_IS_HWP5_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWP5_PARSER))
 #define HWP_IS_HWP5_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWP5_PARSER))
-#define HWP_HWP5_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP5_PARSER, HWPHWP5ParserClass))
+#define HWP_HWP5_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP5_PARSER, HwpHWP5ParserClass))
 
-typedef struct _HWPHWP5Parser        HWPHWP5Parser;
-typedef struct _HWPHWP5ParserClass   HWPHWP5ParserClass;
-typedef struct _HWPHWP5ParserPrivate HWPHWP5ParserPrivate;
+typedef struct _HwpHWP5Parser        HwpHWP5Parser;
+typedef struct _HwpHWP5ParserClass   HwpHWP5ParserClass;
+typedef struct _HwpHWP5ParserPrivate HwpHWP5ParserPrivate;
 
-struct _HWPHWP5ParserClass
+struct _HwpHWP5ParserClass
 {
   GObjectClass parent_class;
 };
 
-struct _HWPHWP5Parser
+struct _HwpHWP5Parser
 {
   GObject                  parent_instance;
-	HWPHWP5ParserPrivate    *priv;
+	HwpHWP5ParserPrivate    *priv;
 
-  HWPListener             *listener;
+  HwpListener             *listener;
   gpointer                 user_data;
   GInputStream            *stream;
   /* from record header */
@@ -69,7 +69,7 @@ struct _HWPHWP5Parser
   guint8                   extra_version;
 };
 
-struct _HWPHWP5ParserPrivate
+struct _HwpHWP5ParserPrivate
 {
   guint32  header;
   gsize    bytes_read;
@@ -77,18 +77,18 @@ struct _HWPHWP5ParserPrivate
 };
 
 GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
-HWPHWP5Parser *hwp_hwp5_parser_new         (HWPListener   *listener,
+HwpHWP5Parser *hwp_hwp5_parser_new         (HwpListener   *listener,
                                             gpointer       user_data);
-void           hwp_hwp5_parser_parse       (HWPHWP5Parser *parser,
-                                            HWPHWP5File   *file,
+void           hwp_hwp5_parser_parse       (HwpHWP5Parser *parser,
+                                            HwpHWP5File   *file,
                                             GError       **error);
-gboolean       hwp_hwp5_parser_pull        (HWPHWP5Parser *parser,
+gboolean       hwp_hwp5_parser_pull        (HwpHWP5Parser *parser,
                                             GError       **error);
-gboolean       hwp_hwp5_parser_read_uint16 (HWPHWP5Parser *parser,
+gboolean       hwp_hwp5_parser_read_uint16 (HwpHWP5Parser *parser,
                                             guint16       *i);
-gboolean       hwp_hwp5_parser_read_uint32 (HWPHWP5Parser *parser,
+gboolean       hwp_hwp5_parser_read_uint32 (HwpHWP5Parser *parser,
                                             guint32       *i);
-gboolean       hwp_hwp5_parser_skip        (HWPHWP5Parser *parser,
+gboolean       hwp_hwp5_parser_skip        (HwpHWP5Parser *parser,
                                             guint16        count);
 
 G_END_DECLS

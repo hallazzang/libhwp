@@ -2,7 +2,7 @@
 /*
  * hwp-hwp5-parser.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -29,12 +29,12 @@
 #include "gsf-input-stream.h"
 #include "hwp-hwp5-parser.h"
 
-G_DEFINE_TYPE (HWPHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HwpHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
 
-static HWPParagraph *
-hwp_hwp5_parser_get_paragraph (HWPHWP5Parser *parser, HWPHWP5File *file);
+static HwpParagraph *
+hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file);
 
-gboolean parser_skip (HWPHWP5Parser *parser, guint16 count)
+gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
 {
   g_return_val_if_fail (parser != NULL, FALSE);
 
@@ -60,7 +60,7 @@ gboolean parser_skip (HWPHWP5Parser *parser, guint16 count)
   return TRUE;
 }
 
-gboolean parser_read_uint16 (HWPHWP5Parser *parser, guint16 *i)
+gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
     g_return_val_if_fail (parser->data_count <= parser->data_len - 2, FALSE);
@@ -82,7 +82,7 @@ gboolean parser_read_uint16 (HWPHWP5Parser *parser, guint16 *i)
     return TRUE;
 }
 
-gboolean parser_read_uint32 (HWPHWP5Parser *parser, guint32 *i)
+gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i)
 {
     g_return_val_if_fail (parser != NULL, FALSE);
     g_return_val_if_fail (parser->data_count <= parser->data_len - 4, FALSE);
@@ -107,7 +107,7 @@ gboolean parser_read_uint32 (HWPHWP5Parser *parser, guint32 *i)
 /* 에러일 경우 FALSE 반환, error 설정,
  * 성공일 경우 TRUE 반환,
  * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
-gboolean hwp_hwp5_parser_pull (HWPHWP5Parser *parser, GError **error)
+gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 {
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
@@ -194,10 +194,10 @@ gboolean hwp_hwp5_parser_pull (HWPHWP5Parser *parser, GError **error)
   return TRUE;
 }
 
-/*HWPHWP5Parser *hwp_hwp5_parser_new (GInputStream *stream)*/
+/*HwpHWP5Parser *hwp_hwp5_parser_new (GInputStream *stream)*/
 /*{*/
 /*    g_return_val_if_fail (stream != NULL, NULL);*/
-/*    HWPHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);*/
+/*    HwpHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);*/
 /*    parser->stream = g_object_ref (stream);*/
 /*    return parser;*/
 /*}*/
@@ -205,17 +205,17 @@ gboolean hwp_hwp5_parser_pull (HWPHWP5Parser *parser, GError **error)
 /**
  * Since: TODO
  */
-HWPHWP5Parser *
-hwp_hwp5_parser_new (HWPListener *listener, gpointer user_data)
+HwpHWP5Parser *
+hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
 {
-  HWPHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
+  HwpHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
   parser->listener           = listener;
   parser->user_data        = user_data;
 
   return parser;
 }
 
-static void parse_doc_info (HWPHWP5File *file, HWPDocument *document)
+static void parse_doc_info (HwpHWP5File *file, HwpDocument *document)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -223,7 +223,7 @@ static void parse_doc_info (HWPHWP5File *file, HWPDocument *document)
 /*    int i;*/
 
 /*    GInputStream *stream  = file->doc_info_stream;
-    HWPHWP5Parser  *parser = hwp_hwp5_parser_new (stream);
+    HwpHWP5Parser  *parser = hwp_hwp5_parser_new (stream);
     while (hwp_hwp5_parser_pull (parser, error)) {
         switch (parser->tag_id) {
         case HWP_TAG_DOCUMENT_PROPERTIES:*/
@@ -246,7 +246,7 @@ static void parse_doc_info (HWPHWP5File *file, HWPDocument *document)
     g_object_unref (parser);*/
 }
 
-static void parse_section_definition (HWPHWP5Parser *parser)
+static void parse_section_definition (HwpHWP5Parser *parser)
 {
     GError *error = NULL;
 
@@ -279,7 +279,7 @@ static void parse_section_definition (HWPHWP5Parser *parser)
 }
 
 /* 머리말 */
-static void parse_header (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_header (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     GError *error = NULL;
 
@@ -312,7 +312,7 @@ static void parse_header (HWPHWP5Parser *parser, HWPHWP5File *file)
 }
 
 /* 각주 */
-static void parse_footnote (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
@@ -346,7 +346,7 @@ static void parse_footnote (HWPHWP5Parser *parser, HWPHWP5File *file)
     } /* while */
 }
 
-static void parse_tcmt (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_tcmt (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
@@ -409,11 +409,11 @@ static void parse_tcmt (HWPHWP5Parser *parser, HWPHWP5File *file)
  *   list-header (21)
  */
 
-static HWPTable *
-hwp_hwp5_parser_get_table (HWPHWP5Parser *parser, HWPHWP5File *file)
+static HwpTable *
+hwp_hwp5_parser_get_table (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
-    HWPTable *table = hwp_table_new ();
+    HwpTable *table = hwp_table_new ();
 
     parser_read_uint32 (parser, &table->flags);
     parser_read_uint16 (parser, &table->n_rows);
@@ -450,11 +450,11 @@ hwp_hwp5_parser_get_table (HWPHWP5Parser *parser, HWPHWP5File *file)
     return table;
 }
 
-static HWPTableCell *hwp_hwp5_parser_get_table_cell (HWPHWP5Parser *parser)
+static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser)
 {
     g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
-    HWPTableCell *table_cell = hwp_table_cell_new ();
+    HwpTableCell *table_cell = hwp_table_cell_new ();
     /* 표 60 LIST_HEADER */
     parser_read_uint16 (parser, &table_cell->n_paragraphs);
     parser_read_uint32 (parser, &table_cell->flags);
@@ -500,14 +500,14 @@ static HWPTableCell *hwp_hwp5_parser_get_table_cell (HWPHWP5Parser *parser)
     return table_cell;
 }
 
-static void parse_table (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     GError *error = NULL;
     guint16 level = parser->level + 1;
     printf("level = %d\n", level);
-    HWPTable     *table     = NULL;
-    HWPTableCell *cell      = NULL;
-    HWPParagraph *paragraph = NULL;
+    HwpTable     *table     = NULL;
+    HwpTableCell *cell      = NULL;
+    HwpParagraph *paragraph = NULL;
 
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
@@ -545,7 +545,7 @@ static void parse_table (HWPHWP5Parser *parser, HWPHWP5File *file)
     /* add table to where ? */
 }
 
-static gchar *hwp_hwp5_parser_get_text (HWPHWP5Parser *parser)
+static gchar *hwp_hwp5_parser_get_text (HwpHWP5Parser *parser)
 {
     g_return_val_if_fail (parser != NULL, NULL);
     gunichar2 ch; /* guint16 */
@@ -619,7 +619,7 @@ static gchar *hwp_hwp5_parser_get_text (HWPHWP5Parser *parser)
     return g_string_free(text, FALSE);
 }
 
-static void parse_shape_component (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_shape_component (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
@@ -655,7 +655,7 @@ static void parse_shape_component (HWPHWP5Parser *parser, HWPHWP5File *file)
 }
 
 static void
-parse_drawing_shape_object (HWPHWP5Parser *parser, HWPHWP5File *file)
+parse_drawing_shape_object (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
@@ -687,14 +687,14 @@ parse_drawing_shape_object (HWPHWP5Parser *parser, HWPHWP5File *file)
     } /* while */
 }
 
-static HWPParagraph *
-hwp_hwp5_parser_get_paragraph (HWPHWP5Parser *parser, HWPHWP5File *file)
+static HwpParagraph *
+hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
   printf("level = %d\n", level);
-  HWPParagraph *paragraph = hwp_paragraph_new ();
-  HWPText      *hwp_text = NULL;
+  HwpParagraph *paragraph = hwp_paragraph_new ();
+  HwpText      *hwp_text = NULL;
   gchar         *text      = NULL;
 
   while (hwp_hwp5_parser_pull(parser, &error)) {
@@ -780,12 +780,12 @@ hwp_hwp5_parser_get_paragraph (HWPHWP5Parser *parser, HWPHWP5File *file)
   return paragraph;
 }
 
-static void parse_section (HWPHWP5Parser *parser, HWPHWP5File  *file)
+static void parse_section (HwpHWP5Parser *parser, HwpHWP5File  *file)
 {
   GError        *error     = NULL;
-  HWPParagraph *paragraph = NULL;
+  HwpParagraph *paragraph = NULL;
 
-  HWPListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
   while (hwp_hwp5_parser_pull(parser, &error))
   {
@@ -817,7 +817,7 @@ static void parse_section (HWPHWP5Parser *parser, HWPHWP5File  *file)
   } /* while */
 }
 
-static void parse_sections (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_sections (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   for (guint i = 0; i < file->section_streams->len; i++)
   {
@@ -828,14 +828,14 @@ static void parse_sections (HWPHWP5Parser *parser, HWPHWP5File *file)
   }
 }
 
-static void parse_body_text (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_body_text (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
     parse_sections (parser, file);
 }
 
-static void parse_view_text (HWPHWP5Parser *parser, HWPHWP5File *file)
+static void parse_view_text (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -847,7 +847,7 @@ static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
     gchar        *name  = (gchar        *) k;
     GsfDocProp   *prop  = (GsfDocProp   *) v;
-    HWPDocument *doc   = (HWPDocument *) user_data;
+    HwpDocument *doc   = (HwpDocument *) user_data;
     GValue const *value = gsf_doc_prop_get_val (prop);
 
     if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
@@ -882,7 +882,7 @@ static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
     }
 }
 
-static void parse_summary_info (HWPHWP5File *file, HWPDocument *document)
+static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -949,7 +949,7 @@ static void parse_summary_info (HWPHWP5File *file, HWPDocument *document)
     g_object_unref (gis);
 }
 
-static void parse_prv_text (HWPHWP5File *file, HWPDocument *document)
+static void parse_prv_text (HwpHWP5File *file, HwpDocument *document)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -987,7 +987,7 @@ static void parse_prv_text (HWPHWP5File *file, HWPDocument *document)
     g_object_unref (gis);
 }
 
-gboolean hwp_hwp5_parser_check_version (HWPHWP5Parser *parser,
+gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
                                            guint8            major,
                                            guint8            minor,
                                            guint8            micro,
@@ -1010,12 +1010,12 @@ gboolean hwp_hwp5_parser_check_version (HWPHWP5Parser *parser,
 /*
  * Since: TODO
  */
-void hwp_hwp5_parser_parse (HWPHWP5Parser *parser,
-                            HWPHWP5File   *file,
+void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
+                            HwpHWP5File   *file,
                             GError       **error)
 {
   g_return_if_fail (parser != NULL);
-  HWPListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
   if (iface->document_version)
     iface->document_version (parser->listener,
                              file->major_version,
@@ -1038,17 +1038,17 @@ void hwp_hwp5_parser_parse (HWPHWP5Parser *parser,
 /*    parse_doc_history    (file, document);*/
 }
 
-static void hwp_hwp5_parser_init (HWPHWP5Parser *parser)
+static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)
 {
   parser->priv = G_TYPE_INSTANCE_GET_PRIVATE (parser,
                                               HWP_TYPE_HWP5_PARSER,
-                                              HWPHWP5ParserPrivate);
+                                              HwpHWP5ParserPrivate);
   parser->state = HWP_PARSE_STATE_NORMAL;
 }
 
 static void hwp_hwp5_parser_finalize (GObject *object)
 {
-  HWPHWP5Parser *parser = HWP_HWP5_PARSER (object);
+  HwpHWP5Parser *parser = HWP_HWP5_PARSER (object);
   if (G_IS_INPUT_STREAM (parser->stream)) {
     g_input_stream_close (parser->stream, NULL, NULL);
     g_object_unref (parser->stream);
@@ -1057,9 +1057,9 @@ static void hwp_hwp5_parser_finalize (GObject *object)
   G_OBJECT_CLASS (hwp_hwp5_parser_parent_class)->finalize (object);
 }
 
-static void hwp_hwp5_parser_class_init (HWPHWP5ParserClass *klass)
+static void hwp_hwp5_parser_class_init (HwpHWP5ParserClass *klass)
 {
   GObjectClass* object_class = G_OBJECT_CLASS (klass);
-  g_type_class_add_private (klass, sizeof (HWPHWP5ParserPrivate));
+  g_type_class_add_private (klass, sizeof (HwpHWP5ParserPrivate));
   object_class->finalize = hwp_hwp5_parser_finalize;
 }

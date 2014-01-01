@@ -2,7 +2,7 @@
 /*
  * hwp-listener.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -28,7 +28,7 @@
 G_BEGIN_DECLS
 
 /**
- * HWPParseState:
+ * HwpParseState:
  *
  * This type indicates the current state of parsing.
  *
@@ -38,40 +38,40 @@ typedef enum {
   HWP_PARSE_STATE_NORMAL,
   HWP_PARSE_STATE_PASSING,
   HWP_PARSE_STATE_INSIDE_TABLE
-} HWPParseState;
+} HwpParseState;
 
-/* HWPListenerInterface ********************************************************/
+/* HwpListenerInterface ********************************************************/
 
 #define HWP_TYPE_LISTENER            (hwp_listener_get_type ())
-#define HWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENER, HWPListener))
+#define HWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENER, HwpListener))
 #define HWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), HWP_TYPE_LISTENER))
-#define HWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENER, HWPListenerInterface))
+#define HWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENER, HwpListenerInterface))
 
-typedef struct _HWPListener          HWPListener; /* dummy typedef */
-typedef struct _HWPListenerInterface HWPListenerInterface;
+typedef struct _HwpListener          HwpListener; /* dummy typedef */
+typedef struct _HwpListenerInterface HwpListenerInterface;
 
 /**
  * Since: TODO
  */
-struct _HWPListenerInterface
+struct _HwpListenerInterface
 {
   GTypeInterface            base_iface;
 
-  void (*document_version) (HWPListener *listener,
+  void (*document_version) (HwpListener *listener,
                             guint8        major_version,
                             guint8        minor_version,
                             guint8        micro_version,
                             guint8        extra_version,
                             gpointer      user_data,
                             GError      **error);
-  void (*object)           (HWPListener *listener,
+  void (*object)           (HwpListener *listener,
                             GObject      *object,
                             gpointer      user_data,
                             GError      **error);
 };
 
 GType hwp_listener_get_type         (void) G_GNUC_CONST;
-/*void  hwp_listener_document_version (HWPListener *listener,*/
+/*void  hwp_listener_document_version (HwpListener *listener,*/
 /*                                      guint8        major_version,*/
 /*                                      guint8        minor_version,*/
 /*                                      guint8        micro_version,*/

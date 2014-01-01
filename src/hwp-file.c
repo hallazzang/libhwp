@@ -2,7 +2,7 @@
 /*
  * hwp-file.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -33,12 +33,12 @@
 #include "hwp-hwp5-file.h"
 #include "hwp-hwpml-file.h"
 
-G_DEFINE_ABSTRACT_TYPE (HWPFile, hwp_file, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE (HwpFile, hwp_file, G_TYPE_OBJECT);
 
 /**
  * hwp_file_error_quark:
  *
- * The error domain for HWPFile
+ * The error domain for HwpFile
  *
  * Returns: The error domain
  *
@@ -52,7 +52,7 @@ GQuark hwp_file_error_quark (void)
 /**
  * Since: 0.2
  */
-void hwp_file_get_hwp_version (HWPFile *file,
+void hwp_file_get_hwp_version (HwpFile *file,
                                 guint8   *major_version,
                                 guint8   *minor_version,
                                 guint8   *micro_version,
@@ -68,9 +68,15 @@ void hwp_file_get_hwp_version (HWPFile *file,
 }
 
 /**
- * Since: 0.2
+ * hwp_file_get_document:
+ * @file: a #HwpFile
+ * @error: a #GError
+ *
+ * Return value: (transfer none): A #HwpDocument, or %NULL
+ *
+ * Since: 0.0.1
  */
-HWPDocument *hwp_file_get_document (HWPFile *file, GError **error)
+HwpDocument *hwp_file_get_document (HwpFile *file, GError **error)
 {
     g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
@@ -78,9 +84,11 @@ HWPDocument *hwp_file_get_document (HWPFile *file, GError **error)
 }
 
 /**
- * Since: 0.2
+ * hwp_file_get_hwp_version_string:
+ *
+ * Since: 0.0.1
  */
-gchar *hwp_file_get_hwp_version_string (HWPFile *file)
+gchar *hwp_file_get_hwp_version_string (HwpFile *file)
 {
     g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
@@ -113,15 +121,15 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
  * @path: path of the file to load
  * @error: (allow-none): Return location for an error, or %NULL
  * 
- * Creates a new #HWPFile.  If %NULL is returned, then @error will be
+ * Creates a new #HwpFile.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  * 
- * Return value: A newly created #HWPFile, or %NULL
+ * Return value: A newly created #HwpFile, or %NULL
  *
  * Since: 0.0.1
  */
-HWPFile *hwp_file_new_for_path (const gchar *path, GError **error)
+HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
 {
     g_return_val_if_fail (path != NULL, NULL);
 
@@ -151,7 +159,7 @@ HWPFile *hwp_file_new_for_path (const gchar *path, GError **error)
                              &bytes_read, NULL, error);
     g_object_unref(stream);
 
-    HWPFile *retval = NULL;
+    HwpFile *retval = NULL;
 
     if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
         /* hwp v5 */
@@ -178,12 +186,12 @@ static void hwp_file_finalize (GObject *obj)
     G_OBJECT_CLASS (hwp_file_parent_class)->finalize (obj);
 }
 
-static void hwp_file_class_init (HWPFileClass *klass)
+static void hwp_file_class_init (HwpFileClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize = hwp_file_finalize;
 }
 
-static void hwp_file_init (HWPFile *file)
+static void hwp_file_init (HwpFile *file)
 {
 }

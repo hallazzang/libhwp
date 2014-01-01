@@ -2,7 +2,7 @@
 /*
  * hwp-page.c
  *
- * Copyright (C) 2012-2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -24,12 +24,12 @@
 
 #include "hwp-models.h"
 
-G_DEFINE_TYPE (HWPPage, hwp_page, G_TYPE_OBJECT);
+G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);
 
 /**
  * Since: 0.1
  */
-void hwp_page_get_size (HWPPage *page,
+void hwp_page_get_size (HwpPage *page,
                          gdouble  *width,
                          gdouble  *height)
 {
@@ -39,7 +39,7 @@ void hwp_page_get_size (HWPPage *page,
     *height = 842.0;
 }
 
-static void hwp_show_layout (cairo_t *cr, HWPLayout *layout)
+static void hwp_show_layout (cairo_t *cr, HwpLayout *layout)
 {
     cairo_move_to (cr, layout->x, layout->y);
     pango_cairo_show_layout (cr, layout->pango_layout);
@@ -48,14 +48,14 @@ static void hwp_show_layout (cairo_t *cr, HWPLayout *layout)
 /**
  * Since: 0.1
  */
-gboolean hwp_page_render (HWPPage *page, cairo_t *cr)
+gboolean hwp_page_render (HwpPage *page, cairo_t *cr)
 {
     g_return_val_if_fail (HWP_IS_PAGE (page) && cr, FALSE);
 
-    HWPLayout *layout;
+    HwpLayout *layout;
 
     for (guint i = 0; i < page->layouts->len; i++) {
-        layout = g_array_index (page->layouts, HWPLayout *, i);
+        layout = g_array_index (page->layouts, HwpLayout *, i);
         hwp_show_layout (cr, layout);
     }
 
@@ -65,22 +65,22 @@ gboolean hwp_page_render (HWPPage *page, cairo_t *cr)
 /**
  * Since: 0.1
  */
-HWPPage *hwp_page_new (void)
+HwpPage *hwp_page_new (void)
 {
-    return (HWPPage *) g_object_new (HWP_TYPE_PAGE, NULL);
+    return (HwpPage *) g_object_new (HWP_TYPE_PAGE, NULL);
 }
 
 /**
  * Since: TODO
  */
 void
-hwp_page_render_selection (HWPPage           *page,
+hwp_page_render_selection (HwpPage           *page,
                             cairo_t            *cr,
-                            HWPRectangle      *selection,
-                            HWPRectangle      *old_selection,
-                            HWPSelectionStyle  style, 
-                            HWPColor          *glyph_color,
-                            HWPColor          *background_color)
+                            HwpRectangle      *selection,
+                            HwpRectangle      *old_selection,
+                            HwpSelectionStyle  style, 
+                            HwpColor          *glyph_color,
+                            HwpColor          *background_color)
 {
     g_return_if_fail (page != NULL);
     /* TODO */
@@ -90,9 +90,9 @@ hwp_page_render_selection (HWPPage           *page,
  * Since: TODO
  */
 char *
-hwp_page_get_selected_text (HWPPage          *page,
-                             HWPSelectionStyle style,
-                             HWPRectangle     *selection)
+hwp_page_get_selected_text (HwpPage          *page,
+                             HwpSelectionStyle style,
+                             HwpRectangle     *selection)
 {
     g_return_val_if_fail (page != NULL, NULL);
     /* TODO */
@@ -103,10 +103,10 @@ hwp_page_get_selected_text (HWPPage          *page,
  * Since: TODO
  */
 cairo_region_t *
-hwp_page_get_selection_region (HWPPage          *page,
+hwp_page_get_selection_region (HwpPage          *page,
                                 gdouble            scale,
-                                HWPSelectionStyle style,
-                                HWPRectangle     *selection)
+                                HwpSelectionStyle style,
+                                HwpRectangle     *selection)
 {
     g_return_val_if_fail (page != NULL, NULL);
     /* TODO */
@@ -115,34 +115,34 @@ hwp_page_get_selection_region (HWPPage          *page,
 
 /**
  * hwp_rectangle_free:
- * @rectangle: a #HWPRectangle
+ * @rectangle: a #HwpRectangle
  *
- * Frees the given #HWPRectangle
+ * Frees the given #HwpRectangle
  *
  * Since: 0.2
  */
-void hwp_rectangle_free (HWPRectangle *rectangle)
+void hwp_rectangle_free (HwpRectangle *rectangle)
 {
     g_return_if_fail (rectangle != NULL);
-    g_slice_free (HWPRectangle, rectangle);
+    g_slice_free (HwpRectangle, rectangle);
 }
 
 static void hwp_page_finalize (GObject *obj)
 {
-    HWPPage *page = HWP_PAGE (obj);
+    HwpPage *page = HWP_PAGE (obj);
     g_array_free (page->paragraphs, TRUE);
     g_array_free (page->layouts,    TRUE);
     G_OBJECT_CLASS (hwp_page_parent_class)->finalize (obj);
 }
 
-static void hwp_page_class_init (HWPPageClass * klass)
+static void hwp_page_class_init (HwpPageClass * klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
     object_class->finalize     = hwp_page_finalize;
 }
 
-static void hwp_page_init (HWPPage *page)
+static void hwp_page_init (HwpPage *page)
 {
-    page->paragraphs = g_array_new (TRUE, TRUE, sizeof (HWPParagraph *));
-    page->layouts    = g_array_new (TRUE, TRUE, sizeof (HWPLayout   *));
+    page->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
+    page->layouts    = g_array_new (TRUE, TRUE, sizeof (HwpLayout   *));
 }

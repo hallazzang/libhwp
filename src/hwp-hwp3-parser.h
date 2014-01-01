@@ -2,7 +2,7 @@
 /*
  * hwp-hwp3-parser.h
  *
- * Copyright (C) 2013 Hodong Kim <cogniti@gmail.com>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -27,22 +27,22 @@
 G_BEGIN_DECLS
 
 #define HWP_TYPE_HWP3_PARSER             (hwp_hwp3_parser_get_type ())
-#define HWP_HWP3_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP3_PARSER, HWPHWP3Parser))
-#define HWP_HWP3_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP3_PARSER, HWPHWP3ParserClass))
+#define HWP_HWP3_PARSER(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_HWP3_PARSER, HwpHWP3Parser))
+#define HWP_HWP3_PARSER_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_HWP3_PARSER, HwpHWP3ParserClass))
 #define HWP_IS_HWP3_PARSER(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_HWP3_PARSER))
 #define HWP_IS_HWP3_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWP3_PARSER))
-#define HWP_HWP3_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP3_PARSER, HWPHWP3ParserClass))
+#define HWP_HWP3_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWP3_PARSER, HwpHWP3ParserClass))
 
-typedef struct _HWPHWP3Parser        HWPHWP3Parser;
-typedef struct _HWPHWP3ParserClass   HWPHWP3ParserClass;
-typedef struct _HWPHWP3ParserPrivate HWPHWP3ParserPrivate;
+typedef struct _HwpHWP3Parser        HwpHWP3Parser;
+typedef struct _HwpHWP3ParserClass   HwpHWP3ParserClass;
+typedef struct _HwpHWP3ParserPrivate HwpHWP3ParserPrivate;
 
-struct _HWPHWP3ParserClass
+struct _HwpHWP3ParserClass
 {
   GObjectClass parent_class;
 };
 
-struct _HWPHWP3Parser
+struct _HwpHWP3Parser
 {
   GObject               parent_instance;
 
@@ -51,17 +51,17 @@ struct _HWPHWP3Parser
 };
 
 GType          hwp_hwp3_parser_get_type    (void) G_GNUC_CONST;
-HWPHWP3Parser *hwp_hwp3_parser_new         (GInputStream  *stream);
-gboolean       hwp_hwp3_parser_read_uint8  (HWPHWP3Parser *parser,
+HwpHWP3Parser *hwp_hwp3_parser_new         (GInputStream  *stream);
+gboolean       hwp_hwp3_parser_read_uint8  (HwpHWP3Parser *parser,
                                             guint8        *i);
-gboolean       hwp_hwp3_parser_read_uint16 (HWPHWP3Parser *parser,
+gboolean       hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser,
                                             guint16       *i);
-gboolean       hwp_hwp3_parser_read_uint32 (HWPHWP3Parser *parser,
+gboolean       hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser,
                                             guint32       *i);
-gboolean       hwp_hwp3_parser_read        (HWPHWP3Parser *parser,
+gboolean       hwp_hwp3_parser_read        (HwpHWP3Parser *parser,
                                             void          *buffer,
                                             gsize          count);
-gboolean       hwp_hwp3_parser_skip        (HWPHWP3Parser *parser,
+gboolean       hwp_hwp3_parser_skip        (HwpHWP3Parser *parser,
                                             guint16        count);
 G_END_DECLS
 
