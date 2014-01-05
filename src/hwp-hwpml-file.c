@@ -28,7 +28,7 @@ G_DEFINE_TYPE (HwpHWPMLFile, hwp_hwpml_file, HWP_TYPE_FILE);
 /**
  * hwp_hwpml_file_new_for_path:
  * @path: path of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
+ * @error: location to store the error occurring, or %NULL to ignore
  * 
  * Creates a new #HwpHWPMLFile.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
@@ -191,7 +191,7 @@ static void _hwp_hwpml_file_parse (HwpHWPMLFile *file, GError **error)
 /**
  * hwp_hwpml_file_get_document:
  * @file: a #HwpFile
- * @error: a #GError
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Return value: (transfer none): A #HwpDocument, or %NULL
  *

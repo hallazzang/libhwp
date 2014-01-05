@@ -35,7 +35,7 @@ G_DEFINE_TYPE (HwpHWP3File, hwp_hwp3_file, HWP_TYPE_FILE);
 /**
  * hwp_hwp3_file_new_for_path:
  * @path: path of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Creates a new #HwpHWP3File.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
@@ -426,7 +426,7 @@ static void _hwp_hwp3_file_parse (HwpHWP3File *file, GError **error)
 /**
  * hwp_hwp3_file_get_document:
  * @file: a #HwpFile
- * @error: a #GError
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Return value: (transfer none): A #HwpDocument, or %NULL
  *

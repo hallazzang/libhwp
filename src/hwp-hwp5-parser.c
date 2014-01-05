@@ -104,9 +104,22 @@ gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i)
     return TRUE;
 }
 
-/* 에러일 경우 FALSE 반환, error 설정,
- * 성공일 경우 TRUE 반환,
- * end-of-stream 일 경우 FALSE 반환, error 설정 안 함 */
+/**
+ * hwp_hwp5_parser_pull:
+ * @parser: #HwpHWP5Parser
+ * @error: #GError
+ *
+ * On a successful pull, %TURE is returned.
+ *
+ * If we reached the end of the stream %FALSE is returned and error is not set.
+ *
+ * If there is an error during the operation
+ * %FALSE is returned and error is set to indicate the error status.
+ *
+ * Returns: %TRUE on success, %FALSE if there was an error or end-of-stream 
+ *
+ * Since: 0.0.1
+ */
 gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 {
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
@@ -205,12 +218,11 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 /**
  * Since: TODO
  */
-HwpHWP5Parser *
-hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
+HwpHWP5Parser *hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
 {
   HwpHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
-  parser->listener           = listener;
-  parser->user_data        = user_data;
+  parser->listener      = listener;
+  parser->user_data     = user_data;
 
   return parser;
 }
@@ -907,19 +919,29 @@ static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
         return;
     }
 
-    /* changwoo's solution, thanks to changwoo.
-     * https://groups.google.com/d/msg/libhwp/gFDD7UMCXBc/tyR3wOXoRIoJ
-     * https://github.com/changwoo/gnome-hwp-support/blob/master/properties/props-data.c
-     * Trick the libgsf's MSOLE property set listener, by changing
-     * its GUID. The \005HwpSummaryInformation is compatible with
-     * the summary property set.
-     */
     guint8 component_guid [] = {
         0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
         0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
     };
 
-    if (size >= sizeof(component_guid) + 28) {
+/*
+* The Format Identifier for Summary Information
+* F29F85E0-4FF9-1068-AB91-08002B27B3D9
+*/
+/*static guint8 const component_guid [] = {
+        0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
+        0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
+};*/
+
+/*
+* The Format Identifier for Document Summary Information
+* D5CDD502-2E9C-101B-9397-08002B2CF9AE
+*/
+/*static guint8 const document_guid [] = {
+        0x02, 0xd5, 0xcd, 0xd5, 0x9c, 0x2e, 0x1b, 0x10,
+        0x93, 0x97, 0x08, 0x00, 0x2b, 0x2c, 0xf9, 0xae
+};*/
+/*    if (size >= sizeof(component_guid) + 28) {
         memcpy (buf + 28, component_guid, (gsize) sizeof(component_guid));
     } else {
         buf = (g_free (buf), NULL);
@@ -927,7 +949,7 @@ static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
         g_object_unref (gis);
         g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
         return;
-    }
+    }*/
     summary = (GsfInputMemory*) gsf_input_memory_new (buf, size, FALSE);
 
     meta = gsf_doc_meta_data_new ();
@@ -1025,7 +1047,8 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                              parser->user_data,
                              error);
 
-/*    parse_doc_info       (file, document);*/
+/*  parse_file_header    (file, document);*/
+/*  parse_doc_info       (file, document);*/
   parse_body_text      (parser, file);
 /*    parse_view_text      (file, document);*/
 /*    parse_summary_info   (file, document);*/

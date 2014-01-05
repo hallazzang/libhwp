@@ -53,7 +53,7 @@ G_DEFINE_TYPE (HwpHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
 /**
  * hwp_hwp5_file_get_document:
  * @file: a #HwpFile
- * @error: a #GError
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Return value: (transfer none): A #HwpDocument, or %NULL
  *
@@ -99,7 +99,7 @@ HwpDocument *hwp_hwp5_file_get_document (HwpFile *file, GError **error)
  * Returns: %TRUE if the version of the HWP document
  * is the same as or newer than the passed-in version.
  *
- * Since: TODO
+ * Since: 0.0.1
  */
 gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
                                      guint8      major,
@@ -129,9 +129,9 @@ gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
  * @micro_version: (out) (allow-none): return location for the HWP micro version number
  * @extra_version: (out) (allow-none): return location for the HWP extra version number
  *
- * Returns: the major and minor and micro and extra HWP version numbers
+ * Returns: (skip): the major and minor and micro and extra HWP version numbers
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 void hwp_hwp5_file_get_hwp_version (HwpFile *file,
                                    guint8   *major_version,
@@ -148,7 +148,12 @@ void hwp_hwp5_file_get_hwp_version (HwpFile *file,
 }
 
 /**
- * Since: 0.2
+ * hwp_hwp5_file_get_hwp_version_string:
+ * @file: A #HwpFile
+ *
+ * Returns: the major and minor and micro and extra HWP version string
+ *
+ * Since: 0.0.1
  */
 gchar *hwp_hwp5_file_get_hwp_version_string (HwpFile *file)
 {
@@ -160,7 +165,6 @@ gchar *hwp_hwp5_file_get_hwp_version_string (HwpFile *file)
                                          HWP_HWP5_FILE(file)->extra_version);
 }
 
-/* TODO 에러 감지/전파 코드 있어야 한다. */
 static void parse_file_header (HwpHWP5File *file)
 {
     g_return_if_fail (file != NULL);
@@ -444,13 +448,13 @@ static void make_stream (HwpHWP5File *file, GError **error)
 /**
  * hwp_hwp5_file_new_for_path:
  * @path: path of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Creates a new #HwpHWP5File.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
  * domains.
  *
- * Return value: A newly created #HwpHWP5File, or %NULL
+ * Returns: A newly created #HwpHWP5File, or %NULL
  *
  * Since: 0.0.1
  */

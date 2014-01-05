@@ -42,7 +42,7 @@ G_DEFINE_TYPE_WITH_CODE (HwpDocument, hwp_document, G_TYPE_OBJECT,
 /**
  * hwp_document_new_from_file:
  * @filename: the path of a file, in the GLib filename encoding
- * @error: (allow-none): Return location for an error, or %NULL
+ * @error: location to store the error occurring, or %NULL to ignore
  * 
  * Creates a new #HwpDocument.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
@@ -304,14 +304,14 @@ static void hwp_document_init (HwpDocument *doc)
 }
 
 void listen_document_version (HwpListener *listener,
-                              guint8        major_version,
-                              guint8        minor_version,
-                              guint8        micro_version,
-                              guint8        extra_version,
-                              gpointer      user_data,
-                              GError      **error)
+                              guint8       major_version,
+                              guint8       minor_version,
+                              guint8       micro_version,
+                              guint8       extra_version,
+                              gpointer     user_data,
+                              GError     **error)
 {
-  HwpDocument *document  = (HwpDocument *) listener;
+  HwpDocument *document   = (HwpDocument *) listener;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;

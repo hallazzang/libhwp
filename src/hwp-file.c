@@ -70,7 +70,7 @@ void hwp_file_get_hwp_version (HwpFile *file,
 /**
  * hwp_file_get_document:
  * @file: a #HwpFile
- * @error: a #GError
+ * @error: location to store the error occurring, or %NULL to ignore
  *
  * Return value: (transfer none): A #HwpDocument, or %NULL
  *
@@ -119,7 +119,7 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 /**
  * hwp_file_new_for_path:
  * @path: path of the file to load
- * @error: (allow-none): Return location for an error, or %NULL
+ * @error: location to store the error occurring, or %NULL to ignore
  * 
  * Creates a new #HwpFile.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
