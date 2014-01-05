@@ -794,7 +794,7 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
 
 static void parse_section (HwpHWP5Parser *parser, HwpHWP5File  *file)
 {
-  GError        *error     = NULL;
+  GError       *error     = NULL;
   HwpParagraph *paragraph = NULL;
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
@@ -859,7 +859,7 @@ static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
     gchar        *name  = (gchar        *) k;
     GsfDocProp   *prop  = (GsfDocProp   *) v;
-    HwpDocument *doc   = (HwpDocument *) user_data;
+    HwpDocument  *doc   = (HwpDocument *) user_data;
     GValue const *value = gsf_doc_prop_get_val (prop);
 
     if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
@@ -919,37 +919,27 @@ static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
         return;
     }
 
+    /* from gsf-msole-utils.c */
     guint8 component_guid [] = {
         0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
         0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
     };
 
-/*
-* The Format Identifier for Summary Information
-* F29F85E0-4FF9-1068-AB91-08002B27B3D9
-*/
-/*static guint8 const component_guid [] = {
-        0xe0, 0x85, 0x9f, 0xf2, 0xf9, 0x4f, 0x68, 0x10,
-        0xab, 0x91, 0x08, 0x00, 0x2b, 0x27, 0xb3, 0xd9
-};*/
+  /*
+   * This code forces sections[i].type to COMPONENT_PROP.
+   * For more information, please refer to gsf_doc_meta_data_read_from_msole
+   * in gsf-msole-utils.c.c
+   */
+  if (size >= sizeof(component_guid) + 28) {
+    memcpy (buf + 28, component_guid, sizeof(component_guid));
+  } else {
+    buf = (g_free (buf), NULL);
+    g_object_unref (file->summary_info_stream);
+    g_object_unref (gis);
+    g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
+    return;
+  }
 
-/*
-* The Format Identifier for Document Summary Information
-* D5CDD502-2E9C-101B-9397-08002B2CF9AE
-*/
-/*static guint8 const document_guid [] = {
-        0x02, 0xd5, 0xcd, 0xd5, 0x9c, 0x2e, 0x1b, 0x10,
-        0x93, 0x97, 0x08, 0x00, 0x2b, 0x2c, 0xf9, 0xae
-};*/
-/*    if (size >= sizeof(component_guid) + 28) {
-        memcpy (buf + 28, component_guid, (gsize) sizeof(component_guid));
-    } else {
-        buf = (g_free (buf), NULL);
-        g_object_unref (file->summary_info_stream);
-        g_object_unref (gis);
-        g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
-        return;
-    }*/
     summary = (GsfInputMemory*) gsf_input_memory_new (buf, size, FALSE);
 
     meta = gsf_doc_meta_data_new ();
@@ -1029,8 +1019,13 @@ gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
             parser->extra_version >= extra);
 }
 
-/*
- * Since: TODO
+/**
+ * hwp_hwp5_parser_parse:
+ * @parser:
+ * @file:
+ * @error:
+ *
+ * Since: 0.0.1
  */
 void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                             HwpHWP5File   *file,
@@ -1048,12 +1043,12 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                              error);
 
 /*  parse_file_header    (file, document);*/
-/*  parse_doc_info       (file, document);*/
+  parse_doc_info       (file, HWP_DOCUMENT (parser->listener));
   parse_body_text      (parser, file);
-/*    parse_view_text      (file, document);*/
-/*    parse_summary_info   (file, document);*/
+/*  parse_view_text      (file, HWP_DOCUMENT (parser->listener));*/
+  parse_summary_info   (file, HWP_DOCUMENT (parser->listener));
 /*    parse_bin_data       (file, document);*/
-/*    parse_prv_text       (file, document);*/
+  parse_prv_text       (file, HWP_DOCUMENT (parser->listener));
 /*    parse_prv_image      (file, document);*/
 /*    parse_doc_options    (file, document);*/
 /*    parse_scripts        (file, document);*/
