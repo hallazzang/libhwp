@@ -116,7 +116,7 @@ unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(HWP_CFLAGS)
 unhwp_LDADD     = libhwp.la $(HWP_LIBS)
 
-CLEANFILES = $(gir_DATA) $(typelib_DATA)
+CLEANFILES = $(bin_PROGRAMS) $(gir_DATA) $(typelib_DATA)
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
