@@ -857,8 +857,8 @@ static void parse_view_text (HwpHWP5Parser *parser, HwpHWP5File *file)
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
 static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
-    gchar        *name  = (gchar        *) k;
-    GsfDocProp   *prop  = (GsfDocProp   *) v;
+    gchar        *name  = (gchar       *) k;
+    GsfDocProp   *prop  = (GsfDocProp  *) v;
     HwpDocument  *doc   = (HwpDocument *) user_data;
     GValue const *value = gsf_doc_prop_get_val (prop);
 

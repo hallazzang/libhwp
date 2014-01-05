@@ -458,57 +458,49 @@ static void make_stream (HwpHWP5File *file, GError **error)
  *
  * Since: 0.0.1
  */
-HwpHWP5File* hwp_hwp5_file_new_for_path (const gchar* path, GError** error)
+HwpHWP5File *hwp_hwp5_file_new_for_path (const gchar *path, GError **error)
 {
-    g_return_val_if_fail (path != NULL, NULL);
+  g_return_val_if_fail (path != NULL, NULL);
 
-    GsfInputStdio  *input;
-    GsfInfileMSOle *olefile;
+  GsfInput  *input;
+  GsfInfile *olefile;
 
-    input = (GsfInputStdio*) gsf_input_stdio_new (path, error);
-
-    if (input == NULL) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
-        return NULL;
+  if ((input = gsf_input_stdio_new (path, error))) {
+    if ((olefile = gsf_infile_msole_new (input, error))) {
+      HwpHWP5File *file   = g_object_new (HWP_TYPE_HWP5_FILE, NULL);
+      file->priv->olefile = olefile;
+      g_object_unref (input);
+      make_stream (file, error);
+      return file;
     }
+  }
 
-    olefile = (GsfInfileMSOle*) gsf_infile_msole_new ((GsfInput*) input,
-                                                      error);
-
-    if (olefile == NULL) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
-        g_object_unref (input);
-        return NULL;
-    }
-
-    HwpHWP5File *file = g_object_new (HWP_TYPE_HWP5_FILE, NULL);
-    file->priv->olefile = olefile;
+  g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+  if (input)
     g_object_unref (input);
-    make_stream (file, error);
-
-    return file;
+  return NULL;
 }
 
 static void hwp_hwp5_file_finalize (GObject *object)
 {
-    HwpHWP5File *file = HWP_HWP5_FILE(object);
-    g_object_unref (file->priv->olefile);
-    g_object_unref (file->prv_text_stream);
-    g_object_unref (file->prv_image_stream);
-    g_object_unref (file->file_header_stream);
-    g_object_unref (file->doc_info_stream);
-    g_array_free   (file->section_streams, TRUE);
-    g_object_unref (file->priv->section_stream);
-    g_object_unref (file->summary_info_stream);
-    g_free         (file->signature);
-    G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
+  HwpHWP5File *file = HWP_HWP5_FILE(object);
+  g_object_unref (file->priv->olefile);
+  g_object_unref (file->prv_text_stream);
+  g_object_unref (file->prv_image_stream);
+  g_object_unref (file->file_header_stream);
+  g_object_unref (file->doc_info_stream);
+  g_array_free   (file->section_streams, TRUE);
+  g_object_unref (file->priv->section_stream);
+  g_object_unref (file->summary_info_stream);
+  g_free         (file->signature);
+  G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
 }
 
 static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   g_type_class_add_private (klass, sizeof (HwpHWP5FilePrivate));
-  HwpFileClass *file_class          = HWP_FILE_CLASS (klass);
+  HwpFileClass *file_class           = HWP_FILE_CLASS (klass);
   file_class->get_document           = hwp_hwp5_file_get_document;
   file_class->get_hwp_version_string = hwp_hwp5_file_get_hwp_version_string;
   file_class->get_hwp_version        = hwp_hwp5_file_get_hwp_version;
@@ -517,6 +509,6 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 
 static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
-    file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWP5_FILE,
-                                                    HwpHWP5FilePrivate);
+  file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWP5_FILE,
+                                                  HwpHWP5FilePrivate);
 }
