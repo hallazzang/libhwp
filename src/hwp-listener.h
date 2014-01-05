@@ -58,16 +58,16 @@ struct _HwpListenerInterface
   GTypeInterface            base_iface;
 
   void (*document_version) (HwpListener *listener,
-                            guint8        major_version,
-                            guint8        minor_version,
-                            guint8        micro_version,
-                            guint8        extra_version,
-                            gpointer      user_data,
-                            GError      **error);
+                            guint8       major_version,
+                            guint8       minor_version,
+                            guint8       micro_version,
+                            guint8       extra_version,
+                            gpointer     user_data,
+                            GError     **error);
   void (*object)           (HwpListener *listener,
-                            GObject      *object,
-                            gpointer      user_data,
-                            GError      **error);
+                            GObject     *object,
+                            gpointer     user_data,
+                            GError     **error);
 };
 
 GType hwp_listener_get_type         (void) G_GNUC_CONST;
