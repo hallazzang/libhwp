@@ -1000,23 +1000,23 @@ static void parse_prv_text (HwpHWP5File *file, HwpDocument *document)
 }
 
 gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
-                                           guint8            major,
-                                           guint8            minor,
-                                           guint8            micro,
-                                           guint8            extra)
+                                        guint8         major,
+                                        guint8         minor,
+                                        guint8         micro,
+                                        guint8         extra)
 {
-    g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
-    return (parser->major_version >  major)   ||
-           (parser->major_version == major &&
-            parser->minor_version >  minor)   ||
-           (parser->major_version == major &&
-            parser->minor_version == minor &&
-            parser->micro_version >  micro)   ||
-           (parser->major_version == major &&
-            parser->minor_version == minor &&
-            parser->micro_version == micro &&
-            parser->extra_version >= extra);
+  return (parser->major_version >  major) ||
+         (parser->major_version == major &&
+          parser->minor_version >  minor) ||
+         (parser->major_version == major &&
+          parser->minor_version == minor &&
+          parser->micro_version >  micro) ||
+         (parser->major_version == major &&
+          parser->minor_version == minor &&
+          parser->micro_version == micro &&
+          parser->extra_version >= extra);
 }
 
 /**
