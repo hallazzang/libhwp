@@ -1,8 +1,8 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * unhwp.c
  * 
- * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -33,24 +33,32 @@
 
 int main (int argc, char **argv)
 {
-    GError    *err;
-    GsfInput  *input;
-    GsfInfile *infile;
+  GError    *err;
+  GsfInput  *input;
+  GsfInfile *infile;
 
-    gsf_init ();
-    input  = gsf_input_stdio_new (argv[1], &err);
-    infile = gsf_infile_msole_new (input, &err);
+  if (argc < 2) {
+    puts ("Usage: unhwp file.hwp");
+    return -1;
+  }
 
-    /* hwp-dir 만들고 거기에 파일들을 풀어 넣는 소스 */
-    GsfOutfile *folder;
-    folder = gsf_outfile_stdio_new ("hwp-dir", &err);
+#if (!GLIB_CHECK_VERSION(2, 35, 0))
+  g_type_init();
+#endif
 
-    for (int i = 0; i < gsf_infile_num_children (infile); i++)
-    {
-        GsfInput *item = gsf_infile_child_by_index (infile, i);
-        GsfStructuredBlob *itemfile = gsf_structured_blob_read (item);
-        gsf_structured_blob_write (itemfile, folder);
-    }
+  input  = gsf_input_stdio_new (argv[1], &err);
+  infile = gsf_infile_msole_new (input, &err);
 
-    gsf_shutdown ();
+  /* hwp-dir 만들고 거기에 파일들을 풀어 넣는 소스 */
+  GsfOutfile *folder;
+  folder = gsf_outfile_stdio_new ("hwp-dir", &err);
+
+  for (int i = 0; i < gsf_infile_num_children (infile); i++)
+  {
+    GsfInput *item = gsf_infile_child_by_index (infile, i);
+    GsfStructuredBlob *itemfile = gsf_structured_blob_read (item);
+    gsf_structured_blob_write (itemfile, folder);
+  }
+
+  gsf_shutdown ();
 }
