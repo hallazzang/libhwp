@@ -62,7 +62,7 @@ libhwp_la_CPPFLAGS =        \
 
 libhwp_la_CFLAGS =  \
 	-Wall           \
-	$(HWP_CFLAGS)   \
+	$(HWP_DEP_CFLAGS)   \
 	$(AM_CFLAGS)    \
 	$(NULL)
 
@@ -73,7 +73,7 @@ libhwp_la_LDFLAGS =                      \
 	$(AM_LDFLAGS)                        \
 	$(NULL)
 
-libhwp_la_LIBADD = $(HWP_LIBS)
+libhwp_la_LIBADD = $(HWP_DEP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hwp-0.0.1.pc
@@ -105,16 +105,16 @@ hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
 bin_PROGRAMS = hwp2pdf hwp2svg unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
-hwp2pdf_CFLAGS  = $(HWP_CFLAGS)
-hwp2pdf_LDADD   = libhwp.la $(HWP_LIBS)
+hwp2pdf_CFLAGS  = $(HWP_DEP_CFLAGS)
+hwp2pdf_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
 hwp2svg_SOURCES = hwp2svg.c
-hwp2svg_CFLAGS  = $(HWP_CFLAGS)
-hwp2svg_LDADD   = libhwp.la $(HWP_LIBS)
+hwp2svg_CFLAGS  = $(HWP_DEP_CFLAGS)
+hwp2svg_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
 unhwp_SOURCES   = unhwp.c
-unhwp_CFLAGS    = $(HWP_CFLAGS)
-unhwp_LDADD     = libhwp.la $(HWP_LIBS)
+unhwp_CFLAGS    = $(HWP_DEP_CFLAGS)
+unhwp_LDADD     = libhwp.la $(HWP_DEP_LIBS)
 
 CLEANFILES = $(bin_PROGRAMS) $(gir_DATA) $(typelib_DATA)
 
@@ -129,7 +129,7 @@ introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c, $(lib
 
 Hwp-0.0.gir: libhwp.la
 Hwp_0_0_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
-Hwp_0_0_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_CFLAGS)
+Hwp_0_0_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_DEP_CFLAGS)
 Hwp_0_0_gir_LIBS = libhwp.la
 Hwp_0_0_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
 
