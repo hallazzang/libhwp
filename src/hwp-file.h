@@ -68,7 +68,7 @@ struct _HwpFileClass {
  * the #HwpFileError enumeration.
  * See #GError for more information on error domains.
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 #define HWP_FILE_ERROR          (hwp_file_error_quark ())
 
@@ -78,7 +78,7 @@ struct _HwpFileClass {
  *
  * Error codes returned by #HwpFile functions.
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 typedef enum {
   HWP_FILE_ERROR_INVALID
