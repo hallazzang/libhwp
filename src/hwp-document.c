@@ -54,15 +54,15 @@ G_DEFINE_TYPE_WITH_CODE (HwpDocument, hwp_document, G_TYPE_OBJECT,
  */
 HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
 {
-    g_return_val_if_fail (filename != NULL, NULL);
+  g_return_val_if_fail (filename != NULL, NULL);
 
-    HwpFile *file = hwp_file_new_for_path (filename, error);
+  HwpFile *file = hwp_file_new_for_path (filename, error);
 
-    if (file == NULL || *error) {
-        return NULL;
-    }
+  if (file == NULL || *error) {
+    return NULL;
+  }
 
-    return hwp_file_get_document (file, error);
+  return hwp_file_get_document (file, error);
 }
 
 /**
@@ -269,38 +269,38 @@ gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
  * Since: 0.0.1
  */
 void hwp_document_get_hwp_version (HwpDocument *document,
-                                    guint8       *major_version,
-                                    guint8       *minor_version,
-                                    guint8       *micro_version,
-                                    guint8       *extra_version)
+                                   guint8      *major_version,
+                                   guint8      *minor_version,
+                                   guint8      *micro_version,
+                                   guint8      *extra_version)
 {
-    g_return_if_fail (HWP_IS_DOCUMENT (document));
-    if (major_version) *major_version = document->major_version;
-    if (minor_version) *minor_version = document->minor_version;
-    if (micro_version) *micro_version = document->micro_version;
-    if (extra_version) *extra_version = document->extra_version;
+  g_return_if_fail (HWP_IS_DOCUMENT (document));
+  if (major_version) *major_version = document->major_version;
+  if (minor_version) *minor_version = document->minor_version;
+  if (micro_version) *micro_version = document->micro_version;
+  if (extra_version) *extra_version = document->extra_version;
 }
 
 static void hwp_document_finalize (GObject *obj)
 {
-    HwpDocument *doc = HWP_DOCUMENT(obj);
-    g_free (doc->prv_text);
-    g_array_free (doc->paragraphs, TRUE);
-    g_array_free (doc->pages, TRUE);
-    g_object_unref (doc->summary_info);
-    G_OBJECT_CLASS (hwp_document_parent_class)->finalize (obj);
+  HwpDocument *doc = HWP_DOCUMENT(obj);
+  g_free (doc->prv_text);
+  g_array_free (doc->paragraphs, TRUE);
+  g_array_free (doc->pages, TRUE);
+  g_object_unref (doc->summary_info);
+  G_OBJECT_CLASS (hwp_document_parent_class)->finalize (obj);
 }
 
 static void hwp_document_class_init (HwpDocumentClass *klass)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = hwp_document_finalize;
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize     = hwp_document_finalize;
 }
 
 static void hwp_document_init (HwpDocument *doc)
 {
-    doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
-    doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
+  doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
+  doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
 }
 
 void listen_document_version (HwpListener *listener,
@@ -324,9 +324,9 @@ void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
 }
 
 void listen_object (HwpListener *listener,
-                    GObject      *object,
-                    gpointer      user_data,
-                    GError      **error)
+                    GObject     *object,
+                    gpointer     user_data,
+                    GError     **error)
 {
   if (HWP_IS_PARAGRAPH (object)) {
     HwpParagraph *paragraph = HWP_PARAGRAPH (object);
