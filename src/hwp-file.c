@@ -42,7 +42,7 @@ G_DEFINE_ABSTRACT_TYPE (HwpFile, hwp_file, G_TYPE_OBJECT);
  *
  * Returns: The error domain
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 GQuark hwp_file_error_quark (void)
 {
@@ -50,7 +50,7 @@ GQuark hwp_file_error_quark (void)
 }
 
 /**
- * Since: 0.2
+ * Since: 0.0.1
  */
 void hwp_file_get_hwp_version (HwpFile *file,
                                 guint8   *major_version,
