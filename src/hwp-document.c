@@ -287,7 +287,7 @@ static void hwp_document_finalize (GObject *obj)
   g_free (doc->prv_text);
   g_array_free (doc->paragraphs, TRUE);
   g_array_free (doc->pages, TRUE);
-  g_object_unref (doc->summary_info);
+
   G_OBJECT_CLASS (hwp_document_parent_class)->finalize (obj);
 }
 
@@ -303,13 +303,13 @@ static void hwp_document_init (HwpDocument *doc)
   doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
 }
 
-void listen_document_version (HwpListener *listener,
-                              guint8       major_version,
-                              guint8       minor_version,
-                              guint8       micro_version,
-                              guint8       extra_version,
-                              gpointer     user_data,
-                              GError     **error)
+void document_version (HwpListener *listener,
+                       guint8       major_version,
+                       guint8       minor_version,
+                       guint8       micro_version,
+                       guint8       extra_version,
+                       gpointer     user_data,
+                       GError     **error)
 {
   HwpDocument *document   = (HwpDocument *) listener;
   document->major_version = major_version;
@@ -323,10 +323,10 @@ void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
   /* TODO */
 }
 
-void listen_object (HwpListener *listener,
-                    GObject     *object,
-                    gpointer     user_data,
-                    GError     **error)
+void object (HwpListener *listener,
+             GObject     *object,
+             gpointer     user_data,
+             GError     **error)
 {
   if (HWP_IS_PARAGRAPH (object)) {
     HwpParagraph *paragraph = HWP_PARAGRAPH (object);
@@ -347,6 +347,6 @@ void listen_object (HwpListener *listener,
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
-  iface->document_version = listen_document_version;
-  iface->object           = listen_object;
+  iface->document_version = document_version;
+  iface->object           = object;
 }

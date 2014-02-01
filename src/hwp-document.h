@@ -43,7 +43,6 @@ struct _HwpDocument {
   gchar          *prv_text;
   GArray         *paragraphs;
   GArray         *pages;
-  GsfDocMetaData *summary_info;
   /* hwp version */
   guint8          major_version;
   guint8          minor_version;
