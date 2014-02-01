@@ -270,12 +270,14 @@ static void parse_section_definition (HwpHWP5Parser *parser)
             break;
         }
 
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
 
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
+#endif
         g_assert (parser->level == 2);
         switch (parser->tag_id) {
         case HWP_TAG_PAGE_DEF:
@@ -303,12 +305,13 @@ static void parse_header (HwpHWP5Parser *parser, HwpHWP5File *file)
             break;
         }
 
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
         g_assert (parser->level == 2);
 
         switch (parser->tag_id) {
@@ -330,7 +333,10 @@ static void parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
+
+#ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
+#endif
 
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
@@ -338,11 +344,13 @@ static void parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file)
             break;
         }
 
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
+#endif
 
         g_assert (parser->level == level);
 
@@ -364,20 +372,21 @@ static void parse_tcmt (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
+#ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
-
+#endif
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
         }
-
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
         g_assert (parser->level == level);
 
         switch (parser->tag_id) {
@@ -518,7 +527,9 @@ static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
     GError *error = NULL;
     guint16 level = parser->level + 1;
+#ifdef HWP_ENABLE_DEBUG
     printf("level = %d\n", level);
+#endif
     HwpTable     *table     = NULL;
     HwpTableCell *cell      = NULL;
     HwpParagraph *paragraph = NULL;
@@ -528,13 +539,13 @@ static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
         }
-
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
         g_assert (parser->level == level);
 
         switch (parser->tag_id) {
@@ -637,20 +648,21 @@ static void parse_shape_component (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
+#ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
-
+#endif
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
         }
-
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
         g_assert (parser->level == level);
 
         switch (parser->tag_id) {
@@ -673,20 +685,21 @@ parse_drawing_shape_object (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
+#ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
-
+#endif
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
         }
-
+#ifdef HWP_ENABLE_DEBUG
         printf ("%d", parser->level);
         for (int i = 0; i < parser->level; i++) {
             printf (" ");
         }
         printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
         g_assert (parser->level == level);
 
         switch (parser->tag_id) {
@@ -706,7 +719,9 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError *error = NULL;
   guint16 level = parser->level + 1;
+#ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
+#endif
   HwpParagraph *paragraph = hwp_paragraph_new ();
   HwpText      *hwp_text = NULL;
   gchar         *text      = NULL;
@@ -716,13 +731,13 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
         parser->state = HWP_PARSE_STATE_PASSING;
         break;
     }
-
+#ifdef HWP_ENABLE_DEBUG
     printf ("%d", parser->level);
     for (int i = 0; i < parser->level; i++) {
       printf (" ");
     }
     printf ("%s\n", hwp_get_tag_name(parser->tag_id));
-
+#endif
     g_assert (parser->level == level);
 
     switch (parser->tag_id) {
@@ -730,7 +745,9 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       text = hwp_hwp5_parser_get_text (parser);
       hwp_text = hwp_text_new (text);
       hwp_paragraph_set_hwp_text (paragraph, hwp_text);
+#ifdef HWP_ENABLE_DEBUG
       printf ("%s\n", text);
+#endif
       g_free (text);
       text = NULL;
       break;
@@ -740,11 +757,13 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       break;
     case HWP_TAG_CTRL_HEADER:
       parser_read_uint32 (parser, &parser->ctrl_id);
+#ifdef HWP_ENABLE_DEBUG
       printf (" \"%c%c%c%c\"\n",
         (gchar) (parser->ctrl_id >> 24 & 0xff),
         (gchar) (parser->ctrl_id >> 16 & 0xff),
         (gchar) (parser->ctrl_id >>  8 & 0xff),
         (gchar) (parser->ctrl_id >>  0 & 0xff));
+#endif
       switch (parser->ctrl_id) {
       case CTRL_ID_SECTION_DEF:
         parse_section_definition (parser);
@@ -803,11 +822,13 @@ static void parse_section (HwpHWP5Parser *parser, HwpHWP5File *file)
 
   while (hwp_hwp5_parser_pull(parser, &error))
   {
+#ifdef HWP_ENABLE_DEBUG
     printf ("%d", parser->level);
     for (int i = 0; i < parser->level; i++) {
         printf (" ");
     }
     printf ("%s\n", hwp_get_tag_name(parser->tag_id));
+#endif
     parser_skip (parser, parser->data_len);
     g_assert (parser->level == 0);
 

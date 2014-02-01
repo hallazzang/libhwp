@@ -77,6 +77,24 @@ AC_SUBST([HWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 
 # **********************************
 
+# *********
+# Debugging
+# *********
+
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug], [turn on debugging])],
+  [enable_debug=yes],
+  [enable_debug=no]
+)
+
+if test "x$enable_debug" = "xyes"; then
+   HWP_DEBUG_FLAGS="-DHWP_ENABLE_DEBUG"
+fi
+
+AC_SUBST(HWP_DEBUG_FLAGS)
+
+# **********************************
+
 AC_OUTPUT([
     Makefile
     po/Makefile.in

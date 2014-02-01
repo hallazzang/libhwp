@@ -18,6 +18,7 @@ INST_H_FILES =          \
 	hwp-listener.h      \
 	hwp-models.h        \
 	hwp-page.h          \
+	hwp-txt-converter.h \
 	hwp-version.h       \
 	$(NULL)
 
@@ -50,6 +51,7 @@ libhwp_la_SOURCES =     \
 	hwp-listener.c      \
 	hwp-models.c        \
 	hwp-page.c          \
+	hwp-txt-converter.c \
 	$(NOINST_H_FILES)   \
 	$(INST_H_FILES)     \
 	$(NULL)
@@ -60,10 +62,11 @@ libhwp_la_CPPFLAGS =        \
 	$(AM_CPPFLAGS)          \
 	$(NULL)
 
-libhwp_la_CFLAGS =  \
-	-Wall           \
+libhwp_la_CFLAGS =      \
+	-Wall               \
 	$(HWP_DEP_CFLAGS)   \
-	$(AM_CFLAGS)    \
+	$(HWP_DEBUG_FLAGS)  \
+	$(AM_CFLAGS)        \
 	$(NULL)
 
 libhwp_la_LDFLAGS =                      \
@@ -102,7 +105,7 @@ hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix Hwp --template \
 	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
-bin_PROGRAMS = hwp2pdf hwp2svg unhwp
+bin_PROGRAMS = hwp2pdf hwp2svg hwp2txt unhwp
 
 hwp2pdf_SOURCES = hwp2pdf.c
 hwp2pdf_CFLAGS  = $(HWP_DEP_CFLAGS)
@@ -111,6 +114,10 @@ hwp2pdf_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 hwp2svg_SOURCES = hwp2svg.c
 hwp2svg_CFLAGS  = $(HWP_DEP_CFLAGS)
 hwp2svg_LDADD   = libhwp.la $(HWP_DEP_LIBS)
+
+hwp2txt_SOURCES = hwp2txt.c
+hwp2txt_CFLAGS  = $(HWP_DEP_CFLAGS)
+hwp2txt_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
 unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(HWP_DEP_CFLAGS)
