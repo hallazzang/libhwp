@@ -86,7 +86,6 @@ struct _HwpHWP5FileClass
 struct _HwpHWP5FilePrivate
 {
   GsfInfile    *olefile;
-  GInputStream *section_stream;
 };
 
 GType        hwp_hwp5_file_get_type               (void) G_GNUC_CONST;

@@ -490,9 +490,9 @@ static void hwp_hwp5_file_finalize (GObject *object)
   g_object_unref (file->file_header_stream);
   g_object_unref (file->doc_info_stream);
   g_array_free   (file->section_streams, TRUE);
-  g_object_unref (file->priv->section_stream);
   g_object_unref (file->summary_info_stream);
   g_free         (file->signature);
+
   G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
 }
 
