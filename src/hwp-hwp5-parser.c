@@ -227,7 +227,9 @@ HwpHWP5Parser *hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
   return parser;
 }
 
-static void parse_doc_info (HwpHWP5File *file, HwpDocument *document)
+static void parse_doc_info (HwpHWP5Parser *parser,
+                            HwpHWP5File   *file,
+                            GError       **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -520,7 +522,7 @@ static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
     HwpTable     *table     = NULL;
     HwpTableCell *cell      = NULL;
     HwpParagraph *paragraph = NULL;
-
+  
     while (hwp_hwp5_parser_pull(parser, &error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
@@ -728,7 +730,7 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       text = hwp_hwp5_parser_get_text (parser);
       hwp_text = hwp_text_new (text);
       hwp_paragraph_set_hwp_text (paragraph, hwp_text);
-/*      printf ("%s\n", text);*/
+      printf ("%s\n", text);
       g_free (text);
       text = NULL;
       break;
@@ -792,7 +794,7 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
   return paragraph;
 }
 
-static void parse_section (HwpHWP5Parser *parser, HwpHWP5File  *file)
+static void parse_section (HwpHWP5Parser *parser, HwpHWP5File *file)
 {
   GError       *error     = NULL;
   HwpParagraph *paragraph = NULL;
@@ -811,15 +813,15 @@ static void parse_section (HwpHWP5Parser *parser, HwpHWP5File  *file)
 
     switch (parser->tag_id) {
     case HWP_TAG_PARA_HEADER:
-      if (!iface->object)
-        break;
-
       paragraph = hwp_hwp5_parser_get_paragraph (parser, file);
-      iface->object (parser->listener,
-                              G_OBJECT (paragraph),
-                              parser->user_data,
-                              &error);
-      paragraph = NULL;
+      if (iface->object) {
+        iface->object (parser->listener,
+                       G_OBJECT (paragraph),
+                       parser->user_data,
+                       &error);
+        /* 변수를 재사용할 수 있으므로 NULL 대입 */
+        paragraph = NULL;
+      }
       break;
     default:
         g_error ("%s:%d:%s not implemented",
@@ -836,11 +838,13 @@ static void parse_sections (HwpHWP5Parser *parser, HwpHWP5File *file)
     GInputStream *stream = g_array_index (file->section_streams,
                                           GInputStream *, i);
     parser->stream = stream;
-    parse_section  (parser, file);
+    parse_section (parser, file);
   }
 }
 
-static void parse_body_text (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void parse_body_text (HwpHWP5Parser *parser,
+                             HwpHWP5File *file,
+                             GError **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -857,44 +861,89 @@ static void parse_view_text (HwpHWP5Parser *parser, HwpHWP5File *file)
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
 static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
-    gchar        *name  = (gchar       *) k;
-    GsfDocProp   *prop  = (GsfDocProp  *) v;
-    HwpDocument  *doc   = (HwpDocument *) user_data;
-    GValue const *value = gsf_doc_prop_get_val (prop);
+  gchar         *name   = (gchar         *) k;
+  GsfDocProp    *prop   = (GsfDocProp    *) v;
+  HwpHWP5Parser *parser = (HwpHWP5Parser *) user_data;
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser);
+  GValue const *value = gsf_doc_prop_get_val (prop);
 
-    if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
-        doc->creator = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_DATE_MODIFIED) ) {
-        GsfTimestamp *ts    = g_value_get_boxed (value);
-        doc->mod_date = (GTime) ts->timet;
-    } else if ( g_str_equal(name, GSF_META_NAME_DESCRIPTION) ) {
-        doc->desc = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_KEYWORDS) ) {
-        doc->keywords = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_SUBJECT) ) {
-        doc->subject = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_TITLE) ) {
-        doc->title = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_LAST_PRINTED) ) {
-        GsfTimestamp *ts    = g_value_get_boxed (value);
-        doc->last_printed   = (GTime) ts->timet;
-    } else if ( g_str_equal(name, GSF_META_NAME_LAST_SAVED_BY) ) {
-        doc->last_saved_by = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_DATE_CREATED) ) {
-        GsfTimestamp *ts    = g_value_get_boxed (value);
-        doc->creation_date  = (GTime) ts->timet;
-    /* hwp 문서를 저장할 때 사용된 한컴 워드프로세서의 내부 버전 */
-    } else if ( g_str_equal(name, GSF_META_NAME_REVISION_COUNT) ) {
-        doc->hanword_version = g_value_get_string (value);
-    } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
-        /* not correct n_pages == 0 ?? */
-        /* g_value_get_int (value); */
-    } else {
-        g_warning("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
+  if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
+    if (iface->creator) {
+      gchar *creator = (gchar *) g_value_get_string (value);
+      iface->creator (parser->listener, creator, parser->user_data, NULL);
     }
+  } else if ( g_str_equal(name, GSF_META_NAME_DATE_MODIFIED) ) {
+    if (iface->mod_date) {
+      GsfTimestamp *ts = g_value_get_boxed (value);
+      GTime mod_date = (GTime) ts->timet;
+      iface->mod_date (parser->listener, mod_date, parser->user_data, NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_DESCRIPTION) ) {
+    if (iface->desc) {
+      gchar *desc = (gchar *) g_value_get_string (value);
+      iface->desc (parser->listener, desc, parser->user_data, NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_KEYWORDS) ) {
+    if (iface->keywords) {
+      gchar *keywords = (gchar *) g_value_get_string (value);
+      iface->keywords (parser->listener, keywords, parser->user_data, NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_SUBJECT) ) {
+    if (iface->subject) {
+      gchar *subject = (gchar *) g_value_get_string (value);
+      iface->subject (parser->listener, subject, parser->user_data, NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_TITLE) ) {
+    if (iface->title) {
+      gchar *title = (gchar *) g_value_get_string (value);
+      iface->title (parser->listener, title, parser->user_data, NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_LAST_PRINTED) ) {
+    if (iface->last_printed) {
+      GsfTimestamp *ts    = g_value_get_boxed (value);
+      GTime last_printed   = (GTime) ts->timet;
+      iface->last_printed (parser->listener,
+                           last_printed,
+                           parser->user_data,
+                           NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_LAST_SAVED_BY) ) {
+    if (iface->last_saved_by) {
+      gchar *last_saved_by = (gchar *) g_value_get_string (value);
+      iface->last_saved_by (parser->listener,
+                            last_saved_by,
+                            parser->user_data,
+                            NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_DATE_CREATED) ) {
+    if (iface->creation_date) {
+      GsfTimestamp *ts    = g_value_get_boxed (value);
+      GTime creation_date  = (GTime) ts->timet;
+      iface->creation_date (parser->listener,
+                            creation_date,
+                            parser->user_data,
+                            NULL);
+    }
+  /* hwp 문서를 저장할 때 사용된 한컴 워드프로세서의 내부 버전 */
+  } else if ( g_str_equal(name, GSF_META_NAME_REVISION_COUNT) ) {
+    if (iface->hanword_version) {
+      gchar *hanword_version = (gchar *) g_value_get_string (value);
+      iface->hanword_version (parser->listener,
+                              hanword_version,
+                              parser->user_data,
+                              NULL);
+    }
+  } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
+    /* not correct n_pages == 0 ?? */
+    /* g_value_get_int (value); */
+  } else {
+    g_warning("%s:%d:%s not implemented\n", __FILE__, __LINE__, name);
+  }
 }
 
-static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
+static void parse_summary_info (HwpHWP5Parser *parser,
+                                HwpHWP5File   *file,
+                                GError       **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -903,19 +952,18 @@ static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
     guint8         *buf = NULL;
     GsfInputMemory *summary;
     GsfDocMetaData *meta;
-    GError         *error = NULL;
 
     gis  = g_object_ref (file->summary_info_stream);
     size = gsf_input_stream_size (gis);
     buf  = g_malloc(size);
 
-    g_input_stream_read ((GInputStream*) gis, buf, (gsize) size, NULL, &error);
+    g_input_stream_read ((GInputStream*) gis, buf, (gsize) size, NULL, error);
 
-    if (error != NULL) {
+    if (*error != NULL) {
         buf = (g_free (buf), NULL);
         g_object_unref (gis);
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
-        g_clear_error (&error);
+        g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+        g_clear_error (error);
         return;
     }
 
@@ -952,51 +1000,55 @@ static void parse_summary_info (HwpHWP5File *file, HwpDocument *document)
     gsf_msole_metadata_read ((GsfInput*) summary, meta);
 #endif
 
-    gsf_doc_meta_data_foreach (meta, metadata_hash_func, document);
+    gsf_doc_meta_data_foreach (meta, metadata_hash_func, NULL);
 
-    document->summary_info = g_object_ref (meta);
     g_object_unref (meta);
     g_object_unref (summary);
     buf = (g_free (buf), NULL);
     g_object_unref (gis);
 }
 
-static void parse_prv_text (HwpHWP5File *file, HwpDocument *document)
+static void parse_prv_text (HwpHWP5Parser *parser,
+                            HwpHWP5File   *file,
+                            GError       **error)
 {
-    g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    GsfInputStream *gis   = g_object_ref (file->prv_text_stream);
-    gssize          size  = gsf_input_stream_size (gis);
-    guchar         *buf   = g_new (guchar, size);
-    GError         *error = NULL;
+  GsfInputStream *gis   = g_object_ref (file->prv_text_stream);
+  gssize          size  = gsf_input_stream_size (gis);
+  guchar         *buf   = g_new (guchar, size);
 
-    g_input_stream_read ((GInputStream*) gis, buf, size, NULL, &error);
+  g_input_stream_read ((GInputStream*) gis, buf, size, NULL, error);
 
-    if (error) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
-        g_free (document->prv_text);
-        g_clear_error (&error);
-        buf = (g_free (buf), NULL);
-        g_object_unref (gis);
-        return;
-    }
-
-    /* g_convert() can be used to convert a byte buffer of UTF-16 data of
-       ambiguous endianess. */
-    document->prv_text = g_convert ((const gchar*) buf, (gssize) size,
-                               "UTF-8", "UTF-16LE", NULL, NULL, &error);
-
-    if (error) {
-        g_warning("%s:%d: %s\n", __FILE__, __LINE__, error->message);
-        g_free (document->prv_text);
-        g_clear_error (&error);
-        buf = (g_free (buf), NULL);
-        g_object_unref (gis);
-        return;
-    }
-
+  if (*error) {
+    g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+    g_clear_error (error);
     buf = (g_free (buf), NULL);
     g_object_unref (gis);
+    return;
+  }
+
+  /* g_convert() can be used to convert a byte buffer of UTF-16 data of
+     ambiguous endianess. */
+  gchar *prv_text = g_convert ((const gchar*) buf, (gssize) size,
+                               "UTF-8", "UTF-16LE", NULL, NULL, error);
+
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser);
+  if (iface->prv_text)
+    iface->prv_text (HWP_LISTENER (parser), prv_text, parser->user_data, error);
+
+  if (error) {
+    g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+    g_free (prv_text);
+    g_clear_error (error);
+    buf = (g_free (buf), NULL);
+    g_object_unref (gis);
+    return;
+  }
+
+  g_free (buf);
+  g_free (prv_text);
+  g_object_unref (gis);
 }
 
 gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
@@ -1042,18 +1094,18 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                              parser->user_data,
                              error);
 
-/*  parse_file_header    (file, document);*/
-  parse_doc_info       (file, HWP_DOCUMENT (parser->listener));
-  parse_body_text      (parser, file);
-/*  parse_view_text      (file, HWP_DOCUMENT (parser->listener));*/
-  parse_summary_info   (file, HWP_DOCUMENT (parser->listener));
-/*    parse_bin_data       (file, document);*/
-  parse_prv_text       (file, HWP_DOCUMENT (parser->listener));
-/*    parse_prv_image      (file, document);*/
-/*    parse_doc_options    (file, document);*/
-/*    parse_scripts        (file, document);*/
-/*    parse_xml_template   (file, document);*/
-/*    parse_doc_history    (file, document);*/
+/*  parse_file_header    (parser, file, error); */
+/*  parse_doc_info       (parser, file, error);*/
+  parse_body_text      (parser, file, error);
+/*  parse_view_text      (parser, file, error); */
+/*  parse_summary_info   (parser, file, error);*/
+/*    parse_bin_data       (parser, file, error); */
+/*  parse_prv_text       (parser, file, error);*/
+/*    parse_prv_image      (parser, file, error); */
+/*    parse_doc_options    (parser, file, error); */
+/*    parse_scripts        (parser, file, error); */
+/*    parse_xml_template   (parser, file, error); */
+/*    parse_doc_history    (parser, file, error); */
 }
 
 static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)
@@ -1077,7 +1129,7 @@ static void hwp_hwp5_parser_finalize (GObject *object)
 
 static void hwp_hwp5_parser_class_init (HwpHWP5ParserClass *klass)
 {
-  GObjectClass* object_class = G_OBJECT_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   g_type_class_add_private (klass, sizeof (HwpHWP5ParserPrivate));
   object_class->finalize = hwp_hwp5_parser_finalize;
 }
