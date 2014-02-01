@@ -39,6 +39,7 @@ stamp-it
 hwp-version.h
 src/hwp2pdf
 src/hwp2svg
+src/hwp2txt
 src/unhwp
 src/hwp-enum-types.h
 src/hwp-enum-types.c
