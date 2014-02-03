@@ -67,11 +67,10 @@ hwp_txt_converter_class_init (HwpTxtConverterClass *klass)
 
 void text (HwpListener *listener,
            const gchar *text,
-           gsize        text_len,
            gpointer     user_data,
            GError     **error)
 {
-  printf ("%s", text);
+  printf ("%s\n", text);
 }
 
 static void hwp_txt_listener_iface_init (HwpListenerInterface *iface)

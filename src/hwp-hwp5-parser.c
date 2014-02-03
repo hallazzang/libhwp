@@ -31,8 +31,9 @@
 
 G_DEFINE_TYPE (HwpHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
 
-static HwpParagraph *
-hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file);
+static HwpParagraph *hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser,
+                                                    HwpHWP5File   *file,
+                                                    GError       **error);
 
 gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
 {
@@ -154,7 +155,6 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   }
   /* 비정상 */
   if (parser->priv->bytes_read != ((gsize) 4)) {
-    g_error("error %s %d", __FILE__, __LINE__);
     g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
                          _("File corrupted or invalid file"));
     if (!g_input_stream_is_closed(parser->stream))
@@ -170,7 +170,6 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   parser->data_len = (guint16) ((parser->priv->header >> 20) & 0xfff);
   /* 비정상 */
   if (parser->data_len == 0) {
-      g_error("error %s %d", __FILE__, __LINE__);
       g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
                            _("File corrupted"));
       g_input_stream_close (parser->stream, NULL, NULL);
@@ -287,7 +286,7 @@ static void parse_section_definition (HwpHWP5Parser *parser)
         case HWP_TAG_PAGE_BORDER_FILL:
             break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
@@ -295,11 +294,10 @@ static void parse_section_definition (HwpHWP5Parser *parser)
 }
 
 /* 머리말 */
-static void parse_header (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_header (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
-    GError *error = NULL;
-
-    while (hwp_hwp5_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, error)) {
         if (parser->level < 2) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -318,10 +316,10 @@ static void parse_header (HwpHWP5Parser *parser, HwpHWP5File *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_hwp5_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file, error);
             break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
@@ -329,16 +327,16 @@ static void parse_header (HwpHWP5Parser *parser, HwpHWP5File *file)
 }
 
 /* 각주 */
-static void parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
-  GError *error = NULL;
   guint16 level = parser->level + 1;
 
 #ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
 #endif
 
-    while (hwp_hwp5_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -358,24 +356,24 @@ static void parse_footnote (HwpHWP5Parser *parser, HwpHWP5File *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_hwp5_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file, error);
             break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
-static void parse_tcmt (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_tcmt (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
-  GError *error = NULL;
   guint16 level = parser->level + 1;
 #ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
 #endif
-    while (hwp_hwp5_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -393,10 +391,10 @@ static void parse_tcmt (HwpHWP5Parser *parser, HwpHWP5File *file)
         case HWP_TAG_LIST_HEADER:
             break;
         case HWP_TAG_PARA_HEADER:
-            hwp_hwp5_parser_get_paragraph (parser, file);
+            hwp_hwp5_parser_get_paragraph (parser, file, error);
             break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
@@ -523,9 +521,9 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser)
     return table_cell;
 }
 
-static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_table (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
-    GError *error = NULL;
     guint16 level = parser->level + 1;
 #ifdef HWP_ENABLE_DEBUG
     printf("level = %d\n", level);
@@ -534,7 +532,7 @@ static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
     HwpTableCell *cell      = NULL;
     HwpParagraph *paragraph = NULL;
   
-    while (hwp_hwp5_parser_pull(parser, &error)) {
+    while (hwp_hwp5_parser_pull(parser, error)) {
         if (parser->level < level) {
             parser->state = HWP_PARSE_STATE_PASSING;
             break;
@@ -558,10 +556,10 @@ static void parse_table (HwpHWP5Parser *parser, HwpHWP5File *file)
             break;
         case HWP_TAG_PARA_HEADER:
             parser->state = HWP_PARSE_STATE_INSIDE_TABLE;
-            paragraph = hwp_hwp5_parser_get_paragraph (parser, file);
+            paragraph = hwp_hwp5_parser_get_paragraph (parser, file, error);
             break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
@@ -673,7 +671,7 @@ static void parse_shape_component (HwpHWP5Parser *parser, HwpHWP5File *file)
         case HWP_TAG_SHAPE_COMPONENT_POLYGON:
           break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
@@ -707,26 +705,26 @@ parse_drawing_shape_object (HwpHWP5Parser *parser, HwpHWP5File *file)
           parse_shape_component (parser, file);
           break;
         default:
-            g_error ("%s:%d:%s not implemented",
+            g_warning ("%s:%d:%s not implemented",
                 __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
             break;
         } /* switch */
     } /* while */
 }
 
-static HwpParagraph *
-hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
+static HwpParagraph *hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser,
+                                                    HwpHWP5File   *file,
+                                                    GError       **error)
 {
-  GError *error = NULL;
   guint16 level = parser->level + 1;
 #ifdef HWP_ENABLE_DEBUG
   printf("level = %d\n", level);
 #endif
   HwpParagraph *paragraph = hwp_paragraph_new ();
-  HwpText      *hwp_text = NULL;
-  gchar         *text      = NULL;
+  HwpText      *hwp_text  = NULL;
+  gchar        *text      = NULL;
 
-  while (hwp_hwp5_parser_pull(parser, &error)) {
+  while (hwp_hwp5_parser_pull(parser, error)) {
     if (parser->level < level) {
         parser->state = HWP_PARSE_STATE_PASSING;
         break;
@@ -745,6 +743,13 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       text = hwp_hwp5_parser_get_text (parser);
       hwp_text = hwp_text_new (text);
       hwp_paragraph_set_hwp_text (paragraph, hwp_text);
+
+      HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+      if (iface->text)
+        iface->text (parser->listener,
+                     text,
+                     parser->user_data,
+                     error);
 #ifdef HWP_ENABLE_DEBUG
       printf ("%s\n", text);
 #endif
@@ -773,15 +778,15 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       case CTRL_ID_COLUMN_DEF:
         break;
       case CTRL_ID_HEADEDR: /* 머리말 */
-        parse_header (parser, file);
+        parse_header (parser, file, error);
         break;
       case CTRL_ID_AUTO_NUM:
         break;
       case CTRL_ID_TABLE:
-        parse_table (parser, file);
+        parse_table (parser, file, error);
         break;
       case CTRL_ID_FOOTNOTE: /* 각주 */
-        parse_footnote (parser, file);
+        parse_footnote (parser, file, error);
         break;
       case CTRL_ID_PAGE_HIDE:
         break;
@@ -789,12 +794,12 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
         parse_drawing_shape_object (parser, file);
         break;
       case CTRL_ID_TCMT: /* 숨은 설명 */
-        parse_tcmt (parser, file);
+        parse_tcmt (parser, file, error);
         break;
       case CTRL_ID_TCPS:
         break;
       default:
-        g_error ("%s:%d:\"%c%c%c%c\":%s not implemented",
+        g_warning ("%s:%d:\"%c%c%c%c\":%s not implemented",
             __FILE__, __LINE__,
             (gchar) (parser->ctrl_id >> 24 & 0xff),
             (gchar) (parser->ctrl_id >> 16 & 0xff),
@@ -805,7 +810,7 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
       }
       break;
     default:
-      g_error ("%s:%d:%s not implemented",
+      g_warning ("%s:%d:%s not implemented",
           __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
       break;
     } /* switch */
@@ -813,14 +818,14 @@ hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser, HwpHWP5File *file)
   return paragraph;
 }
 
-static void parse_section (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_section (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
-  GError       *error     = NULL;
   HwpParagraph *paragraph = NULL;
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
-  while (hwp_hwp5_parser_pull(parser, &error))
+  while (hwp_hwp5_parser_pull(parser, error))
   {
 #ifdef HWP_ENABLE_DEBUG
     printf ("%d", parser->level);
@@ -834,49 +839,50 @@ static void parse_section (HwpHWP5Parser *parser, HwpHWP5File *file)
 
     switch (parser->tag_id) {
     case HWP_TAG_PARA_HEADER:
-      paragraph = hwp_hwp5_parser_get_paragraph (parser, file);
+      paragraph = hwp_hwp5_parser_get_paragraph (parser, file, error);
       if (iface->object) {
         iface->object (parser->listener,
                        G_OBJECT (paragraph),
                        parser->user_data,
-                       &error);
+                       error);
         /* 변수를 재사용할 수 있으므로 NULL 대입 */
         paragraph = NULL;
       }
       break;
     default:
-        g_error ("%s:%d:%s not implemented",
+        g_warning ("%s:%d:%s not implemented",
             __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
         break;
     }  /* switch */
   } /* while */
 }
 
-static void parse_sections (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_sections (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
   for (guint i = 0; i < file->section_streams->len; i++)
   {
     GInputStream *stream = g_array_index (file->section_streams,
                                           GInputStream *, i);
     parser->stream = stream;
-    parse_section (parser, file);
+    parse_section (parser, file, error);
   }
 }
 
-static void parse_body_text (HwpHWP5Parser *parser,
-                             HwpHWP5File *file,
-                             GError **error)
+static void
+parse_body_text (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    parse_sections (parser, file);
+    parse_sections (parser, file, error);
 }
 
-static void parse_view_text (HwpHWP5Parser *parser, HwpHWP5File *file)
+static void
+parse_view_text (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    parse_sections (parser, file);
+    parse_sections (parser, file, error);
 }
 
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
@@ -962,9 +968,8 @@ static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
   }
 }
 
-static void parse_summary_info (HwpHWP5Parser *parser,
-                                HwpHWP5File   *file,
-                                GError       **error)
+static void
+parse_summary_info (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -1029,9 +1034,8 @@ static void parse_summary_info (HwpHWP5Parser *parser,
     g_object_unref (gis);
 }
 
-static void parse_prv_text (HwpHWP5Parser *parser,
-                            HwpHWP5File   *file,
-                            GError       **error)
+static void
+parse_prv_text (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
 {
   g_return_if_fail (HWP_IS_HWP5_FILE (file));
 

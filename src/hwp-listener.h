@@ -59,7 +59,6 @@ struct _HwpListenerInterface
 
   void (* text)             (HwpListener *listener,
                              const gchar *text,
-                             gsize        text_len,
                              gpointer     user_data,
                              GError     **error);
   void (* document_version) (HwpListener *listener,
