@@ -568,11 +568,11 @@ parse_table (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
     /* add table to where ? */
 }
 
-static gchar *hwp_hwp5_parser_get_text (HwpHWP5Parser *parser)
+static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser)
 {
     g_return_val_if_fail (parser != NULL, NULL);
     gunichar2 ch; /* guint16 */
-    GString  *text = g_string_new (NULL);
+    GString  *string = g_string_new (NULL);
     guint     i;
 
     for (i = 0; i < parser->data_len; i = i + 2)
@@ -595,7 +595,7 @@ static gchar *hwp_hwp5_parser_get_text (HwpHWP5Parser *parser)
         case 9: /* inline */ /* tab */
             i = i + 14;
             parser_skip(parser, 14);;
-            g_string_append_unichar(text, ch);
+            g_string_append_unichar(string, ch);
             break;
         case 10:
             break;
@@ -629,17 +629,17 @@ static gchar *hwp_hwp5_parser_get_text (HwpHWP5Parser *parser)
         case 31:
             break;
         default:
-            g_string_append_unichar(text, ch);
+            g_string_append_unichar(string, ch);
             break;
         } /* switch */
     } /* for */
 
     if (parser->data_count != parser->data_len) {
-        g_string_free(text, TRUE);
+        g_string_free(string, TRUE);
         return NULL;
     }
 
-    return g_string_free(text, FALSE);
+    return string;
 }
 
 static void parse_shape_component (HwpHWP5Parser *parser, HwpHWP5File *file)
@@ -722,7 +722,7 @@ static HwpParagraph *hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser,
 #endif
   HwpParagraph *paragraph = hwp_paragraph_new ();
   HwpText      *hwp_text  = NULL;
-  gchar        *text      = NULL;
+  GString      *string    = NULL;
 
   while (hwp_hwp5_parser_pull(parser, error)) {
     if (parser->level < level) {
@@ -740,21 +740,21 @@ static HwpParagraph *hwp_hwp5_parser_get_paragraph (HwpHWP5Parser *parser,
 
     switch (parser->tag_id) {
     case HWP_TAG_PARA_TEXT:
-      text = hwp_hwp5_parser_get_text (parser);
-      hwp_text = hwp_text_new (text);
+      string   = hwp_hwp5_parser_get_string (parser);
+      hwp_text = hwp_text_new (string->str);
       hwp_paragraph_set_hwp_text (paragraph, hwp_text);
 
       HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
       if (iface->text)
         iface->text (parser->listener,
-                     text,
+                     string->str,
+                     string->len,
                      parser->user_data,
                      error);
 #ifdef HWP_ENABLE_DEBUG
-      printf ("%s\n", text);
+      printf ("%s\n", string->str);
 #endif
-      g_free (text);
-      text = NULL;
+      g_string_free (string, TRUE);
       break;
     case HWP_TAG_PARA_CHAR_SHAPE:
       break;
