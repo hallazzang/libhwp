@@ -18,7 +18,6 @@ INST_H_FILES =          \
 	hwp-listener.h      \
 	hwp-models.h        \
 	hwp-page.h          \
-	hwp-txt-converter.h \
 	hwp-version.h       \
 	$(NULL)
 
@@ -51,7 +50,6 @@ libhwp_la_SOURCES =     \
 	hwp-listener.c      \
 	hwp-models.c        \
 	hwp-page.c          \
-	hwp-txt-converter.c \
 	$(NOINST_H_FILES)   \
 	$(INST_H_FILES)     \
 	$(NULL)
@@ -115,7 +113,7 @@ hwp2svg_SOURCES = hwp2svg.c
 hwp2svg_CFLAGS  = $(HWP_DEP_CFLAGS)
 hwp2svg_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
-hwp2txt_SOURCES = hwp2txt.c
+hwp2txt_SOURCES = hwp2txt.c hwp2txt.h
 hwp2txt_CFLAGS  = $(HWP_DEP_CFLAGS)
 hwp2txt_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
