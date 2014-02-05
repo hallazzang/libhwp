@@ -164,7 +164,6 @@ int main (int argc, char *argv[])
 
       if (error) {
         fprintf (stderr, "%s\n", error->message);
-        g_object_unref (hwp2txt);
         return 1;
       }
 
