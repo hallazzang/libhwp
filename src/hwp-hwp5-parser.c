@@ -866,6 +866,8 @@ parse_sections (HwpHWP5Parser *parser, HwpHWP5File *file, GError **error)
                                           GInputStream *, i);
     parser->stream = stream;
     parse_section (parser, file, error);
+    /* TODO error handling */
+    g_clear_error (error);
   }
 }
 
