@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src 
+SUBDIRS = src
 
 libhwpdocdir = ${prefix}/share/doc/libhwp
 libhwpdoc_DATA = \
