@@ -30,10 +30,11 @@
 #include <gsf/gsf-infile.h>
 #include <gsf/gsf-infile-msole.h>
 #include <gsf/gsf-structured-blob.h>
+#include <gio/gio.h>
 
 int main (int argc, char **argv)
 {
-  GError    *err;
+  GError    *error = NULL;
   GsfInput  *input;
   GsfInfile *infile;
 
@@ -46,12 +47,21 @@ int main (int argc, char **argv)
   g_type_init();
 #endif
 
-  input  = gsf_input_stdio_new (argv[1], &err);
-  infile = gsf_infile_msole_new (input, &err);
+  input  = gsf_input_stdio_new (argv[1], &error);
+  infile = gsf_infile_msole_new (input, &error);
 
-  /* hwp-dir 만들고 거기에 파일들을 풀어 넣는 소스 */
   GsfOutfile *folder;
-  folder = gsf_outfile_stdio_new ("hwp-dir", &err);
+
+  gchar *basename = g_path_get_basename (argv[1]);
+  gchar *output_name = g_strconcat (basename, "_FILES", NULL);
+  g_free (basename);
+  folder = gsf_outfile_stdio_new (output_name, &error);
+  g_free (output_name);
+
+  if (error) {
+    fprintf (stderr, "%s\n", error->message);
+    return 1;
+  }
 
   for (int i = 0; i < gsf_infile_num_children (infile); i++)
   {
