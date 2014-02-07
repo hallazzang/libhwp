@@ -333,7 +333,9 @@ void object (HwpListener *listener,
     HwpText *hwp_text = hwp_paragraph_get_hwp_text (paragraph);
     HwpDocument *document  = (HwpDocument *) listener;
     if (hwp_text) {
+#ifdef HWP_ENABLE_DEBUG
       printf("%s\n", hwp_text->text);
+#endif
       PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
       PangoContext *context = pango_font_map_create_context (fontmap);
       PangoLayout *layout = pango_layout_new (context);
