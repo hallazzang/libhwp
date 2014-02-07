@@ -30,8 +30,6 @@
 #include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
 
-#define _g_free0(var) (var = (g_free (var), NULL))
-
 /** HwpText *****************************************************************/
 
 G_DEFINE_TYPE (HwpText, hwp_text, G_TYPE_OBJECT);
@@ -65,11 +63,13 @@ HwpText *hwp_text_append (HwpText *hwp_text, const gchar *text)
     return hwp_text;
 }
 
-static void hwp_text_finalize (GObject *obj)
+static void hwp_text_finalize (GObject *object)
 {
-    HwpText *hwp_text = HWP_TEXT(obj);
-    _g_free0 (hwp_text->text);
-    G_OBJECT_CLASS (hwp_text_parent_class)->finalize (obj);
+  HwpText *hwp_text = HWP_TEXT(object);
+  if (hwp_text->text)
+    g_free (hwp_text->text);
+
+  G_OBJECT_CLASS (hwp_text_parent_class)->finalize (object);
 }
 
 static void hwp_text_class_init (HwpTextClass *klass)
@@ -158,24 +158,26 @@ HwpTable *hwp_table_new (void)
     return g_object_new (HWP_TYPE_TABLE, NULL);
 }
 
+#ifdef HWP_ENABLE_DEBUG
 #include <stdio.h>
 
 void hexdump(guint8 *data, guint16 data_len)
 {
-    int i = 0;
+  int i = 0;
 
-    printf("data_len = %d\n", data_len);
-    printf("-----------------------------------------------\n");
-    printf("00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15\n");
-    printf("-----------------------------------------------\n");
+  printf("data_len = %d\n", data_len);
+  printf("-----------------------------------------------\n");
+  printf("00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15\n");
+  printf("-----------------------------------------------\n");
 
-    for (i = 0; i < data_len; i++) {
-        if ( (i != 0) && (i % 16 == 0))
-           printf("\n");
-        printf("%02x ", data[i]);
-    }
-    printf("\n-----------------------------------------------\n");
+  for (i = 0; i < data_len; i++) {
+    if ( (i != 0) && (i % 16 == 0))
+      printf("\n");
+    printf("%02x ", data[i]);
+  }
+  printf("\n-----------------------------------------------\n");
 }
+#endif
 
 static void hwp_table_init (HwpTable *table)
 {
@@ -184,11 +186,17 @@ static void hwp_table_init (HwpTable *table)
 
 static void hwp_table_finalize (GObject *object)
 {
-    HwpTable *table = HWP_TABLE(object);
-    _g_free0 (table->row_sizes);
-    _g_free0 (table->zones);
-    g_array_free (table->cells, TRUE);
-    G_OBJECT_CLASS (hwp_table_parent_class)->finalize (object);
+  HwpTable *table = HWP_TABLE(object);
+
+  if (table->row_sizes)
+    g_free (table->row_sizes);
+
+  if (table->zones)
+    g_free (table->zones);
+
+  g_array_free (table->cells, TRUE);
+
+  G_OBJECT_CLASS (hwp_table_parent_class)->finalize (object);
 }
 
 static void hwp_table_class_init (HwpTableClass *klass)

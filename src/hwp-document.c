@@ -338,11 +338,11 @@ void object (HwpListener *listener,
 #endif
       PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
       PangoContext *context = pango_font_map_create_context (fontmap);
-      PangoLayout *layout = pango_layout_new (context);
+      PangoLayout  *layout  = pango_layout_new (context);
       pango_layout_set_width (layout, 595 * PANGO_SCALE);
       pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
-      pango_layout_set_text (layout, hwp_text->text, -1);
-      hwp_document_paginate (document, layout);
+      pango_layout_set_text  (layout, hwp_text->text, -1);
+      hwp_document_paginate  (document, layout);
     }
   }
 }

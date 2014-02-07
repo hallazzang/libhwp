@@ -58,7 +58,7 @@ HwpHWP3File *hwp_hwp3_file_new_for_path (const gchar *path,
 }
 
 /**
- * Since: 0.2
+ * Since: 0.0.1
  **/
 gchar *hwp_hwp3_file_get_hwp_version_string (HwpFile *file)
 {
@@ -68,7 +68,7 @@ gchar *hwp_hwp3_file_get_hwp_version_string (HwpFile *file)
 }
 
 /**
- * Since: 0.2
+ * Since: 0.0.1
  **/
 void hwp_hwp3_file_get_hwp_version (HwpFile *file,
                                     guint8  *major_version,
