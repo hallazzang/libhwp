@@ -20,7 +20,6 @@
 
 /* TODO 할 일들
  * 파일 시그네이쳐 인식
- * 디렉토리 이미 존재할 경우 예외 처리
  * 압축된 경우 압축 비트 읽어서 압축 풀 것
  */
 
@@ -71,4 +70,5 @@ int main (int argc, char **argv)
   }
 
   gsf_shutdown ();
+  return 0;
 }
