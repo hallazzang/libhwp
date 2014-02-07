@@ -58,9 +58,8 @@ HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
 
   HwpFile *file = hwp_file_new_for_path (filename, error);
 
-  if (file == NULL || *error) {
+  if (!file)
     return NULL;
-  }
 
   return hwp_file_get_document (file, error);
 }
