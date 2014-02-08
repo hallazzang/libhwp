@@ -94,9 +94,9 @@ guint hwp_document_get_n_pages (HwpDocument *document)
  */
 HwpPage *hwp_document_get_page (HwpDocument *doc, gint n_page)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (doc), NULL);
-    HwpPage *page = g_array_index (doc->pages, HwpPage *, (guint) n_page);
-    return g_object_ref (page);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (doc), NULL);
+  HwpPage *page = g_array_index (doc->pages, HwpPage *, (guint) n_page);
+  return g_object_ref (page);
 }
 
 /**
@@ -110,7 +110,7 @@ HwpPage *hwp_document_get_page (HwpDocument *doc, gint n_page)
  */
 HwpDocument *hwp_document_new (void)
 {
-    return (HwpDocument*) g_object_new (HWP_TYPE_DOCUMENT, NULL);
+  return g_object_new (HWP_TYPE_DOCUMENT, NULL);
 }
 
 /**
@@ -126,8 +126,8 @@ HwpDocument *hwp_document_new (void)
  */
 gchar *hwp_document_get_title (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->title);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  return g_strdup (document->title);
 }
 
 /**
@@ -280,14 +280,36 @@ void hwp_document_get_hwp_version (HwpDocument *document,
   if (extra_version) *extra_version = document->extra_version;
 }
 
-static void hwp_document_finalize (GObject *obj)
+static void hwp_document_finalize (GObject *object)
 {
-  HwpDocument *doc = HWP_DOCUMENT(obj);
-  g_free (doc->prv_text);
-  g_array_free (doc->paragraphs, TRUE);
-  g_array_free (doc->pages, TRUE);
+  HwpDocument *document = HWP_DOCUMENT(object);
 
-  G_OBJECT_CLASS (hwp_document_parent_class)->finalize (obj);
+  g_array_free (document->paragraphs, TRUE);
+  g_array_free (document->pages, TRUE);
+  g_free ((gchar *) document->prv_text);
+  /* ev info */
+  g_free ((gchar *) document->title);
+  g_free ((gchar *) document->format);
+  g_free ((gchar *) document->author);
+  g_free ((gchar *) document->subject);
+  g_free ((gchar *) document->keywords);
+  g_free ((gchar *) document->layout);
+  g_free ((gchar *) document->start_mode);
+  g_free ((gchar *) document->permissions);
+  g_free ((gchar *) document->ui_hints);
+  g_free ((gchar *) document->creator);
+  g_free ((gchar *) document->producer);
+  g_free ((gchar *) document->linearized);
+  g_free ((gchar *) document->security);
+  g_free ((gchar *) document->paper_size);
+  g_free ((gchar *) document->license);
+  /* hwp info */
+  g_free ((gchar *) document->desc);
+  g_free ((gchar *) document->last_saved_by);
+  /* version of hanword */
+  g_free ((gchar *) document->hanword_version);
+
+  G_OBJECT_CLASS (hwp_document_parent_class)->finalize (object);
 }
 
 static void hwp_document_class_init (HwpDocumentClass *klass)
@@ -302,13 +324,14 @@ static void hwp_document_init (HwpDocument *doc)
   doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
 }
 
-void document_version (HwpListener *listener,
-                       guint8       major_version,
-                       guint8       minor_version,
-                       guint8       micro_version,
-                       guint8       extra_version,
-                       gpointer     user_data,
-                       GError     **error)
+/* callback */
+void hwp_document_listen_version (HwpListener *listener,
+                                  guint8       major_version,
+                                  guint8       minor_version,
+                                  guint8       micro_version,
+                                  guint8       extra_version,
+                                  gpointer     user_data,
+                                  GError     **error)
 {
   HwpDocument *document   = (HwpDocument *) listener;
   document->major_version = major_version;
@@ -322,29 +345,30 @@ void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
   /* TODO */
 }
 
-void start_tag (HwpListener *listener,
-                HwpTag       tag,
-                guint16      level,
-                gpointer     user_data,
-                GError     **error)
+/**
+ * hwp_document_add_paragraph:
+ * @document: A #HwpDocument
+ * @paragraph: A #HwpParagraph
+ *
+ * Since: 0.0.1
+ */
+void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
 {
-  printf ("%d", level);
-  for (int i = 0; i < level; i++)
-      printf ("    ");
-  printf ("%s\n", hwp_get_tag_name(tag));
+  g_array_append_val (document->paragraphs, paragraph);
 }
 
-void end_tag (HwpListener *listener,
-              HwpTag       tag,
-              guint16      level,
-              gpointer     user_data,
-              GError     **error)
+/* callback */
+void hwp_document_listen_paragraph (HwpListener  *listener,
+                                    HwpParagraph *paragraph,
+                                    gpointer      user_data,
+                                    GError      **error)
 {
+  HwpDocument *document = (HwpDocument *) listener;
+  hwp_document_add_paragraph (document, paragraph);
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
-  iface->document_version = document_version;
-  iface->start_tag        = start_tag;
-  iface->end_tag          = end_tag;
+  iface->document_version = hwp_document_listen_version;
+  iface->paragraph        = hwp_document_listen_paragraph;
 }

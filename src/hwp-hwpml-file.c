@@ -108,8 +108,8 @@ static void _hwp_hwpml_file_parse_node(HwpHWPMLFile *file, xmlTextReaderPtr read
                 tag_p_count++;
                 if (tag_p_count > 1) {
                     HwpParagraph *paragraph = hwp_paragraph_new ();
-                    HwpText *hwp_text = hwp_text_new ("");
-                    hwp_paragraph_set_hwp_text (paragraph, hwp_text);
+                    GString *string = g_string_new ("");
+                    hwp_paragraph_set_string (paragraph, string);
                     g_array_append_val (file->document->paragraphs, paragraph);
                 }
             /* char */
@@ -122,7 +122,7 @@ static void _hwp_hwpml_file_parse_node(HwpHWPMLFile *file, xmlTextReaderPtr read
                 HwpParagraph *paragraph = g_array_index (file->document->paragraphs,
                                                           HwpParagraph *,
                                                           file->document->paragraphs->len - 1);
-                hwp_text_append (paragraph->hwp_text, (const gchar *) value);
+                g_string_append (paragraph->string, (const gchar *) value);
             }
             break;
         case XML_READER_TYPE_END_ELEMENT:
@@ -134,7 +134,7 @@ static void _hwp_hwpml_file_parse_node(HwpHWPMLFile *file, xmlTextReaderPtr read
                 /* 높이 계산 */
                 static gdouble y   = 0.0;
                 static guint   len = 0;
-                len = g_utf8_strlen (paragraph->hwp_text->text, -1);
+                len = g_utf8_strlen (paragraph->string->str, -1);
                 y += 18.0 * ceil (len / 33.0);
 
                 if (y > 842.0 - 80.0) {

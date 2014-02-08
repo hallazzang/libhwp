@@ -221,15 +221,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
 
   parser->stream = file->doc_info_stream;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
   while (hwp_hwp5_parser_pull (parser, error)) {
-    if (iface->start_tag)
-      iface->start_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
     switch (parser->tag_id) {
     case HWP_TAG_DOCUMENT_PROPERTIES:
       break;
@@ -269,12 +261,6 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
           hwp_get_tag_name (parser->tag_id));
       break;
     }
-    if (iface->end_tag)
-      iface->end_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
   }
 }
 
@@ -283,8 +269,6 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
 {
   guint16 level = parser->level;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
         parser->state = HWP_PARSE_STATE_PASSING;
@@ -292,13 +276,6 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
     }
 
     g_assert (parser->level == 2);
-
-    if (iface->start_tag)
-      iface->start_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
 
     switch (parser->tag_id) {
     case HWP_TAG_PAGE_DEF:
@@ -312,13 +289,6 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
         __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
       break;
     } /* switch */
-
-    if (iface->end_tag)
-      iface->end_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
   } /* while */
 }
 
@@ -328,8 +298,6 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
                                           GError       **error)
 {
   guint16 level = parser->level;
-
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -341,19 +309,6 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
 
     switch (parser->tag_id) {
     case HWP_TAG_LIST_HEADER:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_PARA_HEADER:
         hwp_hwp5_parser_parse_paragraph (parser, file, error);
@@ -372,7 +327,6 @@ static void hwp_hwp5_parser_parse_footnote (HwpHWP5Parser *parser,
                                             GError       **error)
 {
   guint16 level = parser->level;
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -384,19 +338,6 @@ static void hwp_hwp5_parser_parse_footnote (HwpHWP5Parser *parser,
 
     switch (parser->tag_id) {
     case HWP_TAG_LIST_HEADER:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_PARA_HEADER:
       hwp_hwp5_parser_parse_paragraph (parser, file, error);
@@ -415,8 +356,6 @@ static void hwp_hwp5_parser_parse_tcmt (HwpHWP5Parser *parser,
 {
   guint16 level = parser->level;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
       parser->state = HWP_PARSE_STATE_PASSING;
@@ -427,19 +366,6 @@ static void hwp_hwp5_parser_parse_tcmt (HwpHWP5Parser *parser,
 
     switch (parser->tag_id) {
     case HWP_TAG_LIST_HEADER:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_PARA_HEADER:
       hwp_hwp5_parser_parse_paragraph (parser, file, error);
@@ -487,56 +413,40 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
 {
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpTable *table = hwp_table_new ();
 
-  if (iface->start_tag)
-    iface->start_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
+  parser_read_uint32 (parser, &table->flags, error);
+  parser_read_uint16 (parser, &table->n_rows, error);
+  parser_read_uint16 (parser, &table->n_cols, error);
+  parser_read_uint16 (parser, &table->cell_spacing, error);
+  parser_read_uint16 (parser, &table->left_margin, error);
+  parser_read_uint16 (parser, &table->right_margin, error);
+  parser_read_uint16 (parser, &table->top_margin, error);
+  parser_read_uint16 (parser, &table->bottom_margin, error);
 
-    HwpTable *table = hwp_table_new ();
+  table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
-    parser_read_uint32 (parser, &table->flags, error);
-    parser_read_uint16 (parser, &table->n_rows, error);
-    parser_read_uint16 (parser, &table->n_cols, error);
-    parser_read_uint16 (parser, &table->cell_spacing, error);
-    parser_read_uint16 (parser, &table->left_margin, error);
-    parser_read_uint16 (parser, &table->right_margin, error);
-    parser_read_uint16 (parser, &table->top_margin, error);
-    parser_read_uint16 (parser, &table->bottom_margin, error);
+  for (guint i = 0; i < table->n_rows; i++) {
+    parser_read_uint16 (parser, &(table->row_sizes[i]), error);
+  }
 
-    table->row_sizes = g_malloc0_n (table->n_rows, 2);
+  parser_read_uint16 (parser, &table->border_fill_id, error);
 
-    for (guint i = 0; i < table->n_rows; i++) {
-      parser_read_uint16 (parser, &(table->row_sizes[i]), error);
+  if (hwp_hwp5_file_check_version (file, 5, 0, 0, 7)) {
+    parser_read_uint16 (parser, &table->valid_zone_info_size, error);
+
+    table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
+
+    for (guint i = 0; i < table->valid_zone_info_size; i++) {
+      parser_read_uint16 (parser, &(table->zones[i]), error);
     }
-
-    parser_read_uint16 (parser, &table->border_fill_id, error);
-
-    if (hwp_hwp5_file_check_version (file, 5, 0, 0, 7)) {
-      parser_read_uint16 (parser, &table->valid_zone_info_size, error);
-
-      table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
-
-      for (guint i = 0; i < table->valid_zone_info_size; i++) {
-        parser_read_uint16 (parser, &(table->zones[i]), error);
-      }
-    }
+  }
 
   if (parser->data_count != parser->data_len) {
     g_warning ("%s:%d: TABLE data size mismatch at %s\n",
       __FILE__, __LINE__,
       hwp_hwp5_file_get_hwp_version_string(HWP_FILE (file)));
   }
-
-  if (iface->end_tag)
-    iface->end_tag (parser->listener,
-                    parser->tag_id,
-                    parser->level,
-                    parser->user_data,
-                    error);
 
   return table;
 }
@@ -598,8 +508,6 @@ static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
 {
   guint16 level = parser->level;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
   HwpTable     *table     = NULL;
   HwpTableCell *cell      = NULL;
 
@@ -616,22 +524,9 @@ static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
       table = hwp_hwp5_parser_get_table (parser, file, error);
       break;
     case HWP_TAG_LIST_HEADER: /* cell */
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
       cell = hwp_hwp5_parser_get_table_cell (parser, error);
       hwp_table_add_cell (table, cell);
 
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_PARA_HEADER:
       parser->state = HWP_PARSE_STATE_INSIDE_TABLE;
@@ -649,76 +544,76 @@ static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
 
 static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser, GError **error)
 {
-    g_return_val_if_fail (parser != NULL, NULL);
-    gunichar2 ch; /* guint16 */
-    GString  *string = g_string_new (NULL);
-    guint     i;
+  g_return_val_if_fail (parser != NULL, NULL);
+  gunichar2 ch; /* guint16 */
+  GString  *string = g_string_new (NULL);
+  guint     i;
 
-    for (i = 0; i < parser->data_len; i = i + 2)
-    {
-        parser_read_uint16 (parser, &ch, error);
-        switch (ch) {
-        case 0:
-            break;
-        case 1:
-        case 2:
-        case 3:
-        case 4: /* inline */
-        case 5: /* inline */
-        case 6: /* inline */
-        case 7: /* inline */
-        case 8: /* inline */
-            i = i + 14;
-            parser_skip(parser, 14);;
-            break;
-        case 9: /* inline */ /* tab */
-            i = i + 14;
-            parser_skip(parser, 14);;
-            g_string_append_unichar(string, ch);
-            break;
-        case 10:
-            break;
-        case 11:
-        case 12:
-            i = i + 14;
-            parser_skip(parser, 14);;
-            break;
-        case 13:
-            break;
-        case 14:
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19: /* inline */
-        case 20: /* inline */
-        case 21:
-        case 22:
-        case 23:
-            i = i + 14;
-            parser_skip(parser, 14);;
-            break;
-        case 24:
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 29:
-        case 30:
-        case 31:
-            break;
-        default:
-            g_string_append_unichar(string, ch);
-            break;
-        } /* switch */
-    } /* for */
+  for (i = 0; i < parser->data_len; i = i + 2)
+  {
+    parser_read_uint16 (parser, &ch, error);
+    switch (ch) {
+    case 0:
+      break;
+    case 1:
+    case 2:
+    case 3:
+    case 4: /* inline */
+    case 5: /* inline */
+    case 6: /* inline */
+    case 7: /* inline */
+    case 8: /* inline */
+      i = i + 14;
+      parser_skip (parser, 14);
+      break;
+    case 9: /* inline */ /* tab */
+      i = i + 14;
+      parser_skip (parser, 14);
+      g_string_append_unichar (string, ch);
+      break;
+    case 10:
+      break;
+    case 11:
+    case 12:
+      i = i + 14;
+      parser_skip (parser, 14);
+      break;
+    case 13:
+      break;
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19: /* inline */
+    case 20: /* inline */
+    case 21:
+    case 22:
+    case 23:
+      i = i + 14;
+      parser_skip (parser, 14);
+      break;
+    case 24:
+    case 25:
+    case 26:
+    case 27:
+    case 28:
+    case 29:
+    case 30:
+    case 31:
+      break;
+    default:
+      g_string_append_unichar (string, ch);
+      break;
+    } /* switch */
+  } /* for */
 
-    if (parser->data_count != parser->data_len) {
-        g_string_free(string, TRUE);
-        return NULL;
-    }
+  if (parser->data_count != parser->data_len) {
+    g_string_free (string, TRUE);
+    return NULL;
+  }
 
-    return string;
+  return string;
 }
 
 static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
@@ -727,15 +622,6 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
 {
   guint16 level = parser->level;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
-  if (iface->start_tag)
-    iface->start_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
-
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
       parser->state = HWP_PARSE_STATE_PASSING;
@@ -743,13 +629,6 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
     }
 
     g_assert (parser->level == level + 1);
-
-    if (iface->start_tag)
-      iface->start_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
 
     switch (parser->tag_id) {
     case HWP_TAG_SHAPE_COMPONENT_PICTURE:
@@ -763,21 +642,7 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
         __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
       break;
     } /* switch */
-
-    if (iface->end_tag)
-      iface->end_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
   } /* while */
-
-  if (iface->end_tag)
-    iface->end_tag (parser->listener,
-                    parser->tag_id,
-                    parser->level,
-                    parser->user_data,
-                    error);
 }
 
 static void hwp_hwp5_parser_parse_drawing_shape_object (HwpHWP5Parser *parser,
@@ -810,15 +675,6 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
                                                HwpHWP5File   *file,
                                                GError       **error)
 {
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
-  if (iface->start_tag)
-    iface->start_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
-
   parser_read_uint32 (parser, &parser->ctrl_id, error);
 #ifdef HWP_ENABLE_DEBUG
   printf (" \"%c%c%c%c\"\n",
@@ -866,13 +722,6 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
         hwp_get_ctrl_name (parser->ctrl_id));
     break;
   } /* switch (parser->ctrl_id) */
-
-  if (iface->end_tag)
-    iface->end_tag (parser->listener,
-                    parser->tag_id,
-                    parser->level,
-                    parser->user_data,
-                    error);
 }
 
 static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
@@ -882,83 +731,27 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
   guint16 level = parser->level;
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
-  HwpText      *hwp_text  = NULL;
   GString      *string    = NULL;
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
-  if (iface->start_tag)
-    iface->start_tag (parser->listener,
-                      parser->tag_id,
-                      parser->level,
-                      parser->user_data,
-                      error);
-
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
-        parser->state = HWP_PARSE_STATE_PASSING;
-        break;
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
     }
 
     g_assert (parser->level == level + 1);
 
     switch (parser->tag_id) {
     case HWP_TAG_PARA_TEXT:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-      string   = hwp_hwp5_parser_get_string (parser, error);
-      hwp_text = hwp_text_new (string->str);
-      hwp_paragraph_set_hwp_text (paragraph, hwp_text);
-
-      if (iface->text)
-        iface->text (parser->listener,
-                     string->str,
-                     string->len,
-                     parser->user_data,
-                     error);
-
-      g_string_free (string, TRUE);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
+      string = hwp_hwp5_parser_get_string (parser, error);
+      hwp_paragraph_set_string (paragraph, string);
+      string = NULL;
       break;
     case HWP_TAG_PARA_CHAR_SHAPE:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_PARA_LINE_SEG:
-      if (iface->start_tag)
-        iface->start_tag (parser->listener,
-                          parser->tag_id,
-                          parser->level,
-                          parser->user_data,
-                          error);
-
-      if (iface->end_tag)
-        iface->end_tag (parser->listener,
-                        parser->tag_id,
-                        parser->level,
-                        parser->user_data,
-                        error);
       break;
     case HWP_TAG_CTRL_HEADER:
       hwp_hwp5_parser_parse_ctrl_header(parser, file, error);
@@ -969,14 +762,11 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
       break;
     } /* switch */
   } /* while */
-
-  if (iface->end_tag)
-    iface->end_tag (parser->listener,
-                    parser->tag_id,
-                    parser->level,
-                    parser->user_data,
-                    error);
-
+  if (iface->paragraph)
+    iface->paragraph (parser->listener,
+                      paragraph,
+                      parser->user_data,
+                      error);
   return;
 }
 
@@ -1020,18 +810,18 @@ static void hwp_hwp5_parser_parse_body_text (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
-    g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    hwp_hwp5_parser_parse_sections (parser, file, error);
+  hwp_hwp5_parser_parse_sections (parser, file, error);
 }
 
 static void hwp_hwp5_parser_parse_view_text (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
-    g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    hwp_hwp5_parser_parse_sections (parser, file, error);
+  hwp_hwp5_parser_parse_sections (parser, file, error);
 }
 
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */

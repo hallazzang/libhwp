@@ -52,7 +52,7 @@ typedef struct _HwpParagraphClass HwpParagraphClass;
 struct _HwpParagraph
 {
     GObject   parent_instance;
-    HwpText  *hwp_text;
+    GString  *string;
     HwpTable *table;
 };
 
@@ -61,43 +61,14 @@ struct _HwpParagraphClass
     GObjectClass parent_class;
 };
 
-GType         hwp_paragraph_get_type     (void) G_GNUC_CONST;
-HwpParagraph *hwp_paragraph_new          (void);
-void          hwp_paragraph_set_hwp_text (HwpParagraph *paragraph,
-                                          HwpText      *hwp_text);
-HwpText      *hwp_paragraph_get_hwp_text (HwpParagraph *paragraph);
-HwpTable     *hwp_paragraph_get_table    (HwpParagraph *paragraph);
-void          hwp_paragraph_set_table    (HwpParagraph *paragraph,
-                                          HwpTable     *table);
-
-/** HwpText *****************************************************************/
-
-#define HWP_TYPE_TEXT             (hwp_text_get_type ())
-#define HWP_TEXT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TEXT, HwpText))
-#define HWP_TEXT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_TEXT, HwpTextClass))
-#define HWP_IS_TEXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_TEXT))
-#define HWP_IS_TEXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_TEXT))
-#define HWP_TEXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_TEXT, HwpTextClass))
-
-typedef struct _HwpText        HwpText;
-typedef struct _HwpTextClass   HwpTextClass;
-typedef struct _HwpTextPrivate HwpTextPrivate;
-
-struct _HwpText
-{
-    GObject         parent_instance;
-    HwpTextPrivate *priv;
-    gchar          *text;
-};
-
-struct _HwpTextClass
-{
-    GObjectClass parent_class;
-};
-
-GType    hwp_text_get_type (void) G_GNUC_CONST;
-HwpText *hwp_text_new      (const     gchar *text);
-HwpText *hwp_text_append   (HwpText *hwp_text, const gchar *text);
+GType         hwp_paragraph_get_type   (void) G_GNUC_CONST;
+HwpParagraph *hwp_paragraph_new        (void);
+void          hwp_paragraph_set_string (HwpParagraph *paragraph,
+                                        GString      *string);
+GString      *hwp_paragraph_get_string (HwpParagraph *paragraph);
+HwpTable     *hwp_paragraph_get_table  (HwpParagraph *paragraph);
+void          hwp_paragraph_set_table  (HwpParagraph *paragraph,
+                                        HwpTable     *table);
 
 /** HwpTable ****************************************************************/
 

@@ -25,6 +25,7 @@
 #include <gsf/gsf-doc-meta-data.h>
 
 #include "hwp-page.h"
+#include "hwp-models.h"
 
 G_BEGIN_DECLS
 
@@ -38,11 +39,13 @@ G_BEGIN_DECLS
 typedef struct _HwpDocument      HwpDocument;
 typedef struct _HwpDocumentClass HwpDocumentClass;
 
-struct _HwpDocument {
+struct _HwpDocument
+{
   GObject         parent_instance;
-  gchar          *prv_text;
+
   GArray         *paragraphs;
   GArray         *pages;
+  const gchar    *prv_text;
   /* hwp version */
   guint8          major_version;
   guint8          minor_version;
@@ -50,22 +53,22 @@ struct _HwpDocument {
   guint8          extra_version;
   /* ev info */
   const gchar    *title;
-  gchar          *format;
+  const gchar    *format;
   const gchar    *author;
   const gchar    *subject;
   const gchar    *keywords;
-  gchar          *layout;
-  gchar          *start_mode;
-  gchar          *permissions;
-  gchar          *ui_hints;
+  const gchar    *layout;
+  const gchar    *start_mode;
+  const gchar    *permissions;
+  const gchar    *ui_hints;
   const gchar    *creator;
-  gchar          *producer;
+  const gchar    *producer;
   GTime           creation_date;
   GTime           mod_date;
-  gchar          *linearized;
-  gchar          *security;
-  gchar          *paper_size;
-  gchar          *license;
+  const gchar    *linearized;
+  const gchar    *security;
+  const gchar    *paper_size;
+  const gchar    *license;
   /* hwp info */
   const gchar    *desc;
   GTime           last_printed;
@@ -74,30 +77,35 @@ struct _HwpDocument {
   const gchar    *hanword_version;
 };
 
-struct _HwpDocumentClass {
+struct _HwpDocumentClass
+{
   GObjectClass parent_class;
 };
 
 GType        hwp_document_get_type               (void) G_GNUC_CONST;
+
 HwpDocument *hwp_document_new                    (void);
-HwpDocument *hwp_document_new_from_file          (const gchar *filename,
-                                                  GError     **error);
-guint        hwp_document_get_n_pages            (HwpDocument *document);
-HwpPage     *hwp_document_get_page               (HwpDocument *document, gint n_page);
+HwpDocument *hwp_document_new_from_file          (const gchar  *filename,
+                                                  GError      **error);
+void         hwp_document_add_paragraph          (HwpDocument  *document,
+                                                  HwpParagraph *paragraph);
+guint        hwp_document_get_n_pages            (HwpDocument  *document);
+HwpPage     *hwp_document_get_page               (HwpDocument  *document,
+                                                  gint          n_page);
 /* meta data */
-gchar       *hwp_document_get_title              (HwpDocument *document);
-gchar       *hwp_document_get_keywords           (HwpDocument *document);
-gchar       *hwp_document_get_subject            (HwpDocument *document);
-gchar       *hwp_document_get_creator            (HwpDocument *document);
-GTime        hwp_document_get_creation_date      (HwpDocument *document);
-GTime        hwp_document_get_modification_date  (HwpDocument *document);
-gchar       *hwp_document_get_format             (HwpDocument *document);
-gchar       *hwp_document_get_hwp_version_string (HwpDocument *document);
-void         hwp_document_get_hwp_version        (HwpDocument *document,
-                                                  guint8      *major_version,
-                                                  guint8      *minor_version,
-                                                  guint8      *micro_version,
-                                                  guint8      *extra_version);
+gchar       *hwp_document_get_title              (HwpDocument  *document);
+gchar       *hwp_document_get_keywords           (HwpDocument  *document);
+gchar       *hwp_document_get_subject            (HwpDocument  *document);
+gchar       *hwp_document_get_creator            (HwpDocument  *document);
+GTime        hwp_document_get_creation_date      (HwpDocument  *document);
+GTime        hwp_document_get_modification_date  (HwpDocument  *document);
+gchar       *hwp_document_get_format             (HwpDocument  *document);
+gchar       *hwp_document_get_hwp_version_string (HwpDocument  *document);
+void         hwp_document_get_hwp_version        (HwpDocument  *document,
+                                                  guint8       *major_version,
+                                                  guint8       *minor_version,
+                                                  guint8       *micro_version,
+                                                  guint8       *extra_version);
 
 G_END_DECLS
 

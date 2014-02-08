@@ -364,16 +364,14 @@ static gboolean _hwp_hwp3_file_parse_paragraph (HwpHWP3File *file)
             g_warning ("special character: %04x", c);
         } /* if */
     } /* while */
-    gchar *tmp = g_string_free(string, FALSE);
-    HwpText *hwp_text = hwp_text_new (tmp);
-    g_free (tmp);
-    hwp_paragraph_set_hwp_text (paragraph, hwp_text);
+
+    hwp_paragraph_set_string (paragraph, string);
 
     static gdouble y   = 0.0;
     static guint   len = 0;
 
     /* 높이 계산 */
-    len = g_utf8_strlen (hwp_text->text, -1);
+    len = g_utf8_strlen (string->str, -1);
     y += 18.0 * ceil (len / 33.0);
 
     if (y > 842.0 - 80.0) {

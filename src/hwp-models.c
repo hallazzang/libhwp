@@ -30,102 +30,48 @@
 #include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
 
-/** HwpText *****************************************************************/
-
-G_DEFINE_TYPE (HwpText, hwp_text, G_TYPE_OBJECT);
-
-HwpText *hwp_text_new (const gchar *text)
-{
-    g_return_val_if_fail (text != NULL, NULL);
-    HwpText *hwp_text = (HwpText *) g_object_new (HWP_TYPE_TEXT, NULL);
-    hwp_text->text = g_strdup (text);
-    return hwp_text;
-}
-
-/**
- * hwp_text_append:
- * @hwp_text: a #HwpText
- * @text: #gchar
- *
- * Return value: (transfer none): A #HwpText, or %NULL
- *
- * Since: 0.0.1
- */
-HwpText *hwp_text_append (HwpText *hwp_text, const gchar *text)
-{
-    g_return_val_if_fail (HWP_IS_TEXT (hwp_text), NULL);
-
-    gchar *tmp;
-    tmp = g_strdup (hwp_text->text);
-    g_free (hwp_text->text);
-    hwp_text->text = g_strconcat (tmp, text, NULL);
-    g_free (tmp);
-    return hwp_text;
-}
-
-static void hwp_text_finalize (GObject *object)
-{
-  HwpText *hwp_text = HWP_TEXT(object);
-  if (hwp_text->text)
-    g_free (hwp_text->text);
-
-  G_OBJECT_CLASS (hwp_text_parent_class)->finalize (object);
-}
-
-static void hwp_text_class_init (HwpTextClass *klass)
-{
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = hwp_text_finalize;
-}
-
-static void hwp_text_init (HwpText *hwp_text)
-{
-}
-
 /** HwpParagraph ************************************************************/
 
 G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
 HwpParagraph *hwp_paragraph_new (void)
 {
-    return (HwpParagraph *) g_object_new (HWP_TYPE_PARAGRAPH, NULL);
+  return g_object_new (HWP_TYPE_PARAGRAPH, NULL);
 }
 
 static void hwp_paragraph_finalize (GObject *obj)
 {
-    G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (obj);
+  G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (obj);
 }
 
 static void hwp_paragraph_class_init (HwpParagraphClass *klass)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize     = hwp_paragraph_finalize;
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize     = hwp_paragraph_finalize;
 }
 
 static void hwp_paragraph_init (HwpParagraph *paragraph)
 {
 }
 
-void
-hwp_paragraph_set_hwp_text (HwpParagraph *paragraph, HwpText *hwp_text)
+void hwp_paragraph_set_string (HwpParagraph *paragraph, GString *string)
 {
-    g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
-    g_return_if_fail (HWP_IS_TEXT (hwp_text));
-    paragraph->hwp_text = hwp_text;
+  g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
+  paragraph->string = string;
 }
 
 /**
- * hwp_paragraph_get_hwp_text:
+ * hwp_paragraph_get_string:
  * @paragraph: a #HwpParagraph
  *
- * Return value: (transfer none): A #HwpText, or %NULL
+ * Return value: (transfer none): A #GString, or %NULL
  *
  * Since: 0.0.1
  */
-HwpText *hwp_paragraph_get_hwp_text (HwpParagraph *paragraph)
+GString *hwp_paragraph_get_string (HwpParagraph *paragraph)
 {
-    g_return_val_if_fail (HWP_IS_PARAGRAPH (paragraph), NULL);
-    return paragraph->hwp_text;
+  g_return_val_if_fail (HWP_IS_PARAGRAPH (paragraph), NULL);
+  return paragraph->string;
 }
 
 void hwp_paragraph_set_table (HwpParagraph *paragraph, HwpTable *table)

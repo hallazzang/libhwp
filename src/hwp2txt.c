@@ -41,16 +41,14 @@ G_DEFINE_TYPE_WITH_CODE (HwpToTxt, hwp_to_txt, G_TYPE_OBJECT,
  */
 HwpToTxt *hwp_to_txt_new ()
 {
-  return (HwpToTxt *) g_object_new (HWP_TYPE_TO_TXT, NULL);
+  return g_object_new (HWP_TYPE_TO_TXT, NULL);
 }
 
-static void
-hwp_to_txt_init (HwpToTxt *hwp_to_txt)
+static void hwp_to_txt_init (HwpToTxt *hwp_to_txt)
 {
 }
 
-static void
-hwp_to_txt_finalize (GObject *object)
+static void hwp_to_txt_finalize (GObject *object)
 {
   HwpToTxt *hwp2txt = HWP_TO_TXT (object);
   if (hwp2txt->output_stream)
@@ -59,8 +57,7 @@ hwp_to_txt_finalize (GObject *object)
   G_OBJECT_CLASS (hwp_to_txt_parent_class)->finalize (object);
 }
 
-static void
-hwp_to_txt_class_init (HwpToTxtClass *klass)
+static void hwp_to_txt_class_init (HwpToTxtClass *klass)
 {
   GObjectClass* object_class = G_OBJECT_CLASS (klass);
 
@@ -68,26 +65,29 @@ hwp_to_txt_class_init (HwpToTxtClass *klass)
 }
 
 /* callback */
-void text (HwpListener *listener,
-           const gchar *text,
-           gsize        text_len,
-           gpointer     user_data,
-           GError     **error)
+void extract_text (HwpListener  *listener,
+                   HwpParagraph *paragraph,
+                   gpointer      user_data,
+                   GError      **error)
 {
   HwpToTxt *hwp2txt = HWP_TO_TXT (listener);
 
-  if (hwp2txt->output_stream) {
-    g_output_stream_write (hwp2txt->output_stream, text, text_len, NULL, error);
-    gchar lf = '\n';
-    g_output_stream_write (hwp2txt->output_stream, &lf, 1, NULL, error);
-  } else {
-    printf ("%s\n", text);
+  GString *string = paragraph->string;
+  if (string) {
+    if (hwp2txt->output_stream) {
+      g_output_stream_write (hwp2txt->output_stream, string->str, string->len,
+                             NULL, error);
+      gchar lf = '\n';
+      g_output_stream_write (hwp2txt->output_stream, &lf, 1, NULL, error);
+    } else {
+      printf ("%s\n", string->str);
+    }
   }
 }
 
 static void hwp_to_txt_iface_init (HwpListenerInterface *iface)
 {
-  iface->text = text;
+  iface->paragraph = extract_text;
 }
 
 void hwp_to_txt_convert (HwpToTxt *hwp2txt,

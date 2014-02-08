@@ -46,73 +46,64 @@ struct _HwpListenerInterface
   GTypeInterface             base_iface;
 
   /* file header */
-  void (* document_version) (HwpListener *listener,
-                             guint8       major_version,
-                             guint8       minor_version,
-                             guint8       micro_version,
-                             guint8       extra_version,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* start_tag)        (HwpListener *listener,
-                             HwpTag       tag,
-                             guint16      level,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* end_tag)          (HwpListener *listener,
-                             HwpTag       tag,
-                             guint16      level,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* text)             (HwpListener *listener,
-                             const gchar *text,
-                             gsize        text_len,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* prv_text)         (HwpListener *listener,
-                             const gchar *prv_text,
-                             gpointer     user_data,
-                             GError     **error);
+  void (* document_version) (HwpListener  *listener,
+                             guint8        major_version,
+                             guint8        minor_version,
+                             guint8        micro_version,
+                             guint8        extra_version,
+                             gpointer      user_data,
+                             GError      **error);
+  /* paragraph */
+  void (* paragraph)        (HwpListener  *listener,
+                             HwpParagraph *paragraph,
+                             gpointer      user_data,
+                             GError      **error);
+  /* preview text */
+  void (* prv_text)         (HwpListener  *listener,
+                             const gchar  *prv_text,
+                             gpointer      user_data,
+                             GError      **error);
   /* summary information */
-  void (* creator)          (HwpListener *listener,
-                             const gchar *creator,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* mod_date)         (HwpListener *listener,
-                             GTime        mod_date,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* desc)             (HwpListener *listener,
-                             const gchar *desc,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* keywords)         (HwpListener *listener,
-                             const gchar *keywords,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* subject)          (HwpListener *listener,
-                             const gchar *subject,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* title)            (HwpListener *listener,
-                             const gchar *title,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* last_printed)     (HwpListener *listener,
-                             GTime        last_printed,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* last_saved_by)    (HwpListener *listener,
-                             const gchar *last_saved_by,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* creation_date)    (HwpListener *listener,
-                             GTime        creation_date,
-                             gpointer     user_data,
-                             GError     **error);
-  void (* hanword_version)  (HwpListener *listener,
-                             const gchar *hanword_version,
-                             gpointer     user_data,
-                             GError     **error);
+  void (* creator)          (HwpListener  *listener,
+                             const gchar  *creator,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* mod_date)         (HwpListener  *listener,
+                             GTime         mod_date,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* desc)             (HwpListener  *listener,
+                             const gchar  *desc,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* keywords)         (HwpListener  *listener,
+                             const gchar  *keywords,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* subject)          (HwpListener  *listener,
+                             const gchar  *subject,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* title)            (HwpListener  *listener,
+                             const gchar  *title,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* last_printed)     (HwpListener  *listener,
+                             GTime         last_printed,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* last_saved_by)    (HwpListener  *listener,
+                             const gchar  *last_saved_by,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* creation_date)    (HwpListener  *listener,
+                             GTime         creation_date,
+                             gpointer      user_data,
+                             GError      **error);
+  void (* hanword_version)  (HwpListener  *listener,
+                             const gchar  *hanword_version,
+                             gpointer      user_data,
+                             GError      **error);
 };
 
 GType hwp_listener_get_type         (void) G_GNUC_CONST;
