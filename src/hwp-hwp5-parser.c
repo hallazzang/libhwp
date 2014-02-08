@@ -217,7 +217,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
   else
     id_mappings_len = 14;
 
-  guint32 *id_mappings = g_malloc_n (id_mappings_len, sizeof(guint32));
+  guint32 *id_mappings = g_malloc0_n (id_mappings_len, sizeof(guint32));
 
   parser->stream = file->doc_info_stream;
 
@@ -820,13 +820,13 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
                       error);
 
   parser_read_uint32 (parser, &parser->ctrl_id, error);
-//#ifdef HWP_ENABLE_DEBUG
+#ifdef HWP_ENABLE_DEBUG
   printf (" \"%c%c%c%c\"\n",
     (gchar) (parser->ctrl_id >> 24 & 0xff),
     (gchar) (parser->ctrl_id >> 16 & 0xff),
     (gchar) (parser->ctrl_id >>  8 & 0xff),
     (gchar) (parser->ctrl_id >>  0 & 0xff));
-//#endif
+#endif
   switch (parser->ctrl_id) {
   case CTRL_ID_SECTION_DEF:
     hwp_hwp5_parser_parse_section_definition (parser, error);
