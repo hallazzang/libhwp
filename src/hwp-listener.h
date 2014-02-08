@@ -23,22 +23,10 @@
 
 #include <glib-object.h>
 
+#include "hwp-enums.h"
 #include "hwp-models.h"
 
 G_BEGIN_DECLS
-
-/**
- * HwpParseState:
- *
- * This type indicates the current state of parsing.
- *
- * Since: 0.2
- */
-typedef enum {
-  HWP_PARSE_STATE_NORMAL,
-  HWP_PARSE_STATE_PASSING,
-  HWP_PARSE_STATE_INSIDE_TABLE
-} HwpParseState;
 
 /* HwpListenerInterface ********************************************************/
 
@@ -57,11 +45,7 @@ struct _HwpListenerInterface
 {
   GTypeInterface             base_iface;
 
-  void (* text)             (HwpListener *listener,
-                             const gchar *text,
-                             gsize        text_len,
-                             gpointer     user_data,
-                             GError     **error);
+  /* file header */
   void (* document_version) (HwpListener *listener,
                              guint8       major_version,
                              guint8       minor_version,
@@ -69,8 +53,19 @@ struct _HwpListenerInterface
                              guint8       extra_version,
                              gpointer     user_data,
                              GError     **error);
-  void (* object)           (HwpListener *listener,
-                             GObject     *object,
+  void (* start_tag)        (HwpListener *listener,
+                             HwpTag       tag,
+                             guint16      level,
+                             gpointer     user_data,
+                             GError     **error);
+  void (* end_tag)          (HwpListener *listener,
+                             HwpTag       tag,
+                             guint16      level,
+                             gpointer     user_data,
+                             GError     **error);
+  void (* text)             (HwpListener *listener,
+                             const gchar *text,
+                             gsize        text_len,
                              gpointer     user_data,
                              GError     **error);
   void (* prv_text)         (HwpListener *listener,

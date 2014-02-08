@@ -48,7 +48,7 @@ struct _HwpHWP5ParserClass
 struct _HwpHWP5Parser
 {
   GObject                  parent_instance;
-	HwpHWP5ParserPrivate    *priv;
+  HwpHWP5ParserPrivate    *priv;
 
   HwpListener             *listener;
   gpointer                 user_data;
@@ -76,20 +76,39 @@ struct _HwpHWP5ParserPrivate
   gboolean ret;
 };
 
+/**
+ * HwpParseState:
+ *
+ * This type indicates the current state of parsing.
+ *
+ * Since: 0.0.1
+ */
+typedef enum {
+  HWP_PARSE_STATE_NORMAL,
+  HWP_PARSE_STATE_PASSING,
+  HWP_PARSE_STATE_INSIDE_TABLE
+} HwpParseState;
+
 GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
-HwpHWP5Parser *hwp_hwp5_parser_new         (HwpListener   *listener,
-                                            gpointer       user_data);
-void           hwp_hwp5_parser_parse       (HwpHWP5Parser *parser,
-                                            HwpHWP5File   *file,
-                                            GError       **error);
-gboolean       hwp_hwp5_parser_pull        (HwpHWP5Parser *parser,
-                                            GError       **error);
-gboolean       hwp_hwp5_parser_read_uint16 (HwpHWP5Parser *parser,
-                                            guint16       *i);
-gboolean       hwp_hwp5_parser_read_uint32 (HwpHWP5Parser *parser,
-                                            guint32       *i);
-gboolean       hwp_hwp5_parser_skip        (HwpHWP5Parser *parser,
-                                            guint16        count);
+
+gboolean       hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
+                                              guint8         major,
+                                              guint8         minor,
+                                              guint8         micro,
+                                              guint8         extra);
+HwpHWP5Parser *hwp_hwp5_parser_new           (HwpListener   *listener,
+                                              gpointer       user_data);
+void           hwp_hwp5_parser_parse         (HwpHWP5Parser *parser,
+                                              HwpHWP5File   *file,
+                                              GError       **error);
+gboolean       hwp_hwp5_parser_pull          (HwpHWP5Parser *parser,
+                                              GError       **error);
+gboolean       hwp_hwp5_parser_read_uint16   (HwpHWP5Parser *parser,
+                                              guint16       *i);
+gboolean       hwp_hwp5_parser_read_uint32   (HwpHWP5Parser *parser,
+                                              guint32       *i);
+gboolean       hwp_hwp5_parser_skip          (HwpHWP5Parser *parser,
+                                              guint16        count);
 
 G_END_DECLS
 

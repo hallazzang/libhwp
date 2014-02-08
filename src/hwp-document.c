@@ -322,32 +322,29 @@ void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
   /* TODO */
 }
 
-void object (HwpListener *listener,
-             GObject     *object,
-             gpointer     user_data,
-             GError     **error)
+void start_tag (HwpListener *listener,
+                HwpTag       tag,
+                guint16      level,
+                gpointer     user_data,
+                GError     **error)
 {
-  if (HWP_IS_PARAGRAPH (object)) {
-    HwpParagraph *paragraph = HWP_PARAGRAPH (object);
-    HwpText *hwp_text = hwp_paragraph_get_hwp_text (paragraph);
-    HwpDocument *document  = (HwpDocument *) listener;
-    if (hwp_text) {
-#ifdef HWP_ENABLE_DEBUG
-      printf("%s\n", hwp_text->text);
-#endif
-      PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
-      PangoContext *context = pango_font_map_create_context (fontmap);
-      PangoLayout  *layout  = pango_layout_new (context);
-      pango_layout_set_width (layout, 595 * PANGO_SCALE);
-      pango_layout_set_wrap  (layout, PANGO_WRAP_WORD_CHAR);
-      pango_layout_set_text  (layout, hwp_text->text, -1);
-      hwp_document_paginate  (document, layout);
-    }
-  }
+  printf ("%d", level);
+  for (int i = 0; i < level; i++)
+      printf ("    ");
+  printf ("%s\n", hwp_get_tag_name(tag));
+}
+
+void end_tag (HwpListener *listener,
+              HwpTag       tag,
+              guint16      level,
+              gpointer     user_data,
+              GError     **error)
+{
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = document_version;
-  iface->object           = object;
+  iface->start_tag        = start_tag;
+  iface->end_tag          = end_tag;
 }

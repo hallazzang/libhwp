@@ -102,10 +102,10 @@ HwpDocument *hwp_hwp5_file_get_document (HwpFile *file, GError **error)
  * Since: 0.0.1
  */
 gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
-                                     guint8      major,
-                                     guint8      minor,
-                                     guint8      micro,
-                                     guint8      extra)
+                                      guint8       major,
+                                      guint8       minor,
+                                      guint8       micro,
+                                      guint8       extra)
 {
     g_return_val_if_fail (HWP_IS_HWP5_FILE (file), FALSE);
 
