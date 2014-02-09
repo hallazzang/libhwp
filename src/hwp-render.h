@@ -1,7 +1,8 @@
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp.h
+ * hwp-render.h
  *
- * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -17,29 +18,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __HWP_H__
-#define __HWP_H__
+#if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
+#error "Only <hwp/hwp.h> can be included directly."
+#endif
+
+#ifndef __HWP_RENDER_H__
+#define __HWP_RENDER_H__
 
 #include <glib-object.h>
-
-#define __HWP_H_INSIDE__
-
-#include "hnc2unicode.h"
-#include "hwp-document.h"
-#include "hwp-enums.h"
-#include "hwp-enum-types.h"
-#include "hwp-file.h"
-#include "hwp-hwp3-file.h"
-#include "hwp-hwp3-parser.h"
-#include "hwp-hwp5-file.h"
-#include "hwp-hwp5-parser.h"
-#include "hwp-hwpml-file.h"
-#include "hwp-listener.h"
-#include "hwp-models.h"
+#include <cairo.h>
 #include "hwp-page.h"
-#include "hwp-render.h"
-#include "hwp-version.h"
+#include "hwp-models.h"
 
-#undef __HWP_H_INSIDE__
+G_BEGIN_DECLS
 
-#endif /*__HWP_H__ */
+gboolean hwp_render_page      (cairo_t *cr, HwpPage      *page);
+gboolean hwp_render_paragraph (cairo_t *cr, HwpParagraph *paragraph);
+gboolean hwp_render_text      (cairo_t *cr, const gchar  *text);
+
+G_END_DECLS
+
+#endif /* __HWP_RENDER_H__ */

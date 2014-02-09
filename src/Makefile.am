@@ -18,6 +18,7 @@ INST_H_FILES =          \
 	hwp-listener.h      \
 	hwp-models.h        \
 	hwp-page.h          \
+	hwp-render.h        \
 	hwp-version.h       \
 	$(NULL)
 
@@ -50,6 +51,7 @@ libhwp_la_SOURCES =     \
 	hwp-listener.c      \
 	hwp-models.c        \
 	hwp-page.c          \
+	hwp-render.c        \
 	$(NOINST_H_FILES)   \
 	$(INST_H_FILES)     \
 	$(NULL)
