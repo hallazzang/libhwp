@@ -2,7 +2,7 @@
 /*
  * hwp-listener.h
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -111,13 +111,6 @@ struct _HwpListenerInterface
 };
 
 GType hwp_listener_get_type         (void) G_GNUC_CONST;
-/*void  hwp_listener_document_version (HwpListener *listener,*/
-/*                                      guint8        major_version,*/
-/*                                      guint8        minor_version,*/
-/*                                      guint8        micro_version,*/
-/*                                      guint8        extra_version,*/
-/*                                      gpointer      user_data,*/
-/*                                      GError      **error);*/
 
 G_END_DECLS
 

@@ -2,7 +2,7 @@
 /*
  * hwp-listener.c
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -25,25 +25,3 @@ G_DEFINE_INTERFACE (HwpListener, hwp_listener, G_TYPE_OBJECT)
 static void hwp_listener_default_init (HwpListenerInterface *klass)
 {
 }
-
-/*void hwp_listener_document_version (HwpListener *listener,*/
-/*                                     guint8        major_version,*/
-/*                                     guint8        minor_version,*/
-/*                                     guint8        micro_version,*/
-/*                                     guint8        extra_version,*/
-/*                                     gpointer      user_data,*/
-/*                                     GError      **error)*/
-/*{*/
-/*  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (listener);*/
-
-/*  if (!iface->document_version)*/
-/*    return;*/
-
-/*  iface->document_version(listener,*/
-/*                          major_version,*/
-/*                          minor_version,*/
-/*                          micro_version,*/
-/*                          extra_version,*/
-/*                          user_data,*/
-/*                          error);*/
-/*}*/
