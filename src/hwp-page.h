@@ -1,4 +1,4 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4 -*- */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-page.h
  *
@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
+#error "Only <hwp/hwp.h> can be included directly."
+#endif
+
 #ifndef __HWP_PAGE_H__
 #define __HWP_PAGE_H__
 
@@ -36,49 +40,18 @@ G_BEGIN_DECLS
 #define HWP_IS_PAGE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PAGE))
 #define HWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PAGE, HwpPageClass))
 
-typedef struct _HwpPage        HwpPage;
-typedef struct _HwpPageClass   HwpPageClass;
+typedef struct _HwpPage       HwpPage;
+typedef struct _HwpPageClass  HwpPageClass;
 
-struct _HwpPage {
-    GObject  parent_instance;
-    GArray  *paragraphs;
-    GArray  *layouts;
+struct _HwpPage
+{
+  GObject parent_instance;
+  GArray *paragraphs;
 };
 
-struct _HwpPageClass {
-    GObjectClass parent_class;
-};
-
-typedef struct _HwpColor HwpColor;
-
-/**
- * Since: 0.2
- */
-struct _HwpColor {
-    guint16 red;
-    guint16 green;
-    guint16 blue;
-};
-
-typedef struct _HwpRectangle HwpRectangle;
-/**
- * Since: 0.2
- */
-struct _HwpRectangle {
-    gdouble x1;
-    gdouble y1;
-    gdouble x2;
-    gdouble y2;
-};
-
-typedef struct _HwpLayout HwpLayout;
-/**
- * Since: TODO
- */
-struct _HwpLayout {
-    gdouble x;
-    gdouble y;
-    PangoLayout *pango_layout;
+struct _HwpPageClass
+{
+  GObjectClass parent_class;
 };
 
 GType    hwp_page_get_type    (void) G_GNUC_CONST;
@@ -87,25 +60,6 @@ void     hwp_page_get_size    (HwpPage *page,
                                gdouble *width,
                                gdouble *height);
 gboolean  hwp_page_render     (HwpPage *page,    cairo_t *cr);
-/* experimental */
-void
-hwp_page_render_selection     (HwpPage          *page,
-                               cairo_t          *cr,
-                               HwpRectangle     *selection,
-                               HwpRectangle     *old_selection,
-                               HwpSelectionStyle style, 
-                               HwpColor         *glyph_color,
-                               HwpColor         *background_color);
-char *
-hwp_page_get_selected_text    (HwpPage          *page,
-                               HwpSelectionStyle style,
-                               HwpRectangle     *selection);
-cairo_region_t *
-hwp_page_get_selection_region (HwpPage          *page,
-                               gdouble           scale,
-                               HwpSelectionStyle style,
-                               HwpRectangle     *selection);
-void hwp_rectangle_free       (HwpRectangle     *rectangle);
 
 G_END_DECLS
 

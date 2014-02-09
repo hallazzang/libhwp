@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
+#error "Only <hwp/hwp.h> can be included directly."
+#endif
+
 #ifndef __HWP_HWPML_FILE_H__
 #define __HWP_HWPML_FILE_H__
 
