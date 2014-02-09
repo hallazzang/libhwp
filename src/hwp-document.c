@@ -355,6 +355,12 @@ void hwp_document_paginate (HwpDocument *document, HwpParagraph *paragraph)
 void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
 {
   g_array_append_val (document->paragraphs, paragraph);
+  /* 페이지수 계산하면서 페이지에 파라그래프를 넣어야 한다.
+      파라그래프가 레이아웃이라고 보면 된다.
+      ParagraphLayout 이런 것이 있을 필요가 있을까. 없다.
+      Paragraph가 레이아웃 역할을 하는 것이고
+      이것을 벡엔드로 렌더링하면 된다. 여기서 벡엔드란 cairo를 의미한다.
+  */
   hwp_document_paginate (document, paragraph);
 }
 
@@ -364,8 +370,9 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
                                     gpointer      user_data,
                                     GError      **error)
 {
-  HwpDocument *document = (HwpDocument *) listener;
+  HwpDocument *document = HWP_DOCUMENT (listener);
   hwp_document_add_paragraph (document, paragraph);
+  g_array_append_val (document->pages, paragraph);
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)

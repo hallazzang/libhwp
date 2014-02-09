@@ -57,7 +57,7 @@ void convert(char *in_filename, char *out_filename, GError **error)
     cr = cairo_create (surface);
 
     page = hwp_document_get_page (document, i);
-    hwp_page_render (page, cr);
+    hwp_render_page (cr, page);
     cairo_show_page (cr);
 
     cairo_destroy (cr);

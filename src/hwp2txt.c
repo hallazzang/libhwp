@@ -22,7 +22,6 @@
 #include <glib-object.h>
 #include "hwp.h"
 #include "hwp2txt.h"
-#include "hwp-listener.h"
 
 /** HwpToTxt class ***********************************************************/
 static void hwp_to_txt_iface_init (HwpListenerInterface *iface);
