@@ -169,7 +169,7 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
     }
 
     /* 비정상 */
-    if (parser->priv->bytes_read != ((gsize) 4)) {
+    if (parser->priv->bytes_read != 4) {
       g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
                            _("File corrupted"));
       g_input_stream_close (parser->stream, NULL, NULL);
@@ -231,6 +231,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
       g_free (id_mappings);
       break;
     case HWP_TAG_BIN_DATA:
+
       break;
     case HWP_TAG_FACE_NAME:
       break;

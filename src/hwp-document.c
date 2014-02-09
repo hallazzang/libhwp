@@ -76,8 +76,8 @@ HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
  */
 guint hwp_document_get_n_pages (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0U);
-    return document->pages->len;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0U);
+  return document->pages->len;
 }
 
 /**
@@ -143,8 +143,8 @@ gchar *hwp_document_get_title (HwpDocument *document)
  */
 gchar *hwp_document_get_keywords (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->keywords);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  return g_strdup (document->keywords);
 }
 
 /**
@@ -160,8 +160,8 @@ gchar *hwp_document_get_keywords (HwpDocument *document)
  */
 gchar *hwp_document_get_subject (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->subject);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  return g_strdup (document->subject);
 }
 
 /**
@@ -177,8 +177,8 @@ gchar *hwp_document_get_subject (HwpDocument *document)
  */
 gchar *hwp_document_get_creator (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-    return g_strdup (document->creator);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  return g_strdup (document->creator);
 }
 
 /**
@@ -193,8 +193,8 @@ gchar *hwp_document_get_creator (HwpDocument *document)
  */
 GTime hwp_document_get_creation_date (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
-    return document->creation_date;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
+  return document->creation_date;
 }
 
 /**
@@ -209,8 +209,8 @@ GTime hwp_document_get_creation_date (HwpDocument *document)
  */
 GTime hwp_document_get_modification_date (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
-    return document->mod_date;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
+  return document->mod_date;
 }
 
 /**
@@ -226,13 +226,13 @@ GTime hwp_document_get_modification_date (HwpDocument *document)
  */
 gchar *hwp_document_get_format (HwpDocument *document)
 {
-    gchar *format;
+  gchar *format;
 
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-    format = g_strdup_printf ("HWP v%s",
-        hwp_document_get_hwp_version_string (document));
-    return format;
+  format = g_strdup_printf ("HWP v%s",
+    hwp_document_get_hwp_version_string (document));
+  return format;
 }
 
 /**
@@ -248,11 +248,11 @@ gchar *hwp_document_get_format (HwpDocument *document)
  */
 gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
 {
-    g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-    return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
-                                           document->minor_version,
-                                           document->micro_version,
-                                           document->extra_version);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+  return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
+                                         document->minor_version,
+                                         document->micro_version,
+                                         document->extra_version);
 }
 
 /**
@@ -340,7 +340,7 @@ void hwp_document_listen_version (HwpListener *listener,
   document->extra_version = extra_version;
 }
 
-void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
+void hwp_document_paginate (HwpDocument *document, HwpParagraph *paragraph)
 {
   /* TODO */
 }
@@ -355,6 +355,7 @@ void hwp_document_paginate (HwpDocument *document, PangoLayout *layout)
 void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
 {
   g_array_append_val (document->paragraphs, paragraph);
+  hwp_document_paginate (document, paragraph);
 }
 
 /* callback */
