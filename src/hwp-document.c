@@ -95,6 +95,7 @@ guint hwp_document_get_n_pages (HwpDocument *document)
 HwpPage *hwp_document_get_page (HwpDocument *doc, gint n_page)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (doc), NULL);
+
   HwpPage *page = g_array_index (doc->pages, HwpPage *, (guint) n_page);
   return g_object_ref (page);
 }
@@ -372,7 +373,9 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
 {
   HwpDocument *document = HWP_DOCUMENT (listener);
   hwp_document_add_paragraph (document, paragraph);
-  g_array_append_val (document->pages, paragraph);
+  HwpPage *page = hwp_page_new ();
+  g_array_append_val (page->paragraphs, paragraph);
+  g_array_append_val (document->pages, page);
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)

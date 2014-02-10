@@ -32,10 +32,19 @@
 
 G_BEGIN_DECLS
 
-gboolean hwp_render_page      (cairo_t *cr, HwpPage      *page);
-gboolean hwp_render_paragraph (cairo_t *cr, HwpParagraph *paragraph);
-gboolean hwp_render_text      (cairo_t *cr, const gchar  *text);
-
+gboolean hwp_render_page      (cairo_t              *cr,
+                               HwpPage              *page);
+gboolean hwp_render_paragraph (cairo_t              *cr,
+                               HwpParagraph         *paragraph,
+                               double                x,
+                               double                y);
+gboolean hwp_render_text      (cairo_t              *cr,
+                               cairo_text_extents_t  extents,
+                               cairo_glyph_t        *glyphs,
+                               cairo_scaled_font_t  *scaled_font,
+                               const gchar          *text,
+                               double               *x,
+                               double               *y);
 G_END_DECLS
 
 #endif /* __HWP_RENDER_H__ */
