@@ -27,11 +27,16 @@
 G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);
 
 /**
+ * hwp_page_get_size:
+ * @page: #HwpPage
+ * @width:
+ * @hegiht:
+ *
+ * Returns:
+ *
  * Since: 0.1
  */
-void hwp_page_get_size (HwpPage *page,
-                        gdouble *width,
-                        gdouble *height)
+void hwp_page_get_size (HwpPage *page, gdouble *width, gdouble *height)
 {
   g_return_if_fail (HWP_IS_PAGE (page));
 
@@ -40,6 +45,10 @@ void hwp_page_get_size (HwpPage *page,
 }
 
 /**
+ * hwp_page_new:
+ *
+ * Returns: a #HwpPage
+ *
  * Since: 0.0.1
  */
 HwpPage *hwp_page_new (void)
@@ -47,14 +56,14 @@ HwpPage *hwp_page_new (void)
   return g_object_new (HWP_TYPE_PAGE, NULL);
 }
 
-static void hwp_page_finalize (GObject *obj)
+static void hwp_page_finalize (GObject *object)
 {
-  HwpPage *page = HWP_PAGE (obj);
+  HwpPage *page = HWP_PAGE (object);
   g_array_free (page->paragraphs, TRUE);
-  G_OBJECT_CLASS (hwp_page_parent_class)->finalize (obj);
+  G_OBJECT_CLASS (hwp_page_parent_class)->finalize (object);
 }
 
-static void hwp_page_class_init (HwpPageClass * klass)
+static void hwp_page_class_init (HwpPageClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   object_class->finalize     = hwp_page_finalize;
