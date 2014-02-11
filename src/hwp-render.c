@@ -66,6 +66,10 @@ gboolean hwp_render_page (cairo_t *cr, HwpPage *page)
   {
     paragraph = g_array_index (page->paragraphs, HwpParagraph *, i);
     hwp_render_paragraph (cr, paragraph, x, y);
+    if (paragraph->string) {
+      guint len = g_utf8_strlen (paragraph->string->str, -1);
+      y += 18.0 * ceil (len / 33.0);
+    }
   }
 
   cairo_restore (cr);

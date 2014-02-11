@@ -373,9 +373,35 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
 {
   HwpDocument *document = HWP_DOCUMENT (listener);
   hwp_document_add_paragraph (document, paragraph);
-  HwpPage *page = hwp_page_new ();
-  g_array_append_val (page->paragraphs, paragraph);
-  g_array_append_val (document->pages, page);
+
+  /* HwpRenderContext 를 만들어서 거기에 page, x, y 변수를 만들어야 할 것 같음. */
+  static gdouble y = 0.0;
+  guint len = 0;
+  HwpPage *page = g_array_index (document->pages, HwpPage *, 0);
+
+  /* 페이지가 없다면 만든다. */
+  if (!page) {
+    page = hwp_page_new ();
+    g_array_append_val (document->pages, page);
+  } else {
+    /* 페이지가 있다면 마지막 페이지 얻기 */
+    page = g_array_index (document->pages, HwpPage *, document->pages->len - 1);
+  }
+  /* 높이 계산 */
+  if (paragraph->string) {
+    len = g_utf8_strlen (paragraph->string->str, -1);
+    y += 18.0 * ceil (len / 33.0);
+  }
+
+  if (y <= 842.0 - 80.0) {
+    g_array_append_val (page->paragraphs, paragraph);
+  } else {
+    page = hwp_page_new ();
+    g_array_append_val (document->pages, page);
+    g_array_append_val (page->paragraphs, paragraph);
+    y = 0.0;
+  } /* if */
+  paragraph = NULL;
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
