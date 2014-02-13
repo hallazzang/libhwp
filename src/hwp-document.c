@@ -33,6 +33,7 @@
 #include "hwp-models.h"
 #include "hwp-listener.h"
 #include <pango/pangocairo.h>
+#include <math.h>
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface);
 
