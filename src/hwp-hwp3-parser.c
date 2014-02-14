@@ -32,7 +32,6 @@ static void _hwp_hwp3_parser_parse_signature (HwpHWP3Parser *parser,
                                               GError       **error)
 {
   g_return_if_fail (HWP_IS_HWP3_PARSER (parser));
-  parser->stream = file->priv->stream;
   gchar *signature = g_malloc(30);
   hwp_hwp3_parser_read (parser, signature, 30);
   g_free (signature);
@@ -45,7 +44,6 @@ static void _hwp_hwp3_parser_parse_doc_info (HwpHWP3Parser *parser,
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
   /* 문서 정보 128 bytes */
   /* 암호 여부 */
-
   hwp_hwp3_parser_skip (parser, 96);
   hwp_hwp3_parser_read_uint16 (parser, &(file->is_crypt));
 
@@ -58,6 +56,17 @@ static void _hwp_hwp3_parser_parse_doc_info (HwpHWP3Parser *parser,
   file->minor_version = 0;
   file->micro_version = 0;
   file->extra_version = file->rev;
+
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  if (iface->document_version)
+    iface->document_version (parser->listener,
+                             file->major_version,
+                             file->minor_version,
+                             file->micro_version,
+                             file->extra_version,
+                             parser->user_data,
+                             error);
+
   /* 정보 블럭 길이 */
   hwp_hwp3_parser_read_uint16 (parser, &(file->info_block_len));
 }
@@ -164,22 +173,7 @@ static void _hwp_hwp3_parser_parse_info_block (HwpHWP3Parser *parser,
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
   GInputStream *stream = file->priv->stream;
-  g_input_stream_skip (stream, file->info_block_len, NULL, NULL);
-
-  if (file->is_compress) {
-    GZlibDecompressor *zd;
-    GInputStream      *cis;
-
-    zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-    cis = g_converter_input_stream_new ((GInputStream*) stream,
-                                        (GConverter*) zd);
-    g_object_unref (file->priv->stream);
-    g_object_ref (cis);
-    /* NOTE 기존의 스트림은 어떻게 ? */
-    file->priv->stream = G_INPUT_STREAM (cis);
-
-    g_object_unref (zd);
-  }
+  g_input_stream_skip (stream, file->info_block_len, NULL, error);
 }
 
 static void _hwp_hwp3_parser_parse_font_names (HwpHWP3Parser *parser,
@@ -188,15 +182,19 @@ static void _hwp_hwp3_parser_parse_font_names (HwpHWP3Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
   guint16 n_fonts;
-  int i = 0;
   guint8 *buffer = NULL;
   gsize bytes_read;
   GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
-  for (i = 0; i < 7; i++) {
+
+  for (guint8 i = 0; i < 7; i++)
+  {
     g_input_stream_read_all (stream, &n_fonts, 2, &bytes_read, NULL, NULL);
     buffer = g_malloc (40 * n_fonts);
     g_input_stream_read_all (stream, buffer, 40 * n_fonts, &bytes_read, NULL, NULL);
+    gchar *fontname = g_convert ((const gchar*) buffer, bytes_read,
+                                 "UTF-8", "JOHAB", NULL, NULL, error);
     g_free (buffer);
+    g_free (fontname);
   }
 }
 
@@ -209,10 +207,17 @@ static void _hwp_hwp3_parser_parse_styles (HwpHWP3Parser *parser,
   guint8 *buffer = NULL;
   gsize bytes_read;
   GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
-  g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, NULL);
-  buffer = g_malloc (n_styles * (20 + 31 + 187));
-  g_input_stream_read_all (stream, buffer, n_styles * (20 + 31 + 187), &bytes_read, NULL, NULL);
-  g_free (buffer);
+  g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, error);
+
+  for (guint16 i = 0; i < n_styles; i++)
+  {
+    buffer = g_malloc (20 + 31 + 187);
+    g_input_stream_read_all (stream, buffer, 20 + 31 + 187, &bytes_read, NULL, error);
+    gchar *stylename = g_convert ((const gchar*) buffer, 20,
+                                  "UTF-8", "JOHAB", NULL, NULL, error);
+    g_free (buffer);
+    g_free (stylename);
+  }
 }
 
 static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
@@ -226,9 +231,8 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   guint16 n_chars;
   guint16 n_lines;
   guint8  char_shape_included;
+  guint8  flag;
 
-  guint8 flag;
-  int i;
 
   hwp_hwp3_parser_read_uint8  (parser, &prev_paragraph_shape);
   hwp_hwp3_parser_read_uint16 (parser, &n_chars);
@@ -238,9 +242,8 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   hwp_hwp3_parser_skip (parser, 1 + 4 + 1 + 31);
   /* 여기까지 43 바이트 */
 
-  if (prev_paragraph_shape == 0 && n_chars > 0) {
+  if (prev_paragraph_shape == 0 && n_chars > 0)
     hwp_hwp3_parser_skip (parser, 187);
-  }
 
   /* 빈문단이면 FALSE 반환 */
   if (n_chars == 0)
@@ -251,7 +254,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
 
   /* 글자 모양 정보 */
   if (char_shape_included != 0) {
-    for (i = 0; i < n_chars; i++) {
+    for (guint16 i = 0; i < n_chars; i++) {
       hwp_hwp3_parser_read_uint8 (parser, &flag);
       if (flag != 1) {
         hwp_hwp3_parser_skip (parser, 31);
@@ -260,7 +263,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   }
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
-  GString      *string    = NULL;
+  GString      *string    = g_string_new (NULL);
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
@@ -268,7 +271,8 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   guint16 n_chars_read = 0;
   guint16 c;
 
-  while (n_chars_read < n_chars) {
+  while (n_chars_read < n_chars)
+  {
     hwp_hwp3_parser_read_uint16 (parser, &c);
     n_chars_read += 1;
 
@@ -294,7 +298,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
       hwp_hwp3_parser_skip (parser, 27 * n_cells);
 
       /* <셀 문단 리스트>+ */
-      for (i = 0; i < n_cells; i++) {
+      for (guint16 i = 0; i < n_cells; i++) {
         /* <셀 문단 리스트> ::= <셀 문단>+ <빈문단> */
         while(_hwp_hwp3_parser_parse_paragraph (parser, file, error))
         {
@@ -410,10 +414,28 @@ void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
 
+  parser->stream = file->priv->stream;
+
   _hwp_hwp3_parser_parse_signature (parser, file, error);
   _hwp_hwp3_parser_parse_doc_info (parser, file, error);
   _hwp_hwp3_parser_parse_summary_info (parser, file, error);
   _hwp_hwp3_parser_parse_info_block (parser, file, error);
+
+  if (file->is_compress) {
+    GZlibDecompressor *zd;
+    GInputStream      *cis;
+
+    zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+    cis = g_converter_input_stream_new (file->priv->stream, G_CONVERTER (zd));
+    g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis),
+                                                 TRUE);
+    g_object_unref (file->priv->stream);
+    file->priv->stream = g_object_ref (cis);
+    g_object_unref (zd);
+  }
+
+  parser->stream = file->priv->stream;
+
   _hwp_hwp3_parser_parse_font_names (parser, file, error);
   _hwp_hwp3_parser_parse_styles (parser, file, error);
   _hwp_hwp3_parser_parse_paragraphs (parser, file, error);
@@ -441,9 +463,7 @@ gboolean hwp_hwp3_parser_read_uint8 (HwpHWP3Parser *parser, guint8 *i)
   is_success = g_input_stream_read_all (parser->stream, i, 1,
                                         &parser->bytes_read,
                                         NULL, NULL);
-  if ((is_success == FALSE) ||
-      (parser->bytes_read != 1) ||
-      (parser->bytes_read == 0))
+  if ((is_success == FALSE) || (parser->bytes_read != 1))
   {
     *i = 0;
     g_input_stream_close (parser->stream, NULL, NULL);
@@ -461,9 +481,7 @@ gboolean hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser, guint16 *i)
   is_success = g_input_stream_read_all (parser->stream, i, 2,
                                         &parser->bytes_read,
                                         NULL, NULL);
-  if ((is_success == FALSE) ||
-      (parser->bytes_read != 2) ||
-      (parser->bytes_read == 0))
+  if ((is_success == FALSE) || (parser->bytes_read != 2))
   {
     *i = 0;
     g_input_stream_close (parser->stream, NULL, NULL);
@@ -482,9 +500,7 @@ gboolean hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser, guint32 *i)
   is_success = g_input_stream_read_all (parser->stream, i, 4,
                                         &parser->bytes_read,
                                         NULL, NULL);
-  if ((is_success == FALSE) ||
-      (parser->bytes_read != 4) ||
-      (parser->bytes_read == 0))
+  if ((is_success == FALSE) || (parser->bytes_read != 4))
   {
     *i = 0;
     g_input_stream_close (parser->stream, NULL, NULL);
