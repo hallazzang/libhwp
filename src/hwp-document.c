@@ -405,8 +405,18 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
   paragraph = NULL;
 }
 
+void hwp_document_listen_mod_date (HwpListener *listener,
+                                   GTime        mod_date,
+                                   gpointer     user_data,
+                                   GError     **error)
+{
+  HwpDocument *document = HWP_DOCUMENT (listener);
+  document->mod_date = mod_date;
+}
+
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
   iface->paragraph        = hwp_document_listen_paragraph;
+  iface->mod_date         = hwp_document_listen_mod_date;
 }
