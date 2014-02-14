@@ -318,6 +318,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
         zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
         cis = g_converter_input_stream_new ((GInputStream*) gis,
                                             (GConverter*) zd);
+        g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
         file->doc_info_stream = cis;
 
         g_object_unref (zd);
@@ -370,6 +371,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
           gis = (GInputStream *) gsf_input_stream_new (section);
           zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
           cis = g_converter_input_stream_new (gis, (GConverter *) zd);
+          g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
 
           GInputStream *tmp = G_INPUT_STREAM (cis);
           g_array_append_val (file->section_streams, tmp);
