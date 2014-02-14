@@ -755,7 +755,7 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
     case HWP_TAG_PARA_LINE_SEG:
       break;
     case HWP_TAG_CTRL_HEADER:
-      hwp_hwp5_parser_parse_ctrl_header(parser, file, error);
+      hwp_hwp5_parser_parse_ctrl_header (parser, file, error);
       break;
     default:
       g_warning ("%s:%d:%s not implemented",
@@ -763,6 +763,8 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
       break;
     } /* switch */
   } /* while */
+
+  /* FIXME 내포된 문단이 먼저 넘어간 후 이곳 문단이 넘어가는 버그가 있다. */
   if (iface->paragraph)
     iface->paragraph (parser->listener,
                       paragraph,
