@@ -830,80 +830,36 @@ static void hwp_hwp5_parser_parse_view_text (HwpHWP5Parser *parser,
 /* 알려지지 않은 것을 감지하기 위해 이렇게 작성함 */
 static void metadata_hash_func (gpointer k, gpointer v, gpointer user_data)
 {
-  gchar         *name   = (gchar         *) k;
-  GsfDocProp    *prop   = (GsfDocProp    *) v;
-  HwpHWP5Parser *parser = (HwpHWP5Parser *) user_data;
-
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  gchar          *name = (gchar          *) k;
+  GsfDocProp     *prop = (GsfDocProp     *) v;
+  HwpSummaryInfo *info = (HwpSummaryInfo *) user_data;
 
   GValue const *value = gsf_doc_prop_get_val (prop);
 
   if ( g_str_equal(name, GSF_META_NAME_CREATOR) ) {
-    if (iface->creator) {
-      gchar *creator = (gchar *) g_value_get_string (value);
-      iface->creator (parser->listener, creator, parser->user_data, NULL);
-    }
+    info->creator = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_DATE_MODIFIED) ) {
-    if (iface->mod_date) {
-      GsfTimestamp *ts = g_value_get_boxed (value);
-      GTime mod_date = (GTime) ts->timet;
-      iface->mod_date (parser->listener, mod_date, parser->user_data, NULL);
-    }
+    GsfTimestamp *ts = g_value_get_boxed (value);
+    info->mod_date = (GTime) ts->timet;
   } else if ( g_str_equal(name, GSF_META_NAME_DESCRIPTION) ) {
-    if (iface->desc) {
-      gchar *desc = (gchar *) g_value_get_string (value);
-      iface->desc (parser->listener, desc, parser->user_data, NULL);
-    }
+    info->desc = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_KEYWORDS) ) {
-    if (iface->keywords) {
-      gchar *keywords = (gchar *) g_value_get_string (value);
-      iface->keywords (parser->listener, keywords, parser->user_data, NULL);
-    }
+    info->keywords = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_SUBJECT) ) {
-    if (iface->subject) {
-      gchar *subject = (gchar *) g_value_get_string (value);
-      iface->subject (parser->listener, subject, parser->user_data, NULL);
-    }
+    info->subject = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_TITLE) ) {
-    if (iface->title) {
-      gchar *title = (gchar *) g_value_get_string (value);
-      iface->title (parser->listener, title, parser->user_data, NULL);
-    }
+    info->title = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_LAST_PRINTED) ) {
-    if (iface->last_printed) {
-      GsfTimestamp *ts    = g_value_get_boxed (value);
-      GTime last_printed   = (GTime) ts->timet;
-      iface->last_printed (parser->listener,
-                           last_printed,
-                           parser->user_data,
-                           NULL);
-    }
+    GsfTimestamp *ts   = g_value_get_boxed (value);
+    info->last_printed = (GTime) ts->timet;
   } else if ( g_str_equal(name, GSF_META_NAME_LAST_SAVED_BY) ) {
-    if (iface->last_saved_by) {
-      gchar *last_saved_by = (gchar *) g_value_get_string (value);
-      iface->last_saved_by (parser->listener,
-                            last_saved_by,
-                            parser->user_data,
-                            NULL);
-    }
+    info->last_saved_by = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_DATE_CREATED) ) {
-    if (iface->creation_date) {
-      GsfTimestamp *ts    = g_value_get_boxed (value);
-      GTime creation_date  = (GTime) ts->timet;
-      iface->creation_date (parser->listener,
-                            creation_date,
-                            parser->user_data,
-                            NULL);
-    }
+    GsfTimestamp *ts    = g_value_get_boxed (value);
+    info->creation_date = (GTime) ts->timet;
   /* hwp 문서를 저장할 때 사용된 한컴 워드프로세서의 내부 버전 */
   } else if ( g_str_equal(name, GSF_META_NAME_REVISION_COUNT) ) {
-    if (iface->hanword_version) {
-      gchar *hanword_version = (gchar *) g_value_get_string (value);
-      iface->hanword_version (parser->listener,
-                              hanword_version,
-                              parser->user_data,
-                              NULL);
-    }
+    info->hanword_version = g_strdup (g_value_get_string (value));
   } else if ( g_str_equal(name, GSF_META_NAME_PAGE_COUNT) ) {
     /* not correct n_pages == 0 ?? */
     g_value_get_int (value);
@@ -918,23 +874,26 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  if (!iface->summary_info)
+    return;
+
   GsfInputStream *gis;
   gssize          size;
   guint8         *buf = NULL;
-  GsfInputMemory *summary;
+  GsfInput       *summary;
   GsfDocMetaData *meta;
 
   gis  = g_object_ref (file->summary_info_stream);
   size = gsf_input_stream_size (gis);
-  buf  = g_malloc(size);
+  buf  = g_malloc (size);
 
-  g_input_stream_read ((GInputStream*) gis, buf, (gsize) size, NULL, error);
+  g_input_stream_read (G_INPUT_STREAM (gis), buf, size, NULL, error);
 
-  if (*error != NULL) {
-    buf = (g_free (buf), NULL);
+  if (*error) {
+    g_free (buf);
     g_object_unref (gis);
-    g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
-    g_clear_error (error);
+    g_warning ("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
     return;
   }
 
@@ -952,30 +911,32 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
   if (size >= sizeof(component_guid) + 28) {
     memcpy (buf + 28, component_guid, sizeof(component_guid));
   } else {
-    buf = (g_free (buf), NULL);
+    g_free (buf);
     g_object_unref (file->summary_info_stream);
     g_object_unref (gis);
-    g_warning("%s:%d: file corrupted\n", __FILE__, __LINE__);
+    g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
+                 "%s:%d: file corrupted\n", __FILE__, __LINE__);
     return;
   }
 
-  summary = (GsfInputMemory*) gsf_input_memory_new (buf, size, FALSE);
-
+  summary = gsf_input_memory_new (buf, size, FALSE);
   meta = gsf_doc_meta_data_new ();
 
 #ifdef HAVE_GSF_DOC_META_DATA_READ_FROM_MSOLE
   /* since libgsf 1.14.24 */
-  gsf_doc_meta_data_read_from_msole (meta, (GsfInput*) summary);
+  gsf_doc_meta_data_read_from_msole (meta, summary);
 #else
   /* NOTE gsf_msole_metadata_read: deprecated since libgsf 1.14.24 */
-  gsf_msole_metadata_read ((GsfInput*) summary, meta);
+  gsf_msole_metadata_read (summary, meta);
 #endif
 
-  gsf_doc_meta_data_foreach (meta, metadata_hash_func, parser);
+  HwpSummaryInfo *info = g_slice_new0 (HwpSummaryInfo);
+  gsf_doc_meta_data_foreach (meta, metadata_hash_func, info);
+  iface->summary_info (parser->listener, info, parser->user_data, error);
 
+  g_free (buf);
   g_object_unref (meta);
   g_object_unref (summary);
-  buf = (g_free (buf), NULL);
   g_object_unref (gis);
 }
 

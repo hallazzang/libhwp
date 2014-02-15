@@ -104,22 +104,13 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
     }
   } /* for */
 
-  if (iface->title) {
-    gchar *title = g_string_free (string[0], FALSE);
-    iface->title (parser->listener, title, parser->user_data, NULL);
-  }
+  if (iface->summary_info) {
+    HwpSummaryInfo *info = g_slice_new0 (HwpSummaryInfo);
 
-  if (iface->subject) {
-    gchar *subject = g_string_free (string[1], FALSE);
-    iface->subject (parser->listener, subject, parser->user_data, NULL);
-  }
+    info->title = g_string_free (string[0], FALSE);
+    info->subject = g_string_free (string[1], FALSE);
+    info->creator = g_string_free (string[2], FALSE);
 
-  if (iface->creator) {
-    gchar *creator = (gchar *) g_string_free (string[2], FALSE);
-    iface->creator (parser->listener, creator, parser->user_data, NULL);
-  }
-
-  if (iface->mod_date) {
     /* str format: "2001년 10월 11일 목요일, 20시 48분" */
     gchar *s = g_string_free (string[3], FALSE);
     GRegex *regex;
@@ -140,27 +131,32 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
       day    = g_match_info_fetch (match_info, 3);
       hour   = g_match_info_fetch (match_info, 4);
       minute = g_match_info_fetch (match_info, 5);
+
+
+
+      GDateTime *datetime = g_date_time_new_local (atoi (year),
+                                                   atoi (month),
+                                                   atoi (day),
+                                                   atoi (hour),
+                                                   atoi (minute),
+                                                   0.0);
+
+      g_free (year);
+      g_free (month);
+      g_free (day);
+      g_free (hour);
+      g_free (minute);
+
+      GTime time = g_date_time_to_unix (datetime);
+
+      info->mod_date = time;
     }
 
     g_match_info_free (match_info);
     g_regex_unref (regex);
 
-    GDateTime *datetime = g_date_time_new_local (atoi (year),
-                                                 atoi (month),
-                                                 atoi (day),
-                                                 atoi (hour),
-                                                 atoi (minute),
-                                                 0.0);
+    iface->summary_info (parser->listener, info, parser->user_data, error);
 
-    g_free (year);
-    g_free (month);
-    g_free (day);
-    g_free (hour);
-    g_free (minute);
-
-    GTime time = g_date_time_to_unix (datetime);
-
-    iface->mod_date (parser->listener, time, parser->user_data, error);
   }
   /* TODO */
   /* 4 ~ 8 */

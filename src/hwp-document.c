@@ -129,7 +129,8 @@ HwpDocument *hwp_document_new (void)
 gchar *hwp_document_get_title (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-  return g_strdup (document->title);
+
+  return document->info->title;
 }
 
 /**
@@ -146,7 +147,8 @@ gchar *hwp_document_get_title (HwpDocument *document)
 gchar *hwp_document_get_keywords (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-  return g_strdup (document->keywords);
+
+  return document->info->keywords;
 }
 
 /**
@@ -163,7 +165,8 @@ gchar *hwp_document_get_keywords (HwpDocument *document)
 gchar *hwp_document_get_subject (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-  return g_strdup (document->subject);
+
+  return document->info->subject;
 }
 
 /**
@@ -180,7 +183,8 @@ gchar *hwp_document_get_subject (HwpDocument *document)
 gchar *hwp_document_get_creator (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
-  return g_strdup (document->creator);
+
+  return document->info->creator;
 }
 
 /**
@@ -195,8 +199,9 @@ gchar *hwp_document_get_creator (HwpDocument *document)
  */
 GTime hwp_document_get_creation_date (HwpDocument *document)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
-  return document->creation_date;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) -1);
+
+  return document->info->creation_date;
 }
 
 /**
@@ -211,8 +216,9 @@ GTime hwp_document_get_creation_date (HwpDocument *document)
  */
 GTime hwp_document_get_modification_date (HwpDocument *document)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime)-1);
-  return document->mod_date;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) -1);
+
+  return document->info->mod_date;
 }
 
 /**
@@ -228,13 +234,10 @@ GTime hwp_document_get_modification_date (HwpDocument *document)
  */
 gchar *hwp_document_get_format (HwpDocument *document)
 {
-  gchar *format;
-
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  format = g_strdup_printf ("HWP v%s",
-    hwp_document_get_hwp_version_string (document));
-  return format;
+  return g_strdup_printf ("HWP v%s",
+                          hwp_document_get_hwp_version_string (document));
 }
 
 /**
@@ -251,6 +254,7 @@ gchar *hwp_document_get_format (HwpDocument *document)
 gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+
   return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
                                          document->minor_version,
                                          document->micro_version,
@@ -289,27 +293,7 @@ static void hwp_document_finalize (GObject *object)
   g_array_free (document->paragraphs, TRUE);
   g_array_free (document->pages, TRUE);
   g_free ((gchar *) document->prv_text);
-  /* ev info */
-  g_free ((gchar *) document->title);
-  g_free ((gchar *) document->format);
-  g_free ((gchar *) document->author);
-  g_free ((gchar *) document->subject);
-  g_free ((gchar *) document->keywords);
-  g_free ((gchar *) document->layout);
-  g_free ((gchar *) document->start_mode);
-  g_free ((gchar *) document->permissions);
-  g_free ((gchar *) document->ui_hints);
-  g_free ((gchar *) document->creator);
-  g_free ((gchar *) document->producer);
-  g_free ((gchar *) document->linearized);
-  g_free ((gchar *) document->security);
-  g_free ((gchar *) document->paper_size);
-  g_free ((gchar *) document->license);
-  /* hwp info */
-  g_free ((gchar *) document->desc);
-  g_free ((gchar *) document->last_saved_by);
-  /* version of hanword */
-  g_free ((gchar *) document->hanword_version);
+  g_slice_free (HwpSummaryInfo, document->info);
 
   G_OBJECT_CLASS (hwp_document_parent_class)->finalize (object);
 }
@@ -320,10 +304,11 @@ static void hwp_document_class_init (HwpDocumentClass *klass)
   object_class->finalize     = hwp_document_finalize;
 }
 
-static void hwp_document_init (HwpDocument *doc)
+static void hwp_document_init (HwpDocument *document)
 {
-  doc->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
-  doc->pages      = g_array_new (TRUE, TRUE, sizeof (HwpPage *));
+  document->paragraphs = g_array_new  (TRUE, TRUE, sizeof (HwpParagraph *));
+  document->pages      = g_array_new  (TRUE, TRUE, sizeof (HwpPage *));
+  document->info       = g_slice_new0 (HwpSummaryInfo);
 }
 
 /* callback */
@@ -405,18 +390,19 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
   paragraph = NULL;
 }
 
-void hwp_document_listen_mod_date (HwpListener *listener,
-                                   GTime        mod_date,
-                                   gpointer     user_data,
-                                   GError     **error)
+void hwp_document_listen_summary_info (HwpListener    *listener,
+                                       HwpSummaryInfo *info,
+                                       gpointer        user_data,
+                                       GError        **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listener);
-  document->mod_date = mod_date;
+
+  document->info = info;
 }
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
   iface->paragraph        = hwp_document_listen_paragraph;
-  iface->mod_date         = hwp_document_listen_mod_date;
+  iface->summary_info     = hwp_document_listen_summary_info;
 }

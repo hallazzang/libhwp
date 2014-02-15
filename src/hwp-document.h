@@ -43,6 +43,8 @@ G_BEGIN_DECLS
 typedef struct _HwpDocument      HwpDocument;
 typedef struct _HwpDocumentClass HwpDocumentClass;
 
+typedef struct _HwpSummaryInfo   HwpSummaryInfo;
+
 struct _HwpDocument
 {
   GObject         parent_instance;
@@ -55,7 +57,17 @@ struct _HwpDocument
   guint8          minor_version;
   guint8          micro_version;
   guint8          extra_version;
-  /* ev info */
+
+  HwpSummaryInfo *info;
+};
+
+struct _HwpDocumentClass
+{
+  GObjectClass parent_class;
+};
+
+struct _HwpSummaryInfo
+{
   const gchar    *title;
   const gchar    *format;
   const gchar    *author;
@@ -79,11 +91,6 @@ struct _HwpDocument
   const gchar    *last_saved_by;
   /* version of hanword */
   const gchar    *hanword_version;
-};
-
-struct _HwpDocumentClass
-{
-  GObjectClass parent_class;
 };
 
 GType        hwp_document_get_type               (void) G_GNUC_CONST;
