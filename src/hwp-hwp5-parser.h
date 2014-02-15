@@ -80,19 +80,6 @@ struct _HwpHWP5ParserPrivate
   gboolean ret;
 };
 
-/**
- * HwpParseState:
- *
- * This type indicates the current state of parsing.
- *
- * Since: 0.0.1
- */
-typedef enum {
-  HWP_PARSE_STATE_NORMAL,
-  HWP_PARSE_STATE_PASSING,
-  HWP_PARSE_STATE_INSIDE_TABLE
-} HwpParseState;
-
 GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
 
 gboolean       hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,

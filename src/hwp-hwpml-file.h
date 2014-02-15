@@ -43,19 +43,19 @@ typedef struct _HwpHWPMLFile        HwpHWPMLFile;
 typedef struct _HwpHWPMLFileClass   HwpHWPMLFileClass;
 typedef struct _HwpHWPMLFilePrivate HwpHWPMLFilePrivate;
 
-struct _HwpHWPMLFileClass {
+struct _HwpHWPMLFileClass
+{
   HwpFileClass parent_class;
 };
 
-struct _HwpHWPMLFile {
+struct _HwpHWPMLFile
+{
   HwpFile              parent_instance;
   HwpHWPMLFilePrivate *priv;
-
-  HwpDocument         *document;
-  HwpPage             *page;
 };
 
-struct _HwpHWPMLFilePrivate {
+struct _HwpHWPMLFilePrivate
+{
   gchar *uri;
 };
 

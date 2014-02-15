@@ -52,7 +52,7 @@ G_END_DECLS
  *
  * Error codes returned by #HwpDocument
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 typedef enum
 {
@@ -63,6 +63,22 @@ typedef enum
 } HwpError;
 
 /**
+ * HwpParseState:
+ *
+ * This type indicates the current state of parsing.
+ *
+ * Since: 0.0.1
+ */
+typedef enum {
+  HWP_PARSE_STATE_NORMAL       = 0,
+  HWP_PARSE_STATE_PASSING      = 1 << 0,
+  HWP_PARSE_STATE_P            = 1 << 1,
+  HWP_PARSE_STATE_TEXT         = 1 << 2,
+  HWP_PARSE_STATE_CHAR         = 1 << 3,
+  HWP_PARSE_STATE_INSIDE_TABLE = 1 << 4
+} HwpParseState;
+
+/**
  * HwpSelectionStyle:
  * @HWP_SELECTION_GLYPH: glyph is the minimum unit for selection
  * @HWP_SELECTION_WORD: word is the minimum unit for selection
@@ -70,7 +86,7 @@ typedef enum
  *
  * Selection styles
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 typedef enum
 {
@@ -80,7 +96,7 @@ typedef enum
 } HwpSelectionStyle;
 
 /**
- * Since: 0.2
+ * Since: 0.0.1
  */
 #define HWP_TAG_BEGIN                    16
 typedef enum
@@ -178,7 +194,7 @@ typedef enum
  *
  * Returns: interpreted @ctrl_id
  *
- * Since: 0.2
+ * Since: 0.0.1
  */
 #define MAKE_CTRL_ID(a, b, c, d)      \
     (guint32)((((guint8)(a)) << 24) | \
@@ -186,7 +202,7 @@ typedef enum
               (((guint8)(c)) <<  8) | \
               (((guint8)(d)) <<  0))
 /**
- * Since: TODO
+ * Since: 0.0.1
  */
 typedef enum
 {
