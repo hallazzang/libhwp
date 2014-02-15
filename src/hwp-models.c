@@ -36,7 +36,7 @@ G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
 HwpParagraph *hwp_paragraph_new (void)
 {
-  return g_object_new (HWP_TYPE_PARAGRAPH, NULL);
+  return (HwpParagraph *) g_object_new (HWP_TYPE_PARAGRAPH, NULL);
 }
 
 static void hwp_paragraph_finalize (GObject *obj)
@@ -101,7 +101,7 @@ G_DEFINE_TYPE (HwpTable, hwp_table, G_TYPE_OBJECT);
 
 HwpTable *hwp_table_new (void)
 {
-    return g_object_new (HWP_TYPE_TABLE, NULL);
+    return (HwpTable *) g_object_new (HWP_TYPE_TABLE, NULL);
 }
 
 #ifdef HWP_ENABLE_DEBUG
@@ -197,7 +197,7 @@ static void hwp_table_cell_class_init (HwpTableCellClass *klass)
 
 HwpTableCell *hwp_table_cell_new (void)
 {
-    return g_object_new (HWP_TYPE_TABLE_CELL, NULL);
+    return (HwpTableCell *) g_object_new (HWP_TYPE_TABLE_CELL, NULL);
 }
 
 /**

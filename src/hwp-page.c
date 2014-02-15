@@ -50,7 +50,7 @@ void hwp_page_get_size (HwpPage *page, gdouble *width, gdouble *height)
  */
 HwpPage *hwp_page_new (void)
 {
-  return g_object_new (HWP_TYPE_PAGE, NULL);
+  return (HwpPage *) g_object_new (HWP_TYPE_PAGE, NULL);
 }
 
 static void hwp_page_finalize (GObject *object)

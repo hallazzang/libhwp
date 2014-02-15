@@ -192,10 +192,18 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 }
 
 /**
+ * hwp_hwp5_parser_new:
+ * @listener:
+ * @user_data
+ *
+ * Returns:
+ *
  * Since: 0.0.1
  */
 HwpHWP5Parser *hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
 {
+  g_return_val_if_fail (HWP_IS_LISTENER (listener), NULL);
+
   HwpHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
   parser->listener      = listener;
   parser->user_data     = user_data;
@@ -766,10 +774,8 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
 
   /* FIXME 내포된 문단이 먼저 넘어간 후 이곳 문단이 넘어가는 버그가 있다. */
   if (iface->paragraph)
-    iface->paragraph (parser->listener,
-                      paragraph,
-                      parser->user_data,
-                      error);
+    iface->paragraph (parser->listener, paragraph, parser->user_data, error);
+
   return;
 }
 
@@ -1036,7 +1042,7 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                             HwpHWP5File   *file,
                             GError       **error)
 {
-  g_return_if_fail (parser != NULL);
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
 
   hwp_hwp5_parser_parse_file_header    (parser, file, error);
   hwp_hwp5_parser_parse_doc_info       (parser, file, error);
