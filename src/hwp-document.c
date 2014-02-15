@@ -130,7 +130,7 @@ gchar *hwp_document_get_title (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return document->info->title;
+  return g_strdup (document->info->title);
 }
 
 /**
@@ -148,7 +148,7 @@ gchar *hwp_document_get_keywords (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return document->info->keywords;
+  return g_strdup (document->info->keywords);
 }
 
 /**
@@ -166,7 +166,7 @@ gchar *hwp_document_get_subject (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return document->info->subject;
+  return g_strdup (document->info->subject);
 }
 
 /**
@@ -184,7 +184,7 @@ gchar *hwp_document_get_creator (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return document->info->creator;
+  return g_strdup (document->info->creator);
 }
 
 /**
