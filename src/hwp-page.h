@@ -27,7 +27,6 @@
 
 #include <glib-object.h>
 #include <cairo.h>
-#include <pango/pango-layout.h>
 
 #include "hwp-enums.h"
 

@@ -19,9 +19,6 @@
  */
 
 #include "hwp-page.h"
-#include <pango/pango.h>
-#include <pango/pangocairo.h>
-
 #include "hwp-models.h"
 
 G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);

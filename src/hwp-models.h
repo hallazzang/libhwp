@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-table.c
+ * hwp-models.h
  *
  * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
@@ -33,7 +33,6 @@
 #define __HWP_MODELS_H__
 
 #include <glib-object.h>
-#include <pango/pango-layout.h>
 
 G_BEGIN_DECLS
 
@@ -158,7 +157,6 @@ struct _HwpTableCell
   /* private use */
   gdouble _y;
   GArray *paragraphs;
-  GArray *layouts;
 };
 
 struct _HwpTableCellClass
@@ -171,8 +169,6 @@ HwpTableCell *hwp_table_cell_new                (void);
 HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell);
 void          hwp_table_cell_add_paragraph      (HwpTableCell *cell,
                                                  HwpParagraph *paragraph);
-void          hwp_table_cell_add_pango_layout   (HwpTableCell *cell,
-                                                 PangoLayout  *layout);
 
 G_END_DECLS
 

@@ -180,14 +180,12 @@ G_DEFINE_TYPE (HwpTableCell, hwp_table_cell, G_TYPE_OBJECT);
 static void hwp_table_cell_init (HwpTableCell *cell)
 {
     cell->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
-    cell->layouts    = g_array_new (TRUE, TRUE, sizeof (PangoLayout *));
 }
 
 static void hwp_table_cell_finalize (GObject *object)
 {
     HwpTableCell *cell = HWP_TABLE_CELL(object);
     g_array_free (cell->paragraphs, TRUE);
-    g_array_free (cell->layouts,    TRUE);
     G_OBJECT_CLASS (hwp_table_cell_parent_class)->finalize (object);
 }
 
@@ -223,12 +221,4 @@ hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
     g_return_if_fail (HWP_IS_TABLE_CELL (cell));
     g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
     g_array_append_val (cell->paragraphs, paragraph);
-}
-
-void
-hwp_table_cell_add_pango_layout (HwpTableCell *cell, PangoLayout *layout)
-{
-    g_return_if_fail (HWP_IS_TABLE_CELL (cell));
-    g_return_if_fail (PANGO_IS_LAYOUT (layout));
-    g_array_append_val (cell->layouts, layout);
 }

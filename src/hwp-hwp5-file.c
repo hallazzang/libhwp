@@ -39,8 +39,6 @@
 #include <gsf/gsf-doc-meta-data.h>
 #include <gsf/gsf-meta-names.h>
 #include <gsf/gsf-timestamp.h>
-#include <pango/pango.h>
-#include <pango/pangocairo.h>
 
 #include "gsf-input-stream.h"
 #include "hwp-hwp5-file.h"
