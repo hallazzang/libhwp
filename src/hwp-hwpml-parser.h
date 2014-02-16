@@ -34,14 +34,17 @@ G_BEGIN_DECLS
 #define HWP_IS_HWPML_PARSER_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_HWPML_PARSER))
 #define HWP_HWPML_PARSER_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_HWPML_PARSER, HwpHWPMLParserClass))
 
-typedef struct _HwpHWPMLParser       HwpHWPMLParser;
-typedef struct _HwpHWPMLParserClass  HwpHWPMLParserClass;
+typedef struct _HwpHWPMLParser         HwpHWPMLParser;
+typedef struct _HwpHWPMLParserClass    HwpHWPMLParserClass;
+typedef struct _HwpHWPMLParserPrivate  HwpHWPMLParserPrivate;
 
 struct _HwpHWPMLParser
 {
-  GObject      parent;
-  HwpListener *listener;
-  gpointer     user_data;
+  GObject                parent_instance;
+  HwpHWPMLParserPrivate *priv;
+
+  HwpListener           *listener;
+  gpointer               user_data;
 };
 
 struct _HwpHWPMLParserClass
@@ -49,6 +52,10 @@ struct _HwpHWPMLParserClass
   GObjectClass parent_class;
 };
 
+struct _HwpHWPMLParserPrivate
+{
+  HwpSummaryInfo *info;
+};
 
 GType hwp_hwpml_parser_get_type (void);
 

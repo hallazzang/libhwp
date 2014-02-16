@@ -129,7 +129,7 @@ gchar *hwp_document_get_title (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup (document->info->title);
+  return document->info ? g_strdup (document->info->title) : NULL;
 }
 
 /**
@@ -147,7 +147,7 @@ gchar *hwp_document_get_keywords (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup (document->info->keywords);
+  return document->info ? g_strdup (document->info->keywords) : NULL;
 }
 
 /**
@@ -165,7 +165,7 @@ gchar *hwp_document_get_subject (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup (document->info->subject);
+  return document->info ? g_strdup (document->info->subject) : NULL;
 }
 
 /**
@@ -183,7 +183,7 @@ gchar *hwp_document_get_creator (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup (document->info->creator);
+  return document->info ? g_strdup (document->info->creator) : NULL;
 }
 
 /**
@@ -192,15 +192,15 @@ gchar *hwp_document_get_creator (HwpDocument *document)
  *
  * Returns the date the document was created as seconds since the Epoch
  *
- * Return value: the date the document was created, or -1
+ * Return value: the date the document was created, or 0
  *
  * Since: 0.0.1
  */
 GTime hwp_document_get_creation_date (HwpDocument *document)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) -1);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) 0);
 
-  return document->info->creation_date;
+  return document->info ? document->info->creation_date : 0;
 }
 
 /**
@@ -209,15 +209,15 @@ GTime hwp_document_get_creation_date (HwpDocument *document)
  *
  * Returns the date the document was most recently modified as seconds since the Epoch
  *
- * Return value: the date the document was most recently modified, or -1
+ * Return value: the date the document was most recently modified, or 0
  *
  * Since: 0.0.1
  */
 GTime hwp_document_get_modification_date (HwpDocument *document)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) -1);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), (GTime) 0);
 
-  return document->info->mod_date;
+  return document->info ? document->info->mod_date : 0;
 }
 
 /**
@@ -292,7 +292,7 @@ static void hwp_document_finalize (GObject *object)
   g_array_free (document->paragraphs, TRUE);
   g_array_free (document->pages, TRUE);
   g_free ((gchar *) document->prv_text);
-  g_slice_free (HwpSummaryInfo, document->info);
+  g_object_unref (document->info);
 
   G_OBJECT_CLASS (hwp_document_parent_class)->finalize (object);
 }
@@ -307,7 +307,6 @@ static void hwp_document_init (HwpDocument *document)
 {
   document->paragraphs = g_array_new  (TRUE, TRUE, sizeof (HwpParagraph *));
   document->pages      = g_array_new  (TRUE, TRUE, sizeof (HwpPage *));
-  document->info       = g_slice_new0 (HwpSummaryInfo);
 }
 
 /* callback */

@@ -105,7 +105,7 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
   } /* for */
 
   if (iface->summary_info) {
-    HwpSummaryInfo *info = g_slice_new0 (HwpSummaryInfo);
+    HwpSummaryInfo *info = hwp_summary_info_new ();
 
     info->title = g_string_free (string[0], FALSE);
     info->subject = g_string_free (string[1], FALSE);

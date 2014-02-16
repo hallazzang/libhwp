@@ -72,10 +72,11 @@ typedef enum
 typedef enum {
   HWP_PARSE_STATE_NORMAL       = 0,
   HWP_PARSE_STATE_PASSING      = 1 << 0,
-  HWP_PARSE_STATE_P            = 1 << 1,
-  HWP_PARSE_STATE_TEXT         = 1 << 2,
-  HWP_PARSE_STATE_CHAR         = 1 << 3,
-  HWP_PARSE_STATE_INSIDE_TABLE = 1 << 4
+  HWP_PARSE_STATE_DOCSUMMARY   = 1 << 1,
+  HWP_PARSE_STATE_P            = 1 << 2,
+  HWP_PARSE_STATE_TEXT         = 1 << 3,
+  HWP_PARSE_STATE_CHAR         = 1 << 4,
+  HWP_PARSE_STATE_INSIDE_TABLE = 1 << 5,
 } HwpParseState;
 
 /**

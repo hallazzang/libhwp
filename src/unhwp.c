@@ -23,6 +23,7 @@
  * 압축된 경우 압축 비트 읽어서 압축 풀 것
  */
 
+#include <string.h>
 #include <gsf/gsf-utils.h>
 #include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-outfile-stdio.h>
@@ -49,13 +50,33 @@ int main (int argc, char **argv)
   input  = gsf_input_stdio_new (argv[1], &error);
   infile = gsf_infile_msole_new (input, &error);
 
-  GsfOutfile *folder;
+  char *p = NULL;
+  char *out_filename = NULL;
+  /* basename 은 확장자를 포함합니다. */
+  char *basename = g_path_get_basename (argv[1]);
 
-  gchar *basename = g_path_get_basename (argv[1]);
-  gchar *output_name = g_strconcat (basename, "_FILES", NULL);
+  if ((p = rindex (basename, '.'))) {
+    int len = strlen (basename) - strlen (p);
+    /* filebase 는 확장자를 포함하지 않습니다. */
+    char *filebase = g_strndup (basename, len);
+    out_filename = g_strconcat (filebase, "_FILES", NULL);
+    g_free (filebase);
+  } else {
+    out_filename = g_strconcat (basename, "_FILES", NULL);
+  }
   g_free (basename);
-  folder = gsf_outfile_stdio_new (output_name, &error);
-  g_free (output_name);
+
+  if (g_file_test (out_filename, G_FILE_TEST_EXISTS)) {
+    g_set_error_literal (&error,
+                         G_FILE_ERROR,
+                         G_FILE_ERROR_EXIST,
+                         "file exist");
+    fprintf (stderr, "Error: %s %s\n", out_filename, error->message);
+    return 1;
+  }
+
+  GsfOutfile *folder = gsf_outfile_stdio_new (out_filename, &error);
+  g_free (out_filename);
 
   if (error) {
     fprintf (stderr, "%s\n", error->message);

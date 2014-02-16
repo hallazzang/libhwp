@@ -45,14 +45,20 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
 
   gchar *tag_name = g_utf8_casefold ((const char*) name,
                                      strlen ((const char*) name));
+
+  gchar *tag_docsummary = g_utf8_casefold ("DOCSUMMARY", strlen("DOCSUMMARY"));
   gchar *tag_p    = g_utf8_casefold ("P", strlen("P"));
   gchar *tag_text = g_utf8_casefold ("TEXT", strlen("TEXT"));
   gchar *tag_char = g_utf8_casefold ("CHAR", strlen("CHAR"));
 
   switch (node_type) {
   case XML_READER_TYPE_ELEMENT:
+    /* document summary */
+    if (g_utf8_collate (tag_name, tag_docsummary) == 0) {
+      hwp_parse_state |= HWP_PARSE_STATE_DOCSUMMARY;
+      parser->priv->info = hwp_summary_info_new ();
     /* paragraph */
-    if (g_utf8_collate (tag_name, tag_p) == 0) {
+    } else if (g_utf8_collate (tag_name, tag_p) == 0) {
       hwp_parse_state |= HWP_PARSE_STATE_P;
       tag_p_count++;
       if (tag_p_count > 1) {
@@ -77,7 +83,15 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
     }
     break;
   case XML_READER_TYPE_END_ELEMENT:
-    if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
+    if (g_utf8_collate (tag_name, tag_docsummary) == 0) {
+      hwp_parse_state &= ~HWP_PARSE_STATE_DOCSUMMARY;
+
+      if (iface->summary_info)
+        iface->summary_info (parser->listener,
+                             g_object_ref (parser->priv->info),
+                             parser->user_data,
+                             error);
+    } else if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
       HwpParagraph *paragraph;
       paragraph = g_array_index (HWP_DOCUMENT (parser->listener)->paragraphs,
                                  HwpParagraph *,
@@ -132,18 +146,34 @@ void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
   }
 }
 
+static void hwp_hwpml_parser_finalize (GObject *object)
+{
+  HwpHWPMLParser *parser = HWP_HWPML_PARSER (object);
+
+  if (parser->priv->info)
+    g_object_unref (parser->priv->info);
+
+  G_OBJECT_CLASS (hwp_hwpml_parser_parent_class)->finalize (object);
+}
+
 static void hwp_hwpml_parser_class_init (HwpHWPMLParserClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  g_type_class_add_private (klass, sizeof (HwpHWPMLParserPrivate));
+  object_class->finalize = hwp_hwpml_parser_finalize;
 }
 
 static void hwp_hwpml_parser_init (HwpHWPMLParser *parser)
 {
+  parser->priv = G_TYPE_INSTANCE_GET_PRIVATE (parser,
+                                              HWP_TYPE_HWPML_PARSER,
+                                              HwpHWPMLParserPrivate);
 }
 
 /**
  * hwp_hwpml_parser_new:
  * @listener:
- * @user_data
+ * @user_data:
  *
  * Returns:
  *

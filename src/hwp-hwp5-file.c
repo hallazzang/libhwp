@@ -132,10 +132,10 @@ gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
  * Since: 0.0.1
  */
 void hwp_hwp5_file_get_hwp_version (HwpFile *file,
-                                   guint8   *major_version,
-                                   guint8   *minor_version,
-                                   guint8   *micro_version,
-                                   guint8   *extra_version)
+                                    guint8  *major_version,
+                                    guint8  *minor_version,
+                                    guint8  *micro_version,
+                                    guint8  *extra_version)
 {
     g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
@@ -476,8 +476,10 @@ HwpHWP5File *hwp_hwp5_file_new_for_path (const gchar *path, GError **error)
   }
 
   g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+
   if (input)
     g_object_unref (input);
+
   return NULL;
 }
 

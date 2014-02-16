@@ -37,7 +37,7 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
 
 gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
 {
-  g_return_val_if_fail (parser != NULL, FALSE);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
   gboolean is_success = FALSE;
   /*
@@ -63,7 +63,8 @@ gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
 
 gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
 {
-  g_return_val_if_fail (parser != NULL, FALSE);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
+
 #ifdef HWP_ENABLE_DEBUG
   g_assert (parser->data_count <= parser->data_len - 2);
 #endif
@@ -84,7 +85,7 @@ gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
 
 gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
 {
-  g_return_val_if_fail (parser != NULL, FALSE);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
   g_return_val_if_fail (parser->data_count <= parser->data_len - 4, FALSE);
 
   g_input_stream_read_all (parser->stream, i, 4,
@@ -120,12 +121,12 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
 
   if (parser->state == HWP_PARSE_STATE_PASSING) {
-      parser->state = HWP_PARSE_STATE_NORMAL;
-      return TRUE;
+    parser->state = HWP_PARSE_STATE_NORMAL;
+    return TRUE;
   }
 
   if (parser->data_len - parser->data_count > 0)
-      parser_skip (parser, parser->data_len - parser->data_count);
+    parser_skip (parser, parser->data_len - parser->data_count);
 
   /* 4바이트 읽기 */
   g_input_stream_read_all (parser->stream, &parser->priv->header, 4,
@@ -215,8 +216,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   guint8 id_mappings_len;
 
@@ -276,6 +276,8 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
 static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
                                                       GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -306,6 +308,8 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
                                           HwpHWP5File   *file,
                                           GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -335,6 +339,8 @@ static void hwp_hwp5_parser_parse_footnote (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -363,6 +369,8 @@ static void hwp_hwp5_parser_parse_tcmt (HwpHWP5Parser *parser,
                                         HwpHWP5File   *file,
                                         GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -421,6 +429,7 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
                                             GError       **error)
 {
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
+  g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
 
   HwpTable *table = hwp_table_new ();
 
@@ -463,58 +472,63 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
 static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
                                                      GError       **error)
 {
-    g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
-    HwpTableCell *table_cell = hwp_table_cell_new ();
-    /* 표 60 LIST_HEADER */
-    parser_read_uint16 (parser, &table_cell->n_paragraphs, error);
-    parser_read_uint32 (parser, &table_cell->flags, error);
-    parser_read_uint16 (parser, &table_cell->unknown1, error);
-    /* 표 75 cell property */
-    parser_read_uint16 (parser, &table_cell->col_addr, error);
-    parser_read_uint16 (parser, &table_cell->row_addr, error);
-    parser_read_uint16 (parser, &table_cell->col_span, error);
-    parser_read_uint16 (parser, &table_cell->row_span, error);
+  HwpTableCell *table_cell = hwp_table_cell_new ();
+  /* 표 60 LIST_HEADER */
+  parser_read_uint16 (parser, &table_cell->n_paragraphs, error);
+  parser_read_uint32 (parser, &table_cell->flags, error);
+  parser_read_uint16 (parser, &table_cell->unknown1, error);
+  /* 표 75 cell property */
+  parser_read_uint16 (parser, &table_cell->col_addr, error);
+  parser_read_uint16 (parser, &table_cell->row_addr, error);
+  parser_read_uint16 (parser, &table_cell->col_span, error);
+  parser_read_uint16 (parser, &table_cell->row_span, error);
 
-    parser_read_uint32 (parser, &table_cell->width, error);
-    parser_read_uint32 (parser, &table_cell->height, error);
+  parser_read_uint32 (parser, &table_cell->width, error);
+  parser_read_uint32 (parser, &table_cell->height, error);
 
-    parser_read_uint16 (parser, &table_cell->left_margin, error);
-    parser_read_uint16 (parser, &table_cell->right_margin, error);
-    parser_read_uint16 (parser, &table_cell->top_margin, error);
-    parser_read_uint16 (parser, &table_cell->bottom_margin, error);
+  parser_read_uint16 (parser, &table_cell->left_margin, error);
+  parser_read_uint16 (parser, &table_cell->right_margin, error);
+  parser_read_uint16 (parser, &table_cell->top_margin, error);
+  parser_read_uint16 (parser, &table_cell->bottom_margin, error);
 
-    parser_read_uint16 (parser, &table_cell->border_fill_id, error);
-    /* unknown */
-    parser_read_uint32 (parser, &table_cell->unknown2, error);
-/*    printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",*/
-/*        table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,*/
+  parser_read_uint16 (parser, &table_cell->border_fill_id, error);
+  /* unknown */
+  parser_read_uint32 (parser, &table_cell->unknown2, error);
 
-/*        table_cell->col_addr,*/
-/*        table_cell->row_addr,*/
-/*        table_cell->col_span,*/
-/*        table_cell->row_span,*/
+#ifdef HWP_ENABLE_DEBUG
+  printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",
+         table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,
 
-/*        table_cell->width, table_cell->height,*/
+         table_cell->col_addr,
+         table_cell->row_addr,
+         table_cell->col_span,
+         table_cell->row_span,
 
-/*        table_cell->left_margin,*/
-/*        table_cell->right_margin,*/
-/*        table_cell->top_margin,*/
-/*        table_cell->bottom_margin,*/
+         table_cell->width, table_cell->height,
 
-/*        table_cell->border_fill_id);*/
+         table_cell->left_margin,
+         table_cell->right_margin,
+         table_cell->top_margin,
+         table_cell->bottom_margin,
 
-    if (parser->data_count != parser->data_len) {
-        g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
-    }
+         table_cell->border_fill_id);
+#endif
 
-    return table_cell;
+  if (parser->data_count != parser->data_len) {
+    g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
+  }
+
+  return table_cell;
 }
 
 static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
                                          HwpHWP5File   *file,
                                          GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   HwpTable     *table     = NULL;
@@ -553,7 +567,8 @@ static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
 
 static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser, GError **error)
 {
-  g_return_val_if_fail (parser != NULL, NULL);
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
+
   gunichar2 ch; /* guint16 */
   GString  *string = g_string_new (NULL);
   guint     i;
@@ -629,6 +644,8 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
                                                    HwpHWP5File   *file,
                                                    GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -658,6 +675,8 @@ static void hwp_hwp5_parser_parse_drawing_shape_object (HwpHWP5Parser *parser,
                                                         HwpHWP5File   *file,
                                                         GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
@@ -684,6 +703,8 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
                                                HwpHWP5File   *file,
                                                GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   parser_read_uint32 (parser, &parser->ctrl_id, error);
 #ifdef HWP_ENABLE_DEBUG
   printf (" \"%c%c%c%c\"\n",
@@ -737,6 +758,8 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   guint16 level = parser->level;
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
@@ -783,6 +806,8 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
                                            HwpHWP5File   *file,
                                            GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   while (hwp_hwp5_parser_pull (parser, error))
   {
     parser_skip (parser, parser->data_len);
@@ -804,6 +829,8 @@ static void hwp_hwp5_parser_parse_sections (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
   for (guint i = 0; i < file->section_streams->len; i++)
   {
     GInputStream *stream = g_array_index (file->section_streams,
@@ -819,7 +846,7 @@ static void hwp_hwp5_parser_parse_body_text (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   hwp_hwp5_parser_parse_sections (parser, file, error);
 }
@@ -828,7 +855,7 @@ static void hwp_hwp5_parser_parse_view_text (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   hwp_hwp5_parser_parse_sections (parser, file, error);
 }
@@ -878,7 +905,7 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
                                                 HwpHWP5File   *file,
                                                 GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
   if (!iface->summary_info)
@@ -936,7 +963,7 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
   gsf_msole_metadata_read (summary, meta);
 #endif
 
-  HwpSummaryInfo *info = g_slice_new0 (HwpSummaryInfo);
+  HwpSummaryInfo *info = hwp_summary_info_new ();
   gsf_doc_meta_data_foreach (meta, metadata_hash_func, info);
   iface->summary_info (parser->listener, info, parser->user_data, error);
 
@@ -950,7 +977,7 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   GsfInputStream *gis   = g_object_ref (file->prv_text_stream);
   gssize          size  = gsf_input_stream_size (gis);
@@ -1011,7 +1038,7 @@ void hwp_hwp5_parser_parse_file_header (HwpHWP5Parser *parser,
                                         HwpHWP5File   *file,
                                         GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
@@ -1042,20 +1069,20 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
                             HwpHWP5File   *file,
                             GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   hwp_hwp5_parser_parse_file_header    (parser, file, error);
   hwp_hwp5_parser_parse_doc_info       (parser, file, error);
   hwp_hwp5_parser_parse_body_text      (parser, file, error);
   hwp_hwp5_parser_parse_view_text      (parser, file, error);
   hwp_hwp5_parser_parse_summary_info   (parser, file, error);
-/*  hwp_hwp5_parser_parse_bin_data       (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_bin_data       (parser, file, error); */
   hwp_hwp5_parser_parse_prv_text       (parser, file, error);
-/*  hwp_hwp5_parser_parse_prv_image      (parser, file, error); */
-/*  hwp_hwp5_parser_parse_doc_options    (parser, file, error); */
-/*  hwp_hwp5_parser_parse_scripts        (parser, file, error); */
-/*  hwp_hwp5_parser_parse_xml_template   (parser, file, error); */
-/*  hwp_hwp5_parser_parse_doc_history    (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_prv_image      (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_doc_options    (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_scripts        (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_xml_template   (parser, file, error); */
+/*  _hwp_hwp5_parser_parse_doc_history    (parser, file, error); */
 }
 
 static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)

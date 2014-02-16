@@ -36,7 +36,58 @@
 
 G_BEGIN_DECLS
 
-typedef struct _HwpText      HwpText;
+/** HwpSummaryInfo **********************************************************/
+
+#define HWP_TYPE_SUMMARY_INFO             (hwp_summary_info_get_type ())
+#define HWP_SUMMARY_INFO(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_SUMMARY_INFO, HwpSummaryInfo))
+#define HWP_SUMMARY_INFO_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_SUMMARY_INFO, HwpSummaryInfoClass))
+#define HWP_IS_SUMMARY_INFO(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_SUMMARY_INFO))
+#define HWP_IS_SUMMARY_INFO_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_SUMMARY_INFO))
+#define HWP_SUMMARY_INFO_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_SUMMARY_INFO, HwpSummaryInfoClass))
+
+typedef struct _HwpSummaryInfo       HwpSummaryInfo;
+typedef struct _HwpSummaryInfoClass  HwpSummaryInfoClass;
+
+struct _HwpSummaryInfoClass
+{
+  GObjectClass parent_class;
+};
+
+struct _HwpSummaryInfo
+{
+  GObject parent_instance;
+
+  const gchar    *title;
+  const gchar    *format;
+  const gchar    *author;
+  const gchar    *subject;
+  const gchar    *keywords;
+  const gchar    *layout;
+  const gchar    *start_mode;
+  const gchar    *permissions;
+  const gchar    *ui_hints;
+  const gchar    *creator;
+  const gchar    *producer;
+  GTime           creation_date;
+  GTime           mod_date;
+  const gchar    *linearized;
+  const gchar    *security;
+  const gchar    *paper_size;
+  const gchar    *license;
+  /* hwp info */
+  const gchar    *desc;
+  GTime           last_printed;
+  const gchar    *last_saved_by;
+  /* version of hanword */
+  const gchar    *hanword_version;
+};
+
+GType hwp_summary_info_get_type (void) G_GNUC_CONST;
+
+HwpSummaryInfo *hwp_summary_info_new (void);
+
+/****************************************************************************/
+
 typedef struct _HwpTable     HwpTable;
 typedef struct _HwpTableCell HwpTableCell;
 
@@ -54,14 +105,14 @@ typedef struct _HwpParagraphClass HwpParagraphClass;
 
 struct _HwpParagraph
 {
-    GObject   parent_instance;
-    GString  *string;
-    HwpTable *table;
+  GObject   parent_instance;
+  GString  *string;
+  HwpTable *table;
 };
 
 struct _HwpParagraphClass
 {
-    GObjectClass parent_class;
+  GObjectClass parent_class;
 };
 
 GType         hwp_paragraph_get_type   (void) G_GNUC_CONST;

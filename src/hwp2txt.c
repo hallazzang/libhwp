@@ -96,6 +96,9 @@ void hwp_to_txt_convert (HwpToTxt *hwp2txt,
 {
   HwpHWP5File *hwpfile = hwp_hwp5_file_new_for_path (in_filename, error);
 
+  if (*error)
+    return;
+
   if (out_filename) {
     GFile *file = g_file_new_for_path (out_filename);
     hwp2txt->output_stream =
@@ -149,31 +152,39 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  if (in_filenames) {
-    int count = 0;
-    for (count = 0; in_filenames[count]; count++)
-    {}
+  if (!in_filenames)
+    goto CATCH;
 
-    if (count == 1) {
-      g_option_context_free (context);
-      /* main procedure */
-      HwpToTxt *hwp2txt = hwp_to_txt_new ();
-      hwp_to_txt_convert (hwp2txt, in_filenames[0], out_filename, &error);
-      g_object_unref (hwp2txt);
+  int count = 0;
+  while (in_filenames[count])
+  { count++; }
 
-      if (error) {
-        fprintf (stderr, "%s\n", error->message);
-        return 1;
-      }
+  if (count != 1)
+    goto CATCH;
 
-      return 0;
-    }
+  g_option_context_free (context);
+
+  /* main procedure */
+  HwpToTxt *hwp2txt = hwp_to_txt_new ();
+  hwp_to_txt_convert (hwp2txt, in_filenames[0], out_filename, &error);
+  g_object_unref (hwp2txt);
+
+  g_strfreev (in_filenames);
+  g_free (out_filename);
+
+  if (error) {
+    fprintf (stderr, "%s\n", error->message);
+    return 1;
   }
 
-  /* exception handling */
-  char *help_msg = NULL;
-  help_msg = g_option_context_get_help (context, FALSE, NULL);
-  printf ("%s", help_msg);
-  g_option_context_free (context);
-  return 1;
+  return 0;
+
+  CATCH:
+  {
+    char *help_msg = g_option_context_get_help (context, FALSE, NULL);
+    printf ("%s", help_msg);
+    g_free (help_msg);
+    g_option_context_free (context);
+    return 1;
+  }
 }

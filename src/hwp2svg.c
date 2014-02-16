@@ -18,23 +18,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* TODO */
-/* output directory and output name */
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <glib-object.h>
 #include <cairo-svg.h>
 #include "hwp.h"
 
-void convert(char *in_filename, char *out_filename, GError **error)
+void convert (char *in_filename, char *out_filename, GError **error)
 {
   HwpPage *page;
   gdouble  width = 0.0, height = 0.0;
-  HwpFile     *file     = hwp_file_new_for_path (in_filename, error);
-  HwpDocument *document = hwp_file_get_document (file,    error);
+  HwpFile *file = hwp_file_new_for_path (in_filename, error);
 
   if (*error)
-    g_error ("%s", (*error)->message);
+    return;
+
+  HwpDocument *document = hwp_file_get_document (file, error);
+  g_object_unref (file);
 
   guint n_pages = hwp_document_get_n_pages (document);
 
@@ -46,17 +48,26 @@ void convert(char *in_filename, char *out_filename, GError **error)
     return;
   }
 
+  if (g_file_test (out_filename, G_FILE_TEST_EXISTS)) {
+    g_set_error_literal (error,
+                         G_FILE_ERROR,
+                         G_FILE_ERROR_EXIST,
+                         "file exist");
+    return;
+  }
+
+  mkdir (out_filename, S_IRWXU);
   cairo_surface_t *surface;
   cairo_t *cr;
-  char *filename;
 
   for (guint i = 0; i < n_pages; i++) {
+    page = hwp_document_get_page (document, i);
     hwp_page_get_size (page, &width, &height);
-    filename = g_strdup_printf("page%d.svg", i);
+    char *filename = g_strdup_printf ("%s/%d.svg", out_filename, i);
     surface = cairo_svg_surface_create (filename, width, height);
+    g_free (filename);
     cr = cairo_create (surface);
 
-    page = hwp_document_get_page (document, i);
     hwp_render_page (cr, page);
     cairo_show_page (cr);
 
@@ -65,7 +76,6 @@ void convert(char *in_filename, char *out_filename, GError **error)
   }
 
   g_object_unref (document);
-  g_object_unref (file);
 }
 
 int main (int argc, char **argv)
@@ -100,22 +110,56 @@ int main (int argc, char **argv)
     return 1;
   }
 
-  if (in_filenames) {
-    int count = 0;
-    for (count = 0; in_filenames[count]; count++)
-    {}
+  if (!in_filenames)
+    goto CATCH;
 
-    if (count == 1) {
-      g_option_context_free (context);
+  int count = 0;
+  while (in_filenames[count])
+  { count++; }
 
-      convert(in_filenames[0], out_filename, &error);
-      return 0;
+  if (count != 1)
+    goto CATCH;
+
+  g_option_context_free (context);
+
+  if (!out_filename)
+  {
+    char *p = NULL;
+    /* basename 은 확장자를 포함합니다. */
+    char *basename = g_path_get_basename (in_filenames[0]);
+
+    if ((p = rindex (basename, '.'))) {
+      int len = strlen (basename) - strlen (p);
+      /* filebase 는 확장자를 포함하지 않습니다. */
+      char *filebase = g_strndup (basename, len);
+      out_filename = g_strconcat (filebase, "_FILES", NULL);
+      g_free (filebase);
+    } else {
+      out_filename = g_strconcat (basename, "_FILES", NULL);
     }
+    g_free (basename);
   }
 
-  char *help_msg = NULL;
-  help_msg = g_option_context_get_help (context, FALSE, NULL);
-  printf ("%s", help_msg);
-  g_option_context_free (context);
-  return 1;
+  convert (in_filenames[0], out_filename, &error);
+
+  g_strfreev (in_filenames);
+
+  if (error) {
+    fprintf (stderr, "Error: %s %s\n", out_filename, error->message);
+    g_free (out_filename);
+    return 1;
+  }
+
+  g_free (out_filename);
+
+  return 0;
+
+  CATCH:
+  {
+    char *help_msg = g_option_context_get_help (context, FALSE, NULL);
+    printf ("%s", help_msg);
+    g_free (help_msg);
+    g_option_context_free (context);
+    return 1;
+  }
 }

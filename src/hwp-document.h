@@ -43,8 +43,6 @@ G_BEGIN_DECLS
 typedef struct _HwpDocument      HwpDocument;
 typedef struct _HwpDocumentClass HwpDocumentClass;
 
-typedef struct _HwpSummaryInfo   HwpSummaryInfo;
-
 struct _HwpDocument
 {
   GObject         parent_instance;
@@ -64,33 +62,6 @@ struct _HwpDocument
 struct _HwpDocumentClass
 {
   GObjectClass parent_class;
-};
-
-struct _HwpSummaryInfo
-{
-  const gchar    *title;
-  const gchar    *format;
-  const gchar    *author;
-  const gchar    *subject;
-  const gchar    *keywords;
-  const gchar    *layout;
-  const gchar    *start_mode;
-  const gchar    *permissions;
-  const gchar    *ui_hints;
-  const gchar    *creator;
-  const gchar    *producer;
-  GTime           creation_date;
-  GTime           mod_date;
-  const gchar    *linearized;
-  const gchar    *security;
-  const gchar    *paper_size;
-  const gchar    *license;
-  /* hwp info */
-  const gchar    *desc;
-  GTime           last_printed;
-  const gchar    *last_saved_by;
-  /* version of hanword */
-  const gchar    *hanword_version;
 };
 
 GType        hwp_document_get_type               (void) G_GNUC_CONST;
