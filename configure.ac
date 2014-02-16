@@ -77,6 +77,13 @@ AC_SUBST([HWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 
 # **********************************
 
+# *****************
+# check for gtk-doc
+# *****************
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+
+# ****************************************
+
 # *********
 # Debugging
 # *********
@@ -97,6 +104,8 @@ AC_SUBST(HWP_DEBUG_FLAGS)
 
 AC_OUTPUT([
     Makefile
+    docs/Makefile
+    docs/version.xml
     po/Makefile.in
     src/hwp-0.0.1.pc
     src/Makefile

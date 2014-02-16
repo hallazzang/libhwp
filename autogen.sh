@@ -7,11 +7,21 @@ test -n "$srcdir" || srcdir=.
 olddir=`pwd`
 cd "$srcdir"
 
+GTKDOCIZE=`which gtkdocize`
+if test -z $GTKDOCIZE; then
+        echo "*** No GTK-Doc found, please install it ***"
+        exit 1
+else
+        gtkdocize || exit $?
+fi
+
 AUTORECONF=`which autoreconf`
 if test -z $AUTORECONF; then
   echo "*** No autoreconf found, please install it ***"
   exit 1
 fi
+
+autoreconf --force --install --verbose || exit $?
 
 if (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null); then
   INTLTOOLIZE=`which intltoolize`
@@ -19,16 +29,6 @@ if (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null); then
     echo "*** No intltoolize found, please install it ***"
     exit 1
   fi
-fi
-
-# README and INSTALL are required by automake, but may be deleted by clean
-# up rules. to get automake to work, simply touch these here, they will be
-# regenerated from their corresponding *.in files by ./configure anyway.
-touch README INSTALL
-
-autoreconf --force --install --verbose || exit $?
-
-if (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null); then
   intltoolize --copy --force --automake
 fi
 
