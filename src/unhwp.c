@@ -19,7 +19,6 @@
  */
 
 /* TODO 할 일들
- * 파일 시그네이쳐 인식
  * 압축된 경우 압축 비트 읽어서 압축 풀 것
  */
 
@@ -49,6 +48,11 @@ int main (int argc, char **argv)
 
   input  = gsf_input_stdio_new (argv[1], &error);
   infile = gsf_infile_msole_new (input, &error);
+
+  if (error) {
+    fprintf (stderr, "Error: %s is a invalid hwp v5.0 file. %s\n", argv[1], error->message);
+    return 1;
+  }
 
   char *p = NULL;
   char *out_filename = NULL;
