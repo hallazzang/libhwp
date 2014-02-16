@@ -27,6 +27,7 @@ G_DEFINE_TYPE (HwpHWPMLParser, hwp_hwpml_parser, G_TYPE_OBJECT)
 
 static guint hwp_parse_state;
 static guint tag_p_count;
+static HwpParagraph *paragraph = NULL;
 
 static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
                                         HwpHWPMLFile    *file,
@@ -62,11 +63,9 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
       hwp_parse_state |= HWP_PARSE_STATE_P;
       tag_p_count++;
       if (tag_p_count > 1) {
-        HwpParagraph *paragraph = hwp_paragraph_new ();
+        paragraph = hwp_paragraph_new ();
         GString *string = g_string_new ("");
         hwp_paragraph_set_string (paragraph, string);
-        g_array_append_val (HWP_DOCUMENT (parser->listener)->paragraphs,
-                            paragraph);
       }
     /* char */
     } else if (g_utf8_collate (tag_name, tag_char) == 0) {
@@ -75,10 +74,6 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
     break;
   case XML_READER_TYPE_TEXT:
     if ((hwp_parse_state & HWP_PARSE_STATE_CHAR) == HWP_PARSE_STATE_CHAR) {
-      HwpParagraph *paragraph;
-      paragraph = g_array_index (HWP_DOCUMENT (parser->listener)->paragraphs,
-                                 HwpParagraph *,
-                                 HWP_DOCUMENT (parser->listener)->paragraphs->len - 1);
       g_string_append (paragraph->string, (const gchar *) value);
     }
     break;
@@ -92,11 +87,6 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
                              parser->user_data,
                              error);
     } else if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
-      HwpParagraph *paragraph;
-      paragraph = g_array_index (HWP_DOCUMENT (parser->listener)->paragraphs,
-                                 HwpParagraph *,
-                                 HWP_DOCUMENT (parser->listener)->paragraphs->len - 1);
-
       if (iface->paragraph)
         iface->paragraph (parser->listener,
                           paragraph,

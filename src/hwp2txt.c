@@ -94,7 +94,7 @@ void hwp_to_txt_convert (HwpToTxt *hwp2txt,
                          char     *out_filename,
                          GError  **error)
 {
-  HwpHWP5File *hwpfile = hwp_hwp5_file_new_for_path (in_filename, error);
+  HwpFile *hwpfile = hwp_file_new_for_path (in_filename, error);
 
   if (*error)
     return;
@@ -110,11 +110,26 @@ void hwp_to_txt_convert (HwpToTxt *hwp2txt,
       return;
   }
 
-  HwpHWP5Parser *parser;
-  parser = hwp_hwp5_parser_new (HWP_LISTENER (hwp2txt), NULL);
-  hwp_hwp5_parser_parse (parser, HWP_HWP5_FILE (hwpfile), error);
+  if (HWP_IS_HWP5_FILE (hwpfile))
+  {
+    HwpHWP5Parser *parser = hwp_hwp5_parser_new (HWP_LISTENER (hwp2txt), NULL);
+    hwp_hwp5_parser_parse (parser, HWP_HWP5_FILE (hwpfile), error);
+    g_object_unref (parser);
+  }
+  else if (HWP_IS_HWPML_FILE (hwpfile))
+  {
+    HwpHWPMLParser *parser = hwp_hwpml_parser_new (HWP_LISTENER (hwp2txt), NULL);
+    hwp_hwpml_parser_parse (parser, HWP_HWPML_FILE (hwpfile), error);
+    g_object_unref (parser);
+  }
+  else if (HWP_IS_HWP3_FILE (hwpfile))
+  {
+    HwpHWP3Parser *parser = hwp_hwp3_parser_new (HWP_LISTENER (hwp2txt), NULL);
+    hwp_hwp3_parser_parse (parser, HWP_HWP3_FILE (hwpfile), error);
+    g_object_unref (parser);
+  }
+
   g_object_unref (hwpfile);
-  g_object_unref (parser);
 }
 /*****************************************************************************/
 
