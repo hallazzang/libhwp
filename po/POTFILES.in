@@ -1,4 +1,4 @@
 # List of source files containing translatable strings.
 # Please keep this file sorted alphabetically.
 [encoding: UTF-8]
-src/hwp-parse.c
+src/hwp-hwp5-parser.c

@@ -3,11 +3,11 @@ Upstream-Name: libhwp
 Source: https://bitbucket.org/hodong/libhwp
 
 Files: *
-Copyright: 2012-2013 Hodong Kim <hodong@cogno.org>
+Copyright: 2012-2014 Hodong Kim <hodong@cogno.org>
 License: LGPL-3+
 
 Files: debian/*
-Copyright: 2012-2013 Hodong Kim <hodong@cogno.org>
+Copyright: 2012-2014 Hodong Kim <hodong@cogno.org>
 License: LGPL-3+
 
 License: LGPL-3+
