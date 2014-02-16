@@ -34,6 +34,7 @@
 #include "hwp-hwp5-file.h"
 #include "hwp-hwp5-parser.h"
 #include "hwp-hwpml-file.h"
+#include "hwp-hwpml-parser.h"
 #include "hwp-listener.h"
 #include "hwp-models.h"
 #include "hwp-page.h"
