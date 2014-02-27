@@ -1,7 +1,7 @@
 ## Process this file with automake to create Makefile.in.
 
 # The name of the module.
-DOC_MODULE = hwp
+DOC_MODULE = libhwp
 
 # The top-level SGML file. You can change this if you want to.
 DOC_MAIN_SGML_FILE = $(DOC_MODULE)-docs.xml
