@@ -499,7 +499,7 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
 
 #ifdef HWP_ENABLE_DEBUG
   printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",
-         table_cell->n_paragraphs, table_cell->flags, table_cell->unknown,
+         table_cell->n_paragraphs, table_cell->flags, table_cell->unknown1,
 
          table_cell->col_addr,
          table_cell->row_addr,
@@ -796,6 +796,7 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
   } /* while */
 
   /* FIXME 내포된 문단이 먼저 넘어간 후 이곳 문단이 넘어가는 버그가 있다. */
+  /* 모델링을 어떻게 할지 정한 후에 제대로 모델링을 하게 되면 그 버그는 자연히 없어진다. */
   if (iface->paragraph)
     iface->paragraph (parser->listener, paragraph, parser->user_data, error);
 
@@ -1059,9 +1060,9 @@ void hwp_hwp5_parser_parse_file_header (HwpHWP5Parser *parser,
 
 /**
  * hwp_hwp5_parser_parse:
- * @parser:
- * @file:
- * @error:
+ * @parser:a #HwpHWP5Parser
+ * @file: a #HwpHWP5File
+ * @error: a #GError
  *
  * Since: 0.0.1
  */
