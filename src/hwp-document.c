@@ -221,10 +221,10 @@ GTime hwp_document_get_modification_date (HwpDocument *document)
 }
 
 /**
- * hwp_document_get_hwp_format:
+ * hwp_document_get_format:
  * @document: A #HwpDocument
  *
- * Returns the HWP format of @document as a string (e.g. HWP v5.0.0.6)
+ * Returns the HWP format of @document as a string (e.g. HWP 5.0.0.6)
  *
  * Return value: a new allocated string containing the HWP format
  *               of @document, or %NULL
@@ -235,7 +235,7 @@ gchar *hwp_document_get_format (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup_printf ("HWP v%s",
+  return g_strdup_printf ("HWP %s",
                           hwp_document_get_hwp_version_string (document));
 }
 
