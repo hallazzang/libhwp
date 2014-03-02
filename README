@@ -1,7 +1,7 @@
-LibHWP is a GObject based library for handling HWP documents.
-
+The libhwp is a parser and renderer library for hwp documents.
 
 Project Homepage
+----------------
 https://bitbucket.org/hodong/libhwp
 
 
