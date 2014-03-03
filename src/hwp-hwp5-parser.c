@@ -128,12 +128,16 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   if (parser->data_len - parser->data_count > 0)
     parser_skip (parser, parser->data_len - parser->data_count);
 
+  if (g_input_stream_is_closed (parser->stream))
+    return FALSE;
+
   /* 4바이트 읽기 */
   g_input_stream_read_all (parser->stream, &parser->priv->header, 4,
                            &parser->priv->bytes_read, NULL, error);
   if (*error) {
-    if (!g_input_stream_is_closed(parser->stream))
+    if (!g_input_stream_is_closed (parser->stream))
       g_input_stream_close (parser->stream, NULL, NULL);
+
     return FALSE;
   }
   /* if invalid or end-of-stream */
@@ -142,8 +146,10 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
     if (parser->priv->bytes_read != 0)
       g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
                            _("File corrupted or invalid file"));
-    if (!g_input_stream_is_closed(parser->stream))
+
+    if (!g_input_stream_is_closed (parser->stream))
       g_input_stream_close (parser->stream, NULL, NULL);
+
     return FALSE;
   }
 
@@ -183,7 +189,7 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 #ifdef HWP_ENABLE_DEBUG
   printf ("%d", parser->level);
   for (int i = 0; i < parser->level; i++)
-      printf ("    ");
+    printf ("    ");
   printf ("%s\n", hwp_get_tag_name(parser->tag_id));
 #endif
 
@@ -657,39 +663,21 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
     g_assert (parser->level == level + 1);
 
     switch (parser->tag_id) {
+    case HWP_TAG_SHAPE_COMPONENT:
+      hwp_hwp5_parser_parse_shape_component (parser, file, error);
+      break;
+    case HWP_TAG_LIST_HEADER:
+      break;
+    case HWP_TAG_PARA_HEADER:
+      hwp_hwp5_parser_parse_paragraph (parser, file, error);
+      break;
     case HWP_TAG_SHAPE_COMPONENT_PICTURE:
       break;
     case HWP_TAG_SHAPE_COMPONENT_LINE:
       break;
     case HWP_TAG_SHAPE_COMPONENT_POLYGON:
       break;
-    default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
-      break;
-    } /* switch */
-  } /* while */
-}
-
-static void hwp_hwp5_parser_parse_drawing_shape_object (HwpHWP5Parser *parser,
-                                                        HwpHWP5File   *file,
-                                                        GError       **error)
-{
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
-
-  guint16 level = parser->level;
-
-  while (hwp_hwp5_parser_pull (parser, error)) {
-    if (parser->level <= level) {
-      parser->state = HWP_PARSE_STATE_PASSING;
-      break;
-    }
-
-    g_assert (parser->level == level + 1);
-
-    switch (parser->tag_id) {
-    case HWP_TAG_SHAPE_COMPONENT:
-      hwp_hwp5_parser_parse_shape_component (parser, file, error);
+    case HWP_TAG_SHAPE_COMPONENT_RECTANGLE:
       break;
     default:
       g_warning ("%s:%d:%s not implemented",
@@ -735,7 +723,7 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
   case CTRL_ID_PAGE_HIDE:
     break;
   case CTRL_ID_DRAWING_SHAPE_OBJECT:
-    hwp_hwp5_parser_parse_drawing_shape_object (parser, file, error);
+    hwp_hwp5_parser_parse_shape_component (parser, file, error);
     break;
   case CTRL_ID_TCMT: /* 숨은 설명 */
     hwp_hwp5_parser_parse_tcmt (parser, file, error);
@@ -838,8 +826,6 @@ static void hwp_hwp5_parser_parse_sections (HwpHWP5Parser *parser,
                                           GInputStream *, i);
     parser->stream = stream;
     hwp_hwp5_parser_parse_section (parser, file, error);
-    /* TODO error handling */
-    g_clear_error (error);
   }
 }
 
@@ -1075,7 +1061,6 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
   hwp_hwp5_parser_parse_file_header    (parser, file, error);
   hwp_hwp5_parser_parse_doc_info       (parser, file, error);
   hwp_hwp5_parser_parse_body_text      (parser, file, error);
-  hwp_hwp5_parser_parse_view_text      (parser, file, error);
   hwp_hwp5_parser_parse_summary_info   (parser, file, error);
 /*  _hwp_hwp5_parser_parse_bin_data       (parser, file, error); */
   hwp_hwp5_parser_parse_prv_text       (parser, file, error);
