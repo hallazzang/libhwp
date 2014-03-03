@@ -687,6 +687,60 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
   } /* while */
 }
 
+static void hwp_hwp5_parser_parse_bookmark (HwpHWP5Parser *parser,
+                                            HwpHWP5File   *file,
+                                            GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_CTRL_DATA:
+      break;
+    default:
+      g_warning ("%s:%d:%s not implemented",
+          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      break;
+    } /* switch */
+  } /* while */
+}
+
+static void hwp_hwp5_parser_parse_eqedid (HwpHWP5Parser *parser,
+                                          HwpHWP5File   *file,
+                                          GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_EQEDIT:
+      break;
+    default:
+      g_warning ("%s:%d:%s not implemented",
+          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      break;
+    } /* switch */
+  } /* while */
+}
+
 static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
                                                HwpHWP5File   *file,
                                                GError       **error)
@@ -720,7 +774,7 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
   case CTRL_ID_FOOTNOTE: /* 각주 */
     hwp_hwp5_parser_parse_footnote (parser, file, error);
     break;
-  case CTRL_ID_PAGE_HIDE:
+  case CTRL_ID_PAGE_HIDE: /* 페이지 감추기 pghd */
     break;
   case CTRL_ID_DRAWING_SHAPE_OBJECT:
     hwp_hwp5_parser_parse_shape_component (parser, file, error);
@@ -729,6 +783,12 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
     hwp_hwp5_parser_parse_tcmt (parser, file, error);
     break;
   case CTRL_ID_TCPS:
+    break;
+  case CTRL_ID_EQEDID:
+    hwp_hwp5_parser_parse_eqedid (parser, file, error);
+    break;
+  case FIELD_BOOKMARK:
+    hwp_hwp5_parser_parse_bookmark (parser, file, error);
     break;
   default:
     g_warning ("%s:%d:\"%c%c%c%c\":%s not implemented",
@@ -830,15 +890,6 @@ static void hwp_hwp5_parser_parse_sections (HwpHWP5Parser *parser,
 }
 
 static void hwp_hwp5_parser_parse_body_text (HwpHWP5Parser *parser,
-                                             HwpHWP5File   *file,
-                                             GError       **error)
-{
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
-
-  hwp_hwp5_parser_parse_sections (parser, file, error);
-}
-
-static void hwp_hwp5_parser_parse_view_text (HwpHWP5Parser *parser,
                                              HwpHWP5File   *file,
                                              GError       **error)
 {
