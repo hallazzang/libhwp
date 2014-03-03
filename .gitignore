@@ -28,8 +28,8 @@ m4/
 gtk-doc.make
 docs/version.xml
 docs/*.stamp
+docs/libhwp*
 docs/html/
-docs/hwp*
 docs/xml/
 
 # po
