@@ -324,7 +324,7 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
       break;
     }
 
-    g_assert (parser->level == 2);
+    g_assert (parser->level == level + 1);
 
     switch (parser->tag_id) {
     case HWP_TAG_LIST_HEADER:
