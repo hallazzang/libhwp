@@ -9,10 +9,11 @@ cd "$srcdir"
 
 GTKDOCIZE=`which gtkdocize`
 if test -z $GTKDOCIZE; then
-        echo "*** No GTK-Doc found, please install it ***"
-        exit 1
+  echo "*** No GTK-Doc found, please install it ***"
+  exit 1
 else
-        gtkdocize || exit $?
+  mkdir -p m4
+  gtkdocize || exit $?
 fi
 
 AUTORECONF=`which autoreconf`
