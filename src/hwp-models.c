@@ -87,9 +87,17 @@ HwpParagraph *hwp_paragraph_new (void)
   return (HwpParagraph *) g_object_new (HWP_TYPE_PARAGRAPH, NULL);
 }
 
-static void hwp_paragraph_finalize (GObject *obj)
+static void hwp_paragraph_finalize (GObject *object)
 {
-  G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (obj);
+  HwpParagraph *paragraph = HWP_PARAGRAPH (object);
+
+  if (paragraph->string)
+    g_string_free (paragraph->string, TRUE);
+
+  if (paragraph->table)
+    g_object_unref (paragraph->table);
+
+  G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (object);
 }
 
 static void hwp_paragraph_class_init (HwpParagraphClass *klass)
