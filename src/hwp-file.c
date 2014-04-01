@@ -25,9 +25,7 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <glib-object.h>
 #include <string.h>
-
 #include "hwp-file.h"
 #include "hwp-hwp3-file.h"
 #include "hwp-hwp5-file.h"
@@ -53,18 +51,18 @@ GQuark hwp_file_error_quark (void)
  * Since: 0.0.1
  */
 void hwp_file_get_hwp_version (HwpFile *file,
-                                guint8   *major_version,
-                                guint8   *minor_version,
-                                guint8   *micro_version,
-                                guint8   *extra_version)
+                               guint8  *major_version,
+                               guint8  *minor_version,
+                               guint8  *micro_version,
+                               guint8  *extra_version)
 {
-    g_return_if_fail (HWP_IS_FILE (file));
+  g_return_if_fail (HWP_IS_FILE (file));
 
-    return HWP_FILE_GET_CLASS (file)->get_hwp_version (file,
-                                                        major_version,
-                                                        minor_version,
-                                                        micro_version,
-                                                        extra_version);
+  return HWP_FILE_GET_CLASS (file)->get_hwp_version (file,
+                                                     major_version,
+                                                     minor_version,
+                                                     micro_version,
+                                                     extra_version);
 }
 
 /**
@@ -131,65 +129,65 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
  */
 HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
 {
-    g_return_val_if_fail (path != NULL, NULL);
+  g_return_val_if_fail (path != NULL, NULL);
 
-    /* check signature */
-    static const guint8 const signature_ole[] = {
-        0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
-    };
+  /* check signature */
+  static const guint8 const signature_ole[] = {
+    0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
+  };
 
-    static const guint8 signature_v3[] = {
-        /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
-        0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
-        0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
-        0x65, 0x20, 0x56, 0x33, 0x2e, 0x30, 0x30, 0x20,
-        0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
-    };
+  static const guint8 signature_v3[] = {
+    /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
+    0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
+    0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
+    0x65, 0x20, 0x56, 0x33, 0x2e, 0x30, 0x30, 0x20,
+    0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
+  };
 
-    GFile            *file   = g_file_new_for_path (path);
-    GFileInputStream *stream = g_file_read (file, NULL, error);
-    g_object_unref (file);
+  GFile            *file   = g_file_new_for_path (path);
+  GFileInputStream *stream = g_file_read (file, NULL, error);
+  g_object_unref (file);
 
-    if (*error)
-        return NULL;
+  if (*error)
+    return NULL;
 
-    gsize bytes_read = 0;
-    guint8 *buffer = g_malloc0 (4096);
-    g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
-                             &bytes_read, NULL, error);
-    g_object_unref(stream);
+  gsize bytes_read = 0;
+  guint8 *buffer = g_malloc0 (4096);
+  g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
+                           &bytes_read, NULL, error);
+  g_object_unref(stream);
 
-    HwpFile *retval = NULL;
+  HwpFile *retval = NULL;
 
-    if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
-        /* hwp v5 */
-        retval = HWP_FILE (hwp_hwp5_file_new_for_path (path, error));
-    } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
-        /* hwp v3 */
-        retval = HWP_FILE (hwp_hwp3_file_new_for_path (path, error));
-    } else if (is_hwpml((gchar *) buffer, bytes_read)) {
-        /* hwp ml */
-        retval = HWP_FILE (hwp_hwpml_file_new_for_path (path, error));
-    } else {
-        /* invalid hwp file */
-        g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
-                            "invalid hwp file");
-        retval = NULL;
-    }
+  if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0) {
+    /* hwp v5 */
+    retval = HWP_FILE (hwp_hwp5_file_new_for_path (path, error));
+  } else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0) {
+    /* hwp v3 */
+    retval = HWP_FILE (hwp_hwp3_file_new_for_path (path, error));
+  } else if (is_hwpml((gchar *) buffer, bytes_read)) {
+    /* hwp ml */
+    retval = HWP_FILE (hwp_hwpml_file_new_for_path (path, error));
+  } else {
+    /* invalid hwp file */
+    g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
+                        "invalid hwp file");
+    retval = NULL;
+  }
 
-    g_free(buffer);
-    return retval;
+  g_free(buffer);
+  return retval;
 }
 
-static void hwp_file_finalize (GObject *obj)
+static void hwp_file_finalize (GObject *object)
 {
-    G_OBJECT_CLASS (hwp_file_parent_class)->finalize (obj);
+  G_OBJECT_CLASS (hwp_file_parent_class)->finalize (object);
 }
 
 static void hwp_file_class_init (HwpFileClass *klass)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    object_class->finalize = hwp_file_finalize;
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize = hwp_file_finalize;
 }
 
 static void hwp_file_init (HwpFile *file)

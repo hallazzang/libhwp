@@ -50,27 +50,34 @@ typedef struct _HwpHWP3File        HwpHWP3File;
 typedef struct _HwpHWP3FileClass   HwpHWP3FileClass;
 typedef struct _HwpHWP3FilePrivate HwpHWP3FilePrivate;
 
-struct _HwpHWP3FileClass {
+struct _HwpHWP3FileClass
+{
   HwpFileClass parent_class;
 };
 
-struct _HwpHWP3File {
+struct _HwpHWP3File
+{
   HwpFile             parent_instance;
   HwpHWP3FilePrivate *priv;
 
-  HwpDocument        *document;
+  guint8              major_version;
+  guint8              minor_version;
+  guint8              micro_version;
+  guint8              extra_version;
+
   guint16             is_crypt;
   guint8              is_compress;
   guint8              rev;
   guint16             info_block_len;
-  HwpPage            *page;
 };
 
-struct _HwpHWP3FilePrivate {
+struct _HwpHWP3FilePrivate
+{
   GInputStream *stream;
 };
 
 GType        hwp_hwp3_file_get_type               (void) G_GNUC_CONST;
+
 HwpHWP3File *hwp_hwp3_file_new_for_path           (const gchar *path,
                                                    GError     **error);
 gchar       *hwp_hwp3_file_get_hwp_version_string (HwpFile     *file);

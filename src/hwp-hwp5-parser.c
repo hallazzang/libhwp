@@ -31,9 +31,35 @@
 
 G_DEFINE_TYPE (HwpHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
 
-static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
-                                             HwpHWP5File   *file,
-                                             GError       **error);
+static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
+                                                      HwpHWP5File   *file,
+                                                      GError       **error);
+
+#define WARNING_TAG_NOT_IMPLEMENTED(tag_id) \
+{ \
+  const gchar *name = hwp_get_tag_name ((tag_id)); \
+  if (name) { \
+    g_warning ("%s:%d: %s not implemented\n", __FILE__, __LINE__, name); \
+  } else { \
+    g_warning ("%s:%d: unknown tag id: %d is not implemented\n", \
+               __FILE__, __LINE__, (tag_id)); \
+  } \
+}
+
+#define WARNING_CTRL_NOT_IMPLEMENTED(ctrl_id) \
+{ \
+  const gchar *name = hwp_get_ctrl_name ((ctrl_id)); \
+  if (name) { \
+    g_warning ("%s:%d: %s not implemented\n", __FILE__, __LINE__, name); \
+  } else { \
+    g_warning ("%s:%d:\"%c%c%c%c\" not implemented, please implement CTRL_ID", \
+               __FILE__, __LINE__, \
+               (gchar) ((ctrl_id) >> 24 & 0xff), \
+               (gchar) ((ctrl_id) >> 16 & 0xff), \
+               (gchar) ((ctrl_id) >>  8 & 0xff), \
+               (gchar) ((ctrl_id) >>  0 & 0xff)); \
+  } \
+}
 
 gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
 {
@@ -190,7 +216,12 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   printf ("%d", parser->level);
   for (int i = 0; i < parser->level; i++)
     printf ("    ");
-  printf ("%s\n", hwp_get_tag_name(parser->tag_id));
+
+  const gchar *name = hwp_get_tag_name (parser->tag_id);
+  if (name)
+    printf ("%s\n", name);
+  else
+    printf ("unknown tag id: %d\n", parser->tag_id);
 #endif
 
   parser->data_count = 0;
@@ -245,7 +276,6 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
       g_free (id_mappings);
       break;
     case HWP_TAG_BIN_DATA:
-
       break;
     case HWP_TAG_FACE_NAME:
       break;
@@ -272,14 +302,14 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
     case HWP_TAG_LAYOUT_COMPATIBILITY:
       break;
     default:
-      printf("%s:%d: %s not implemented\n", __FILE__, __LINE__,
-          hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     }
   }
 }
 
 static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
+                                                      HwpHWP5File   *file,
                                                       GError       **error)
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
@@ -301,9 +331,13 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
       break;
     case HWP_TAG_PAGE_BORDER_FILL:
       break;
+    case HWP_TAG_LIST_HEADER:
+      break;
+    case HWP_TAG_PARA_HEADER:
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
+      break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -330,11 +364,10 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER:
       break;
     case HWP_TAG_PARA_HEADER:
-        hwp_hwp5_parser_parse_paragraph (parser, file, error);
+        hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -361,11 +394,10 @@ static void hwp_hwp5_parser_parse_footnote (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER:
       break;
     case HWP_TAG_PARA_HEADER:
-      hwp_hwp5_parser_parse_paragraph (parser, file, error);
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -391,44 +423,14 @@ static void hwp_hwp5_parser_parse_tcmt (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER:
       break;
     case HWP_TAG_PARA_HEADER:
-      hwp_hwp5_parser_parse_paragraph (parser, file, error);
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
 }
-
-/*
- *         col 0   col 1
- *       +-------+-------+
- * row 0 |  00   |   01  |
- *       +-------+-------+
- * row 1 |  10   |   11  |
- *       +-------+-------+
- * row 2 |  20   |   21  |
- *       +-------+-------+
- *
- * <table> ::= { <list-header> <para-header>+ }+
- *
- * para-header
- *  ...
- *  ctrl-header (id:tbl)
- *   table: row-count, col-count
- *   list-header (00)
- *   ...
- *   list-header (01)
- *   ...
- *   list-header (10)
- *   ...
- *   list-header (11)
- *   ...
- *   list-header (20)
- *   ...
- *   list-header (21)
- */
 
 static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
@@ -497,48 +499,58 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
   parser_read_uint16 (parser, &table_cell->left_margin, error);
   parser_read_uint16 (parser, &table_cell->right_margin, error);
   parser_read_uint16 (parser, &table_cell->top_margin, error);
+  if (parser->data_len == 30) /* FIXME */
+    goto FINALLY;
   parser_read_uint16 (parser, &table_cell->bottom_margin, error);
 
   parser_read_uint16 (parser, &table_cell->border_fill_id, error);
+
   /* unknown */
   parser_read_uint32 (parser, &table_cell->unknown2, error);
 
+  FINALLY:
 #ifdef HWP_ENABLE_DEBUG
-  printf("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",
-         table_cell->n_paragraphs, table_cell->flags, table_cell->unknown1,
+  printf ("%d %d %d\n%d %d %d %d\n%d %d\n%d %d %d %d\n%d\n",
+          table_cell->n_paragraphs, table_cell->flags, table_cell->unknown1,
 
-         table_cell->col_addr,
-         table_cell->row_addr,
-         table_cell->col_span,
-         table_cell->row_span,
+          table_cell->col_addr,
+          table_cell->row_addr,
+          table_cell->col_span,
+          table_cell->row_span,
 
-         table_cell->width, table_cell->height,
+          table_cell->width, table_cell->height,
 
-         table_cell->left_margin,
-         table_cell->right_margin,
-         table_cell->top_margin,
-         table_cell->bottom_margin,
+          table_cell->left_margin,
+          table_cell->right_margin,
+          table_cell->top_margin,
+          table_cell->bottom_margin,
 
-         table_cell->border_fill_id);
+          table_cell->border_fill_id);
 #endif
 
   if (parser->data_count != parser->data_len) {
-    g_warning ("%s:%d: table cell size mismatch\n", __FILE__, __LINE__);
+    g_warning ("%s:%d: table cell size mismatch, ver %d.%d.%d.%d\n", __FILE__, __LINE__,
+      parser->major_version,
+      parser->minor_version,
+      parser->micro_version,
+      parser->extra_version);
   }
 
   return table_cell;
 }
 
-static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
-                                         HwpHWP5File   *file,
-                                         GError       **error)
+static HwpTable *hwp_hwp5_parser_build_table (HwpHWP5Parser *parser,
+                                              HwpHWP5File   *file,
+                                              GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
+  g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
 
   guint16 level = parser->level;
 
   HwpTable     *table     = NULL;
   HwpTableCell *cell      = NULL;
+  HwpParagraph *paragraph = NULL;
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -555,20 +567,21 @@ static void hwp_hwp5_parser_parse_table (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER: /* cell */
       cell = hwp_hwp5_parser_get_table_cell (parser, error);
       hwp_table_add_cell (table, cell);
-
       break;
     case HWP_TAG_PARA_HEADER:
-      parser->state = HWP_PARSE_STATE_INSIDE_TABLE;
-      hwp_hwp5_parser_parse_paragraph (parser, file, error);
+      paragraph = hwp_hwp5_parser_build_paragraph (parser, file, error);
+      if (paragraph)
+        hwp_table_cell_add_paragraph (cell, paragraph);
+
+      paragraph = NULL;
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
-  /* TODO */
-  /* add table to where ? */
+
+  return table;
 }
 
 static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser, GError **error)
@@ -669,7 +682,7 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER:
       break;
     case HWP_TAG_PARA_HEADER:
-      hwp_hwp5_parser_parse_paragraph (parser, file, error);
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     case HWP_TAG_SHAPE_COMPONENT_PICTURE:
       break;
@@ -680,8 +693,7 @@ static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
     case HWP_TAG_SHAPE_COMPONENT_RECTANGLE:
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-        __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -707,8 +719,59 @@ static void hwp_hwp5_parser_parse_bookmark (HwpHWP5Parser *parser,
     case HWP_TAG_CTRL_DATA:
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
+      break;
+    } /* switch */
+  } /* while */
+}
+
+static void hwp_hwp5_parser_parse_bokm (HwpHWP5Parser *parser,
+                                        HwpHWP5File   *file,
+                                        GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_CTRL_DATA:
+      break;
+    default:
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
+      break;
+    } /* switch */
+  } /* while */
+}
+
+static void hwp_hwp5_parser_parse_clickhere (HwpHWP5Parser *parser,
+                                             HwpHWP5File   *file,
+                                             GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_CTRL_DATA:
+      break;
+    default:
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -734,8 +797,62 @@ static void hwp_hwp5_parser_parse_eqedid (HwpHWP5Parser *parser,
     case HWP_TAG_EQEDIT:
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
+      break;
+    } /* switch */
+  } /* while */
+}
+
+static void hwp_hwp5_parser_parse_form (HwpHWP5Parser *parser,
+                                        HwpHWP5File   *file,
+                                        GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_FORM_OBJECT:
+      break;
+    default:
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
+      break;
+    } /* switch */
+  } /* while */
+}
+
+static void hwp_hwp5_parser_parse_footer (HwpHWP5Parser *parser,
+                                          HwpHWP5File   *file,
+                                          GError       **error)
+{
+  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+
+  guint16 level = parser->level;
+
+  while (hwp_hwp5_parser_pull (parser, error)) {
+    if (parser->level <= level) {
+      parser->state = HWP_PARSE_STATE_PASSING;
+      break;
+    }
+
+    g_assert (parser->level == level + 1);
+
+    switch (parser->tag_id) {
+    case HWP_TAG_LIST_HEADER:
+      break;
+    case HWP_TAG_PARA_HEADER:
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
+      break;
+    default:
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
@@ -743,6 +860,7 @@ static void hwp_hwp5_parser_parse_eqedid (HwpHWP5Parser *parser,
 
 static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
                                                HwpHWP5File   *file,
+                                               HwpParagraph  *paragraph,
                                                GError       **error)
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
@@ -757,7 +875,7 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
 #endif
   switch (parser->ctrl_id) {
   case CTRL_ID_SECTION_DEF:
-    hwp_hwp5_parser_parse_section_definition (parser, error);
+    hwp_hwp5_parser_parse_section_definition (parser, file, error);
     break;
   case CTRL_ID_NEW_NUM:
     break;
@@ -769,7 +887,12 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
   case CTRL_ID_AUTO_NUM:
     break;
   case CTRL_ID_TABLE:
-    hwp_hwp5_parser_parse_table (parser, file, error);
+    {
+      HwpTable *table = NULL;
+      table = hwp_hwp5_parser_build_table (parser, file, error);
+      if (table)
+        hwp_paragraph_set_table (paragraph, table);
+    }
     break;
   case CTRL_ID_FOOTNOTE: /* 각주 */
     hwp_hwp5_parser_parse_footnote (parser, file, error);
@@ -787,33 +910,40 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
   case CTRL_ID_EQEDID:
     hwp_hwp5_parser_parse_eqedid (parser, file, error);
     break;
+  case CTRL_ID_FORM:
+    hwp_hwp5_parser_parse_form (parser, file, error);
+    break;
+  case CTRL_ID_FOOTER:
+    hwp_hwp5_parser_parse_footer (parser, file, error);
+    break;
+  case CTRL_ID_BOKM: /* 책갈피 */
+    hwp_hwp5_parser_parse_bokm (parser, file, error);
+    break;
   case FIELD_BOOKMARK:
     hwp_hwp5_parser_parse_bookmark (parser, file, error);
     break;
+  case FIELD_CLICKHERE:
+    hwp_hwp5_parser_parse_clickhere (parser, file, error);
+    break;
+  case FIELD_HYPERLINK:
+    break;
   default:
-    g_warning ("%s:%d:\"%c%c%c%c\":%s not implemented",
-        __FILE__, __LINE__,
-        (gchar) (parser->ctrl_id >> 24 & 0xff),
-        (gchar) (parser->ctrl_id >> 16 & 0xff),
-        (gchar) (parser->ctrl_id >>  8 & 0xff),
-        (gchar) (parser->ctrl_id >>  0 & 0xff),
-        hwp_get_ctrl_name (parser->ctrl_id));
+    WARNING_CTRL_NOT_IMPLEMENTED (parser->ctrl_id);
     break;
   } /* switch (parser->ctrl_id) */
 }
 
-static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
-                                             HwpHWP5File   *file,
-                                             GError       **error)
+static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
+                                                      HwpHWP5File   *file,
+                                                      GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
+  g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
 
   guint16 level = parser->level;
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
   GString      *string    = NULL;
-
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -834,21 +964,26 @@ static void hwp_hwp5_parser_parse_paragraph (HwpHWP5Parser *parser,
     case HWP_TAG_PARA_LINE_SEG:
       break;
     case HWP_TAG_CTRL_HEADER:
-      hwp_hwp5_parser_parse_ctrl_header (parser, file, error);
+      hwp_hwp5_parser_parse_ctrl_header (parser, file, paragraph, error);
+      break;
+    case HWP_TAG_MEMO_LIST:
+      break;
+    /* TODO: HWP_TAG_LIST_HEADER
+       계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
+    case HWP_TAG_LIST_HEADER: /* memo list 가 사용합니다 */
+      break;
+    /* TODO: HWP_TAG_PARA_HEADER
+       계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
+    case HWP_TAG_PARA_HEADER: /* memo list 가 사용합니다. */
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     default:
-      g_warning ("%s:%d:%s not implemented",
-          __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
       break;
     } /* switch */
   } /* while */
 
-  /* FIXME 내포된 문단이 먼저 넘어간 후 이곳 문단이 넘어가는 버그가 있다. */
-  /* 모델링을 어떻게 할지 정한 후에 제대로 모델링을 하게 되면 그 버그는 자연히 없어진다. */
-  if (iface->paragraph)
-    iface->paragraph (parser->listener, paragraph, parser->user_data, error);
-
-  return;
+  return paragraph;
 }
 
 static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
@@ -857,20 +992,34 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpParagraph *paragraph = NULL;
+
   while (hwp_hwp5_parser_pull (parser, error))
   {
     parser_skip (parser, parser->data_len);
     g_assert (parser->level == 0);
 
-    switch (parser->tag_id) {
-    case HWP_TAG_PARA_HEADER:
-      hwp_hwp5_parser_parse_paragraph (parser, file, error);
-      break;
-    default:
-        g_warning ("%s:%d:%s not implemented",
-            __FILE__, __LINE__, hwp_get_tag_name (parser->tag_id));
+    switch (parser->tag_id)
+    {
+      case HWP_TAG_PARA_HEADER:
+        paragraph = hwp_hwp5_parser_build_paragraph (parser, file, error);
+        break;
+      default:
+        WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
         break;
     }  /* switch */
+
+    if (paragraph)
+    {
+      /* call callback function */
+      if (iface->paragraph)
+        iface->paragraph (parser->listener, paragraph, parser->user_data, error);
+      else
+        g_object_unref (paragraph);
+
+      paragraph = NULL;
+    }
   } /* while */
 }
 

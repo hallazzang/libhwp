@@ -31,7 +31,7 @@ G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);
  *
  * Returns:
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 void hwp_page_get_size (HwpPage *page, gdouble *width, gdouble *height)
 {

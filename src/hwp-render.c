@@ -49,7 +49,7 @@ static void once_ft_init_and_new (void)
  *
  * Returns:
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 gboolean hwp_render_page (cairo_t *cr, HwpPage *page)
 {
@@ -86,7 +86,7 @@ gboolean hwp_render_page (cairo_t *cr, HwpPage *page)
  *
  * Returns:
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 gboolean
 hwp_render_paragraph (cairo_t *cr, HwpParagraph *paragraph, double x, double y)
@@ -169,7 +169,7 @@ hwp_render_paragraph (cairo_t *cr, HwpParagraph *paragraph, double x, double y)
  *
  * Returns:
  *
- * Since: 0.1
+ * Since: 0.0.1
  */
 gboolean hwp_render_text (cairo_t             *cr,
                           cairo_text_extents_t extents,

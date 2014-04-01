@@ -81,17 +81,17 @@ libhwp_la_LDFLAGS =                      \
 libhwp_la_LIBADD = $(HWP_DEP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = hwp-0.0.1.pc
+pkgconfig_DATA = hwp-0.0.2.pc
 
 EXTRA_DIST =                  \
-	hwp-0.0.1.pc.in           \
+	hwp-0.0.2.pc.in           \
 	hwp-enum-types.c.template \
 	hwp-enum-types.h.template \
 	hwp-version.h.in          \
 	$(NULL)
 
 DISTCLEANFILES =     \
-	hwp-0.0.1.pc     \
+	hwp-0.0.2.pc     \
 	hwp-enum-types.c \
 	hwp-enum-types.h \
 	hwp-version.h    \

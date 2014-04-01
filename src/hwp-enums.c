@@ -26,16 +26,16 @@
  * Returns:  the #GQuark used to identify libhwp errors in #GError structures.
  *  Specific error codes come from the #HWPError enumeration.
  *
- * Since: 0.2
+ * Since: 0.0.1
  **/
 GQuark hwp_error_quark (void)
 {
-    static GQuark q = 0;
+  static GQuark q = 0;
 
-    if (q == 0)
-        q = g_quark_from_static_string ("hwp-error-quark");
+  if (q == 0)
+    q = g_quark_from_static_string ("hwp-quark");
 
-    return q;
+  return q;
 }
 
 static const char hwp_version[] = PACKAGE_VERSION;
@@ -47,39 +47,43 @@ static const char hwp_version[] = PACKAGE_VERSION;
  *
  * Return value: the version of hwp.
  *
- * Since: 0.2
+ * Since: 0.0.1
  **/
 const char *hwp_get_version (void)
 {
-    return hwp_version;
+  return hwp_version;
 }
 
 /**
- * Since: TODO
+ * hwp_get_tag_name:
+ * @tag_id:
+ *
+ * Returns: tag name, or %NULL
+ *
+ * Since: 0.0.1
  **/
 const char *hwp_get_tag_name (guint tag_id)
 {
-    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_TAG);
-    GEnumValue *tag        = g_enum_get_value (enum_class, tag_id);
-    g_type_class_unref (enum_class);
+  GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_TAG);
+  GEnumValue *tag        = g_enum_get_value (enum_class, tag_id);
+  g_type_class_unref (enum_class);
 
-    if (tag == NULL)
-        return g_strdup_printf ("unknown tag id: %d", tag_id);
-
-    return tag->value_name;
+  return tag ? tag->value_name : NULL;
 }
 
 /**
- * Since: TODO
+ * hwp_get_ctrl_name:
+ * @ctrl_id:
+ *
+ * Returns: ctrl name, or %NULL
+ *
+ * Since: 0.0.1
  **/
 const char *hwp_get_ctrl_name (guint32 ctrl_id)
 {
-    GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_CTRL_ID);
-    GEnumValue *ctrl       = g_enum_get_value (enum_class, ctrl_id);
-    g_type_class_unref (enum_class);
+  GEnumClass *enum_class = (GEnumClass *) g_type_class_ref (HWP_TYPE_CTRL_ID);
+  GEnumValue *ctrl       = g_enum_get_value (enum_class, ctrl_id);
+  g_type_class_unref (enum_class);
 
-    if (ctrl == NULL)
-        return g_strdup_printf ("unknown ctrl id: %d", ctrl_id);
-
-    return ctrl->value_name;
+  return ctrl ? ctrl->value_name : NULL;
 }

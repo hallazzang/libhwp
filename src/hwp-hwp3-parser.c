@@ -550,8 +550,7 @@ static void hwp_hwp3_parser_init (HwpHWP3Parser *parser)
 {
 }
 
-static void
-hwp_hwp3_parser_finalize (GObject *object)
+static void hwp_hwp3_parser_finalize (GObject *object)
 {
   HwpHWP3Parser *parser = HWP_HWP3_PARSER (object);
   g_object_unref (parser->stream);

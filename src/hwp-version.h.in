@@ -1,7 +1,7 @@
 /*
  * This file is part of libhwp.
  *
- * Copyright (C) 2012-2013 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  * 
  * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -63,7 +63,7 @@
  *
  * The version number of the HWP library as a string
  *
- * Since: 0.1.2
+ * Since: 0.0.1
  */
 #define HWP_VERSION_STRING "@PACKAGE_VERSION@"
 

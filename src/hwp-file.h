@@ -18,13 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * This software have been developed with reference to
- * the HWP file format open specification by Hancom, Inc.
- * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
- * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
- */
-
 #if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
 #error "Only <hwp/hwp.h> can be included directly."
 #endif
@@ -50,19 +43,22 @@ G_BEGIN_DECLS
 typedef struct _HwpFile      HwpFile;
 typedef struct _HwpFileClass HwpFileClass;
 
-struct _HwpFile {
+struct _HwpFile
+{
   GObject parent_instance;
 };
 
-struct _HwpFileClass {
-  GObjectClass   parent_class;
-  HwpDocument* (*get_document)           (HwpFile *file, GError **error);
-  gchar*       (*get_hwp_version_string) (HwpFile *file);
-  void         (*get_hwp_version)        (HwpFile *file,
-                                          guint8  *major_version,
-                                          guint8  *minor_version,
-                                          guint8  *micro_version,
-                                          guint8  *extra_version);
+struct _HwpFileClass
+{
+  GObjectClass      parent_class;
+
+  HwpDocument *  (* get_document)           (HwpFile *file, GError **error);
+  gchar *        (* get_hwp_version_string) (HwpFile *file);
+  void           (* get_hwp_version)        (HwpFile *file,
+                                             guint8  *major_version,
+                                             guint8  *minor_version,
+                                             guint8  *micro_version,
+                                             guint8  *extra_version);
 };
 
 /**
@@ -84,7 +80,8 @@ struct _HwpFileClass {
  *
  * Since: 0.0.1
  */
-typedef enum {
+typedef enum
+{
   HWP_FILE_ERROR_INVALID
 } HwpFileError;
 
@@ -94,7 +91,7 @@ HwpFile     *hwp_file_new_for_path           (const gchar *path,
                                               GError     **error);
 HwpDocument *hwp_file_get_document           (HwpFile     *file,
                                               GError     **error);
-gchar       *hwp_file_get_hwp_version_string (HwpFile*     self);
+gchar       *hwp_file_get_hwp_version_string (HwpFile     *file);
 void         hwp_file_get_hwp_version        (HwpFile     *file,
                                               guint8      *major_version,
                                               guint8      *minor_version,

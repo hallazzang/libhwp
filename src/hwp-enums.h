@@ -76,7 +76,6 @@ typedef enum {
   HWP_PARSE_STATE_P            = 1 << 2,
   HWP_PARSE_STATE_TEXT         = 1 << 3,
   HWP_PARSE_STATE_CHAR         = 1 << 4,
-  HWP_PARSE_STATE_INSIDE_TABLE = 1 << 5,
 } HwpParseState;
 
 /**
@@ -246,6 +245,8 @@ typedef enum
   CTRL_ID_CON                  = MAKE_CTRL_ID('$', 'c', 'o', 'n'),
 
   CTRL_ID_DRAWING_SHAPE_OBJECT = MAKE_CTRL_ID('g', 's', 'o', ' '),
+
+  CTRL_ID_FORM                 = MAKE_CTRL_ID('f', 'o', 'r', 'm'),
 
   FIELD_UNKNOWN                = MAKE_CTRL_ID('%', 'u', 'n', 'k'),
   /* 현재의 날짜/시간 필드 */

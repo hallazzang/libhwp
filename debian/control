@@ -23,7 +23,7 @@ Package: libhwp-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends},
-         libhwp0 (= ${binary:Version}),
+         libhwp1 (= ${binary:Version}),
          libcairo2-dev,
          libglib2.0-dev
 Description: handling and rendering HWP documents (development files)
@@ -32,7 +32,7 @@ Description: handling and rendering HWP documents (development files)
  .
  This package contains the development files.
 
-Package: libhwp0
+Package: libhwp1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
          fonts-nanum
