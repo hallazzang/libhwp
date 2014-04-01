@@ -371,11 +371,15 @@ void hwp_document_listen_paragraph (HwpListener  *listener,
     /* 페이지가 있다면 마지막 페이지 얻기 */
     page = g_array_index (document->pages, HwpPage *, document->pages->len - 1);
   }
-  /* 높이 계산 */
+  /* 높이 계산; 문단 텍스트 */
+  /* TODO: 스펙 문서 27쪽에 HWPTAG_FACE_NAME 에 표 17 글꼴 유형 정보 X-높이 */
   if (paragraph->string) {
     len = g_utf8_strlen (paragraph->string->str, -1);
     y += 18.0 * ceil (len / 33.0);
   }
+
+  /* TODO: 높이 계산; 표 */
+  /* 개체공통속성의 높이를 활용해야 합니다. */
 
   if (y <= 842.0 - 80.0) {
     g_array_append_val (page->paragraphs, paragraph);
