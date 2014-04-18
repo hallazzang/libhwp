@@ -24,7 +24,7 @@
 
 #define __HWP_H_INSIDE__
 
-#include "hnc2unicode.h"
+#include "hwp-charset.h"
 #include "hwp-document.h"
 #include "hwp-enums.h"
 #include "hwp-enum-types.h"

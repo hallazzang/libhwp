@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hnc2unicode.c
+ * hwp-charset.c
  *
  * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
@@ -19,7 +19,7 @@
  */
 
 #include <glib.h>
-#include "hnc2unicode.h"
+#include "hwp-charset.h"
 #include <stdio.h>
 
 /**

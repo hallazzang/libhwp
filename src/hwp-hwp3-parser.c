@@ -20,7 +20,7 @@
 
 #include "hwp-hwp3-parser.h"
 #include "hwp-hwp3-file.h"
-#include "hnc2unicode.h"
+#include "hwp-charset.h"
 #include <math.h>
 #include <stdlib.h>
 

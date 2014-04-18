@@ -4,7 +4,7 @@
 lib_LTLIBRARIES = libhwp.la
 
 INST_H_FILES =          \
-	hnc2unicode.h       \
+	hwp-charset.h       \
 	hwp-document.h      \
 	hwp-enums.h         \
 	hwp-enum-types.h    \
@@ -39,7 +39,7 @@ BUILT_SOURCES =      \
 
 libhwp_la_SOURCES =     \
 	gsf-input-stream.c  \
-	hnc2unicode.c       \
+	hwp-charset.c       \
 	hwp-document.c      \
 	hwp-enums.c         \
 	hwp-enum-types.c    \

@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hnc2unicode.h
+ * hwp-charset.h
  *
  * Copyright (C) 2013 Hodong Kim <hodong@cogno.org>
  * 
@@ -24,8 +24,8 @@
  * For more information about hnc code, please see hnc2unicode.rb
  */
 
-#ifndef _HNC2UNICODE_H_
-#define _HNC2UNICODE_H_
+#ifndef __HWP_CHARSET_H__
+#define __HWP_CHARSET_H__
 
 #include <glib.h>
 
@@ -20523,4 +20523,4 @@ static const gunichar2 hnc2uni_page8[0xffff - 0x8000 + 1][3] = {
   {0xf7fe, 0xf863, 0xf8d5}, {0x1158, 0x11a1, 0x11f0},
 };
 
-#endif /* _HNC2UNICODE_H_ */
+#endif /* __HWP_CHARSET__ */
