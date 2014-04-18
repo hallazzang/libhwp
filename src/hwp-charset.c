@@ -52,13 +52,46 @@ gchar *hwp_hnchar_to_utf8 (guint16 c)
   } else if (c >= 0x8000 && c <= 0xffff) {
     const gunichar2 *unichar2;
     unichar2 = hnc2uni_page8[c-0x8000];
-    for (int i = 0; i < 3; i++) {
+    for (guint8 i = 0; i < 3; i++)
+    {
       if (unichar2[i] == 0)
         break;
       g_string_append_unichar (string, unichar2[i]);
     }
   } else {
     g_warning ("%04x: out of hnc code range", c);
+  }
+  return g_string_free (string, FALSE);
+}
+
+/**
+ * hwp_hychar_to_utf8:
+ * @c: a hypua character code
+ *
+ * Converts a single character to UTF-8.
+ *
+ * Return value: a pointer to a newly allocated UTF-8 string.
+ *               This value must be freed with g_free(). If an
+ *               error occurs, %NULL will be returned.
+ *
+ * Since: 0.0.3
+ */
+gchar *hwp_hychar_to_utf8 (guint16 c)
+{
+  GString *string = g_string_new (NULL);
+  /* 한양PUA 코드 */
+  if (c >= 0xe0bc && c <= 0xf8f7)
+  {
+    const gunichar2 *unichar2;
+    unichar2 = hyc2uni_page14[c-0xe0bc];
+    for (guint8 i = 0; i < 3; i++)
+    {
+      if (unichar2[i] == 0)
+        break;
+      g_string_append_unichar (string, unichar2[i]);
+    }
+  } else {
+    g_warning ("%04x: out of hypua code range", c);
   }
   return g_string_free (string, FALSE);
 }

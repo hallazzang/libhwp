@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include "gsf-input-stream.h"
 #include "hwp-hwp5-parser.h"
+#include "hwp-charset.h"
 
 G_DEFINE_TYPE (HwpHWP5Parser, hwp_hwp5_parser, G_TYPE_OBJECT);
 
@@ -646,7 +647,22 @@ static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser, GError **erro
     case 31:
       break;
     default:
-      g_string_append_unichar (string, ch);
+      /* 한양PUA 코드 */
+      if (ch >= 0xe0bc && ch <= 0xf8f7)
+      {
+        const gunichar2 *unichar2;
+        unichar2 = hyc2uni_page14[ch-0xe0bc];
+        for (int i = 0; i < 3; i++)
+        {
+          if (unichar2[i] == 0)
+            break;
+          g_string_append_unichar (string, unichar2[i]);
+        }
+      }
+      else
+      {
+        g_string_append_unichar (string, ch);
+      }
       break;
     } /* switch */
   } /* for */
