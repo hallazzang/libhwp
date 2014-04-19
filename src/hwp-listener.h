@@ -18,6 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+ */
+
 #if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
 #error "Only <hwp/hwp.h> can be included directly."
 #endif
@@ -56,6 +63,15 @@ struct _HwpListenerInterface
                              guint8          minor_version,
                              guint8          micro_version,
                              guint8          extra_version,
+                             gpointer        user_data,
+                             GError        **error);
+  /* doc info */
+  void (* face_name)        (HwpListener    *listener,
+                             HwpFaceName    *face_name,
+                             gpointer        user_data,
+                             GError        **error);
+  void (* char_shape)       (HwpListener    *listener,
+                             HwpCharShape   *char_shape,
                              gpointer        user_data,
                              GError        **error);
   /* paragraph */
