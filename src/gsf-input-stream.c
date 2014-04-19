@@ -53,36 +53,38 @@ gboolean gsf_input_stream_close (GInputStream *base,
                                  GCancellable *cancellable,
                                  GError      **error)
 {
-    /* FIXME: currently do nothing */
-    return TRUE;
+  /* FIXME: currently do nothing */
+  return TRUE;
 }
 
 gssize gsf_input_stream_size (GsfInputStream *stream)
 {
-    g_return_val_if_fail (GSF_IS_INPUT_STREAM (stream), 0L);
-    return (gssize) gsf_input_size (stream->priv->input);
+  g_return_val_if_fail (GSF_IS_INPUT_STREAM (stream), 0L);
+
+  return (gssize) gsf_input_size (stream->priv->input);
 }
 
 static void gsf_input_stream_finalize (GObject *obj)
 {
-    GsfInputStream *gis = GSF_INPUT_STREAM (obj);
-    g_object_unref (gis->priv->input);
-    G_OBJECT_CLASS (gsf_input_stream_parent_class)->finalize (obj);
+  GsfInputStream *gis = GSF_INPUT_STREAM (obj);
+  g_object_unref (gis->priv->input);
+
+  G_OBJECT_CLASS (gsf_input_stream_parent_class)->finalize (obj);
 }
 
 static void gsf_input_stream_class_init (GsfInputStreamClass *klass)
 {
-    GObjectClass      *object_class = G_OBJECT_CLASS (klass);
-    GInputStreamClass *parent_class = G_INPUT_STREAM_CLASS (klass);
-    g_type_class_add_private (klass, sizeof (GsfInputStreamPrivate));
-    parent_class->read_fn  = gsf_input_stream_read;
-    parent_class->close_fn = gsf_input_stream_close;
-    object_class->finalize = gsf_input_stream_finalize;
+  GObjectClass      *object_class = G_OBJECT_CLASS (klass);
+  GInputStreamClass *parent_class = G_INPUT_STREAM_CLASS (klass);
+  g_type_class_add_private (klass, sizeof (GsfInputStreamPrivate));
+  parent_class->read_fn  = gsf_input_stream_read;
+  parent_class->close_fn = gsf_input_stream_close;
+  object_class->finalize = gsf_input_stream_finalize;
 }
 
 static void gsf_input_stream_init (GsfInputStream *stream)
 {
-    stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream,
-                                                GSF_TYPE_INPUT_STREAM,
-                                                GsfInputStreamPrivate);
+  stream->priv = G_TYPE_INSTANCE_GET_PRIVATE (stream,
+                                              GSF_TYPE_INPUT_STREAM,
+                                              GsfInputStreamPrivate);
 }
