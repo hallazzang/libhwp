@@ -38,7 +38,6 @@
 #include "hwp-listener.h"
 #include "hwp-models.h"
 #include "hwp-page.h"
-#include "hwp-render.h"
 #include "hwp-version.h"
 
 #undef __HWP_H_INSIDE__
