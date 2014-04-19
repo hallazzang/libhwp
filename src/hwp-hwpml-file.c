@@ -108,7 +108,9 @@ static void hwp_hwpml_file_init (HwpHWPMLFile *file)
 static void hwp_hwpml_file_finalize (GObject *object)
 {
   HwpHWPMLFile *file = HWP_HWPML_FILE(object);
+
   g_free (file->priv->uri);
+
   G_OBJECT_CLASS (hwp_hwpml_file_parent_class)->finalize (object);
 }
 
