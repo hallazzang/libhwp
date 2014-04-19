@@ -68,7 +68,7 @@ void convert (char *in_filename, char *out_filename, GError **error)
     g_free (filename);
     cr = cairo_create (surface);
 
-    hwp_render_page (cr, page);
+    hwp_page_render (page, cr);
     cairo_show_page (cr);
 
     cairo_destroy (cr);
