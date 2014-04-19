@@ -18,14 +18,115 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+ */
+
 #include "hwp-hwp3-parser.h"
 #include "hwp-hwp3-file.h"
 #include "hwp-charset.h"
 #include <math.h>
 #include <stdlib.h>
 
-
 G_DEFINE_TYPE (HwpHWP3Parser, hwp_hwp3_parser, G_TYPE_OBJECT);
+
+gboolean hwp_hwp3_parser_read (HwpHWP3Parser *parser, void *buffer, gsize count)
+{
+  g_return_val_if_fail (parser != NULL, FALSE);
+
+  gboolean is_success = FALSE;
+  is_success = g_input_stream_read_all (parser->stream, buffer, count,
+                                        &parser->bytes_read,
+                                        NULL, NULL);
+  if ((is_success == FALSE) || (parser->bytes_read == 0))
+  {
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+gboolean hwp_hwp3_parser_read_uint8 (HwpHWP3Parser *parser, guint8 *i)
+{
+  g_return_val_if_fail (parser != NULL, FALSE);
+
+  gboolean is_success = FALSE;
+  is_success = g_input_stream_read_all (parser->stream, i, 1,
+                                        &parser->bytes_read,
+                                        NULL, NULL);
+  if ((is_success == FALSE) || (parser->bytes_read != 1))
+  {
+    *i = 0;
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+gboolean hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser, guint16 *i)
+{
+  g_return_val_if_fail (parser != NULL, FALSE);
+
+  gboolean is_success = FALSE;
+  is_success = g_input_stream_read_all (parser->stream, i, 2,
+                                        &parser->bytes_read,
+                                        NULL, NULL);
+  if ((is_success == FALSE) || (parser->bytes_read != 2))
+  {
+    *i = 0;
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+  *i = GUINT16_FROM_LE(*i);
+
+  return TRUE;
+}
+
+gboolean hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser, guint32 *i)
+{
+  g_return_val_if_fail (parser != NULL, FALSE);
+
+  gboolean is_success = FALSE;
+  is_success = g_input_stream_read_all (parser->stream, i, 4,
+                                        &parser->bytes_read,
+                                        NULL, NULL);
+  if ((is_success == FALSE) || (parser->bytes_read != 4))
+  {
+    *i = 0;
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+  *i = GUINT32_FROM_LE(*i);
+
+  return TRUE;
+}
+
+gboolean hwp_hwp3_parser_skip (HwpHWP3Parser *parser, guint16 count)
+{
+  g_return_val_if_fail (parser != NULL, FALSE);
+
+  gboolean is_success = FALSE;
+  guint8  *buf        = g_malloc (count);
+
+  is_success = g_input_stream_read_all (parser->stream, buf, (gsize) count,
+                                        &parser->bytes_read,
+                                        NULL, NULL);
+  g_free (buf);
+
+  if ((is_success == FALSE) || (parser->bytes_read != (gsize) count))
+  {
+    g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+
+  return TRUE;
+}
 
 static void _hwp_hwp3_parser_parse_signature (HwpHWP3Parser *parser,
                                               HwpHWP3File   *file,
@@ -404,6 +505,9 @@ static void _hwp_hwp3_parser_parse_supplementary_info_block2 (HwpHWP3Parser *par
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
 }
 
+/**
+ * Since: 0.0.1
+ */
 void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
                             HwpHWP3File   *file,
                             GError       **error)
@@ -439,6 +543,9 @@ void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
   _hwp_hwp3_parser_parse_supplementary_info_block2 (parser, file, error);
 }
 
+/**
+ * Since: 0.0.1
+ */
 HwpHWP3Parser *hwp_hwp3_parser_new (HwpListener *listener,
                                     gpointer     user_data)
 {
@@ -449,101 +556,6 @@ HwpHWP3Parser *hwp_hwp3_parser_new (HwpListener *listener,
   parser->user_data     = user_data;
 
   return parser;
-}
-
-gboolean hwp_hwp3_parser_read_uint8 (HwpHWP3Parser *parser, guint8 *i)
-{
-  g_return_val_if_fail (parser != NULL, FALSE);
-
-  gboolean is_success = FALSE;
-  is_success = g_input_stream_read_all (parser->stream, i, 1,
-                                        &parser->bytes_read,
-                                        NULL, NULL);
-  if ((is_success == FALSE) || (parser->bytes_read != 1))
-  {
-    *i = 0;
-    g_input_stream_close (parser->stream, NULL, NULL);
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-gboolean hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser, guint16 *i)
-{
-  g_return_val_if_fail (parser != NULL, FALSE);
-
-  gboolean is_success = FALSE;
-  is_success = g_input_stream_read_all (parser->stream, i, 2,
-                                        &parser->bytes_read,
-                                        NULL, NULL);
-  if ((is_success == FALSE) || (parser->bytes_read != 2))
-  {
-    *i = 0;
-    g_input_stream_close (parser->stream, NULL, NULL);
-    return FALSE;
-  }
-  *i = GUINT16_FROM_LE(*i);
-
-  return TRUE;
-}
-
-gboolean hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser, guint32 *i)
-{
-  g_return_val_if_fail (parser != NULL, FALSE);
-
-  gboolean is_success = FALSE;
-  is_success = g_input_stream_read_all (parser->stream, i, 4,
-                                        &parser->bytes_read,
-                                        NULL, NULL);
-  if ((is_success == FALSE) || (parser->bytes_read != 4))
-  {
-    *i = 0;
-    g_input_stream_close (parser->stream, NULL, NULL);
-    return FALSE;
-  }
-  *i = GUINT32_FROM_LE(*i);
-  
-  return TRUE;
-}
-
-gboolean hwp_hwp3_parser_read (HwpHWP3Parser *parser, void *buffer, gsize count)
-{
-  g_return_val_if_fail (parser != NULL, FALSE);
-
-  gboolean is_success = FALSE;
-  is_success = g_input_stream_read_all (parser->stream, buffer, count,
-                                        &parser->bytes_read,
-                                        NULL, NULL);
-  if ((is_success == FALSE) || (parser->bytes_read == 0))
-  {
-    g_input_stream_close (parser->stream, NULL, NULL);
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-gboolean hwp_hwp3_parser_skip (HwpHWP3Parser *parser, guint16 count)
-{
-  g_return_val_if_fail (parser != NULL, FALSE);
-
-  gboolean is_success = FALSE;
-  guint8  *buf        = g_malloc (count);
-
-  is_success = g_input_stream_read_all (parser->stream, buf, (gsize) count,
-                                        &parser->bytes_read,
-                                        NULL, NULL);
-  g_free (buf);
-
-  if ((is_success == FALSE) || (parser->bytes_read != (gsize) count))
-  {
-    g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
-    g_input_stream_close (parser->stream, NULL, NULL);
-    return FALSE;
-  }
-
-  return TRUE;
 }
 
 static void hwp_hwp3_parser_init (HwpHWP3Parser *parser)
