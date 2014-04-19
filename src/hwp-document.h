@@ -4,18 +4,25 @@
  *
  * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  * 
- * This library is free software: you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This library is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
 #if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
@@ -30,6 +37,7 @@
 
 #include "hwp-page.h"
 #include "hwp-models.h"
+#include <poppler.h>
 
 G_BEGIN_DECLS
 
@@ -45,18 +53,24 @@ typedef struct _HwpDocumentClass HwpDocumentClass;
 
 struct _HwpDocument
 {
-  GObject         parent_instance;
+  GObject      parent_instance;
 
-  GArray         *paragraphs;
-  GArray         *pages;
-  const gchar    *prv_text;
+  GPtrArray   *char_shapes;
+  GPtrArray   *face_names;
+
+  GPtrArray   *paragraphs;
+  GPtrArray   *pages;
+  const gchar *prv_text;
   /* hwp version */
-  guint8          major_version;
-  guint8          minor_version;
-  guint8          micro_version;
-  guint8          extra_version;
+  guint8       major_version;
+  guint8       minor_version;
+  guint8       micro_version;
+  guint8       extra_version;
 
   HwpSummaryInfo *info;
+
+  GByteArray      *pdf_data;
+  PopplerDocument *poppler_document;
 };
 
 struct _HwpDocumentClass
@@ -65,29 +79,31 @@ struct _HwpDocumentClass
 };
 
 GType        hwp_document_get_type               (void) G_GNUC_CONST;
-
-HwpDocument *hwp_document_new                    (void);
-HwpDocument *hwp_document_new_from_file          (const gchar  *filename,
-                                                  GError      **error);
+void         hwp_document_add_char_shape         (HwpDocument  *document,
+                                                  HwpCharShape *char_shape);
+void         hwp_document_add_face_name          (HwpDocument  *document,
+                                                  HwpFaceName  *face_name);
 void         hwp_document_add_paragraph          (HwpDocument  *document,
                                                   HwpParagraph *paragraph);
-guint        hwp_document_get_n_pages            (HwpDocument  *document);
-HwpPage     *hwp_document_get_page               (HwpDocument  *document,
-                                                  gint          n_page);
-/* meta data */
-gchar       *hwp_document_get_title              (HwpDocument  *document);
-gchar       *hwp_document_get_keywords           (HwpDocument  *document);
-gchar       *hwp_document_get_subject            (HwpDocument  *document);
-gchar       *hwp_document_get_creator            (HwpDocument  *document);
 GTime        hwp_document_get_creation_date      (HwpDocument  *document);
-GTime        hwp_document_get_modification_date  (HwpDocument  *document);
+gchar       *hwp_document_get_creator            (HwpDocument  *document);
 gchar       *hwp_document_get_format             (HwpDocument  *document);
-gchar       *hwp_document_get_hwp_version_string (HwpDocument  *document);
 void         hwp_document_get_hwp_version        (HwpDocument  *document,
                                                   guint8       *major_version,
                                                   guint8       *minor_version,
                                                   guint8       *micro_version,
                                                   guint8       *extra_version);
+gchar       *hwp_document_get_hwp_version_string (HwpDocument  *document);
+gchar       *hwp_document_get_keywords           (HwpDocument  *document);
+GTime        hwp_document_get_modification_date  (HwpDocument  *document);
+guint        hwp_document_get_n_pages            (HwpDocument  *document);
+HwpPage     *hwp_document_get_page               (HwpDocument  *document,
+                                                  gint          n_page);
+gchar       *hwp_document_get_subject            (HwpDocument  *document);
+gchar       *hwp_document_get_title              (HwpDocument  *document);
+HwpDocument *hwp_document_new                    (void);
+HwpDocument *hwp_document_new_from_file          (const gchar  *filename,
+                                                  GError      **error);
 
 G_END_DECLS
 

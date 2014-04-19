@@ -4,18 +4,18 @@
  *
  * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
  *
- * This library is free software: you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This library is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
  *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -33,11 +33,177 @@
 #include "hwp-models.h"
 #include "hwp-listener.h"
 #include <math.h>
+#include <pango/pango.h>
+#include <cairo-pdf.h>
+#include <pango/pangocairo.h>
 
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (HwpDocument, hwp_document, G_TYPE_OBJECT,
   G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER, hwp_document_listener_iface_init))
+
+static cairo_status_t hwp_document_write_pdf_to_mem (void *closure,
+                                                     const unsigned char *data,
+                                                     unsigned int length)
+{
+  GByteArray *pdf_data = HWP_DOCUMENT (closure)->pdf_data;
+  g_byte_array_append (pdf_data, data, length);
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static void hwp_document_create_poppler_document (HwpDocument *document)
+{
+  g_return_if_fail (document->paragraphs->len > 0);
+
+  HwpParagraph *paragraph0 = g_ptr_array_index (document->paragraphs, 0);
+  HwpParagraph *paragraph = NULL;
+  guint8 major_version;
+  hwp_document_get_hwp_version (document, &major_version, NULL, NULL, NULL);
+  /* 아직 secd 작업하지 못한 hwp3, hwp ml 문서를 위해 */
+  if (paragraph0->secd == NULL)
+    paragraph0->secd = hwp_secd_new ();
+
+  HwpSecd *secd = paragraph0->secd;
+
+  gdouble x0 = secd->page_left_margin_in_points;
+  gdouble y0 = secd->page_top_margin_in_points;
+
+  cairo_surface_t *surface;
+  surface = cairo_pdf_surface_create_for_stream (hwp_document_write_pdf_to_mem,
+                                                 document,
+                                                 secd->page_width_in_points,
+                                                 secd->page_height_in_points);
+
+  cairo_t *cr = cairo_create (surface);
+  PangoLayout *layout = pango_cairo_create_layout (cr);
+
+  pango_layout_set_width (layout,
+                          (secd->page_width_in_points -
+                           secd->page_left_margin_in_points -
+                           secd->page_right_margin_in_points) * PANGO_SCALE);
+
+  pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
+  pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+
+  cairo_move_to (cr, x0, y0);
+
+  for (guint i = 0; i < document->paragraphs->len; i++)
+  {
+    paragraph = g_ptr_array_index (document->paragraphs, i);
+
+    /* markup text 만들기 */
+    const gchar *text = "";
+
+    if (paragraph->string)
+      text = paragraph->string->str;
+
+    GString *markup = g_string_new (NULL);
+
+    for (guint j = 0; j < paragraph->m_len; j++)
+    {
+      guint32 pos1 = paragraph->m_pos[j];
+      guint32 pos2;
+
+      if (j + 1 > paragraph->m_len - 1)
+        /* n_chars 의 크기는 parser->data_len / 2 */
+        /* 즉, PARA_TEXT를 다시 손질해야 합니다. */
+        pos2 = paragraph->n_chars - 1;
+      else
+        pos2 = paragraph->m_pos[j+1];
+
+      /* pos 값 보정 */
+      if (pos1 > 0 && pos1 > g_utf8_strlen (text, -1) - 1)
+        pos1 = g_utf8_strlen (text, -1);
+
+      if (pos2 > g_utf8_strlen (text, -1) - 1)
+        pos2 = g_utf8_strlen (text, -1);
+
+      /* NOTE: substring의 길이는 pos2 - pos1 입니다. */
+      gchar *substring = g_utf8_substring (text, pos1, pos2);
+
+      guint16 char_shape_id = paragraph->m_id[j];
+      HwpCharShape *char_shape;
+      char_shape = g_ptr_array_index (document->char_shapes, char_shape_id);
+      guint16 face_id = char_shape->face_id[0]; /* 한국어의 경우 0 */
+
+      HwpFaceName *hwp_face_name;
+      hwp_face_name = g_ptr_array_index (document->face_names, face_id);
+      gchar *face_name = hwp_face_name->font_name;
+
+      gdouble font_size_in_points = char_shape->height_in_points;
+
+      gchar *span = g_strdup_printf ("<span face=\"%s\" font=\"%f\">",
+                                     face_name,
+                                     font_size_in_points);
+      g_string_append (markup, span);
+      g_free (span);
+
+      if (substring != NULL)
+        g_string_append (markup, substring);
+
+      g_free (substring);
+      g_string_append (markup, "</span>");
+    }
+
+    /* hwp5의 경우 */
+    if (major_version == 5)
+      pango_layout_set_markup (layout, markup->str, -1);
+    /* hwp3, hwpml의 경우 */
+    else
+      pango_layout_set_text (layout, text, -1);
+
+    g_string_free (markup, TRUE);
+    pango_cairo_update_layout (cr, layout);
+    PangoLayoutIter *iter = pango_layout_get_iter (layout);
+
+    do {
+      PangoRectangle ink_rect;
+      PangoRectangle logical_rect;
+      double x = 0.0, y = 0.0;
+
+      PangoLayoutLine *line = pango_layout_iter_get_line_readonly (iter);
+      pango_layout_iter_get_line_extents (iter, &ink_rect, &logical_rect);
+      cairo_get_current_point (cr, &x, &y);
+
+      if (y + logical_rect.height / PANGO_SCALE >=
+          secd->page_height_in_points -
+          secd->page_bottom_margin_in_points -
+          secd->page_footer_margin_in_points)
+      {
+        cairo_show_page (cr);
+        cairo_move_to (cr, x0, y0);
+      }
+
+      cairo_rel_move_to (cr, 0, logical_rect.height / PANGO_SCALE);
+      pango_cairo_show_layout_line (cr, line);
+    } while (pango_layout_iter_next_line (iter));
+
+    pango_layout_iter_free (iter);
+  }
+
+  g_object_unref (layout);
+  cairo_destroy (cr);
+  cairo_surface_finish (surface);
+  cairo_surface_destroy (surface);
+
+  document->poppler_document =
+    poppler_document_new_from_data ((char *) document->pdf_data->data,
+                                    document->pdf_data->len,
+                                    NULL, NULL);
+
+  int n_pages = poppler_document_get_n_pages (document->poppler_document);
+
+  HwpPage *page;
+
+  for (int i = 0; i < n_pages; i++)
+  {
+    page = hwp_page_new ();
+    page->poppler_page = poppler_document_get_page (document->poppler_document,
+                                                    i);
+    g_ptr_array_add (document->pages, page);
+  }
+}
 
 /**
  * hwp_document_new_from_file:
@@ -61,7 +227,13 @@ HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
   if (!file)
     return NULL;
 
-  return hwp_file_get_document (file, error);
+  HwpDocument *document = hwp_file_get_document (file, error);
+  g_object_unref (file);
+
+  if (!document)
+    return NULL;
+
+  return document;
 }
 
 /**
@@ -76,8 +248,12 @@ HwpDocument *hwp_document_new_from_file (const gchar *filename, GError **error)
  */
 guint hwp_document_get_n_pages (HwpDocument *document)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0U);
-  return document->pages->len;
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), 0);
+
+  if (!document->poppler_document)
+    hwp_document_create_poppler_document (document);
+
+  return poppler_document_get_n_pages (document->poppler_document);
 }
 
 /**
@@ -92,11 +268,15 @@ guint hwp_document_get_n_pages (HwpDocument *document)
  *
  * Since: 0.0.1
  */
-HwpPage *hwp_document_get_page (HwpDocument *doc, gint n_page)
+HwpPage *hwp_document_get_page (HwpDocument *document, gint n_page)
 {
-  g_return_val_if_fail (HWP_IS_DOCUMENT (doc), NULL);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  HwpPage *page = g_array_index (doc->pages, HwpPage *, (guint) n_page);
+  if (!document->poppler_document)
+    hwp_document_create_poppler_document (document);
+
+  HwpPage *page = g_ptr_array_index (document->pages, (guint) n_page);
+
   return g_object_ref (page);
 }
 
@@ -279,6 +459,7 @@ void hwp_document_get_hwp_version (HwpDocument *document,
                                    guint8      *extra_version)
 {
   g_return_if_fail (HWP_IS_DOCUMENT (document));
+
   if (major_version) *major_version = document->major_version;
   if (minor_version) *minor_version = document->minor_version;
   if (micro_version) *micro_version = document->micro_version;
@@ -289,10 +470,13 @@ static void hwp_document_finalize (GObject *object)
 {
   HwpDocument *document = HWP_DOCUMENT(object);
 
-  g_array_free (document->paragraphs, TRUE);
-  g_array_free (document->pages, TRUE);
+  g_ptr_array_free (document->char_shapes, TRUE);
+  g_ptr_array_free (document->face_names, TRUE);
+  g_ptr_array_free (document->paragraphs, TRUE);
+  g_ptr_array_free (document->pages, TRUE);
   g_free ((gchar *) document->prv_text);
   g_object_unref (document->info);
+  g_byte_array_free (document->pdf_data, TRUE);
 
   G_OBJECT_CLASS (hwp_document_parent_class)->finalize (object);
 }
@@ -305,29 +489,33 @@ static void hwp_document_class_init (HwpDocumentClass *klass)
 
 static void hwp_document_init (HwpDocument *document)
 {
-  document->paragraphs = g_array_new  (TRUE, TRUE, sizeof (HwpParagraph *));
-  document->pages      = g_array_new  (TRUE, TRUE, sizeof (HwpPage *));
+  document->pdf_data = g_byte_array_new ();
+
+  document->char_shapes =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_char_shape_free);
+
+  document->face_names =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_face_name_free);
+
+  document->paragraphs = g_ptr_array_new_with_free_func (g_object_unref);
+
+  document->pages = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /* callback */
-void hwp_document_listen_version (HwpListener *listener,
-                                  guint8       major_version,
-                                  guint8       minor_version,
-                                  guint8       micro_version,
-                                  guint8       extra_version,
-                                  gpointer     user_data,
-                                  GError     **error)
+static void hwp_document_listen_version (HwpListener *listener,
+                                         guint8       major_version,
+                                         guint8       minor_version,
+                                         guint8       micro_version,
+                                         guint8       extra_version,
+                                         gpointer     user_data,
+                                         GError     **error)
 {
   HwpDocument *document   = (HwpDocument *) listener;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;
   document->extra_version = extra_version;
-}
-
-void hwp_document_paginate (HwpDocument *document, HwpParagraph *paragraph)
-{
-  /* TODO */
 }
 
 /**
@@ -339,72 +527,86 @@ void hwp_document_paginate (HwpDocument *document, HwpParagraph *paragraph)
  */
 void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
 {
-  g_array_append_val (document->paragraphs, paragraph);
-  /* 페이지수 계산하면서 페이지에 파라그래프를 넣어야 한다.
-      파라그래프가 레이아웃이라고 보면 된다.
-      ParagraphLayout 이런 것이 있을 필요가 있을까. 없다.
-      Paragraph가 레이아웃 역할을 하는 것이고
-      이것을 벡엔드로 렌더링하면 된다. 여기서 벡엔드란 cairo를 의미한다.
-  */
-  hwp_document_paginate (document, paragraph);
+  g_return_if_fail (HWP_IS_DOCUMENT  (document));
+  g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
+
+  g_ptr_array_add (document->paragraphs, paragraph);
+}
+
+/**
+ * hwp_document_add_char_shape:
+ * @document: A #HwpDocument
+ * @char_shape: A #HwpCharShape
+ *
+ * Since: 0.0.3
+ */
+void
+hwp_document_add_char_shape (HwpDocument *document, HwpCharShape *char_shape)
+{
+  g_return_if_fail (HWP_IS_DOCUMENT (document));
+  g_return_if_fail (char_shape != NULL);
+
+  g_ptr_array_add (document->char_shapes, char_shape);
+}
+
+/**
+ * hwp_document_add_face_name:
+ * @document: A #HwpDocument
+ * @face_name: A #HwpFaceName
+ *
+ * Since: 0.0.3
+ */
+void hwp_document_add_face_name (HwpDocument *document, HwpFaceName *face_name)
+{
+  g_return_if_fail (HWP_IS_DOCUMENT (document));
+  g_return_if_fail (face_name != NULL);
+
+  g_ptr_array_add (document->face_names, face_name);
 }
 
 /* callback */
-void hwp_document_listen_paragraph (HwpListener  *listener,
-                                    HwpParagraph *paragraph,
-                                    gpointer      user_data,
-                                    GError      **error)
+static void hwp_document_listen_paragraph (HwpListener  *listener,
+                                           HwpParagraph *paragraph,
+                                           gpointer      user_data,
+                                           GError      **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listener);
   hwp_document_add_paragraph (document, paragraph);
-
-  /* HwpRenderContext 를 만들어서 거기에 page, x, y 변수를 만들어야 할 것 같음. */
-  static gdouble y = 0.0;
-  guint len = 0;
-  HwpPage *page = g_array_index (document->pages, HwpPage *, 0);
-
-  /* 페이지가 없다면 만든다. */
-  if (!page) {
-    page = hwp_page_new ();
-    g_array_append_val (document->pages, page);
-  } else {
-    /* 페이지가 있다면 마지막 페이지 얻기 */
-    page = g_array_index (document->pages, HwpPage *, document->pages->len - 1);
-  }
-  /* 높이 계산; 문단 텍스트 */
-  /* TODO: 스펙 문서 27쪽에 HWPTAG_FACE_NAME 에 표 17 글꼴 유형 정보 X-높이 */
-  if (paragraph->string) {
-    len = g_utf8_strlen (paragraph->string->str, -1);
-    y += 18.0 * ceil (len / 33.0);
-  }
-
-  /* TODO: 높이 계산; 표 */
-  /* 개체공통속성의 높이를 활용해야 합니다. */
-
-  if (y <= 842.0 - 80.0) {
-    g_array_append_val (page->paragraphs, paragraph);
-  } else {
-    page = hwp_page_new ();
-    g_array_append_val (document->pages, page);
-    g_array_append_val (page->paragraphs, paragraph);
-    y = 0.0;
-  } /* if */
-  paragraph = NULL;
 }
 
-void hwp_document_listen_summary_info (HwpListener    *listener,
-                                       HwpSummaryInfo *info,
-                                       gpointer        user_data,
-                                       GError        **error)
+static void hwp_document_listen_summary_info (HwpListener    *listener,
+                                              HwpSummaryInfo *info,
+                                              gpointer        user_data,
+                                              GError        **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listener);
 
   document->info = info;
 }
 
+static void hwp_document_listen_char_shape (HwpListener  *listener,
+                                            HwpCharShape *char_shape,
+                                            gpointer      user_data,
+                                            GError      **error)
+{
+  HwpDocument *document = HWP_DOCUMENT (listener);
+  hwp_document_add_char_shape (document, char_shape);
+}
+
+static void hwp_document_listen_face_name (HwpListener  *listener,
+                                           HwpFaceName  *face_name,
+                                           gpointer      user_data,
+                                           GError      **error)
+{
+  HwpDocument *document = HWP_DOCUMENT (listener);
+  hwp_document_add_face_name (document, face_name);
+}
+
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
+  iface->char_shape       = hwp_document_listen_char_shape;
+  iface->face_name        = hwp_document_listen_face_name;
   iface->paragraph        = hwp_document_listen_paragraph;
   iface->summary_info     = hwp_document_listen_summary_info;
 }
