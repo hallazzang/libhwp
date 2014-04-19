@@ -44,6 +44,7 @@ sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool  \
   libgirepository1.0-dev gtk-doc-tools
 
 cd libhwp
+mkdir -p m4
 gtkdocize
 dpkg-buildpackage -b
 cd ..
