@@ -48,6 +48,13 @@ GQuark hwp_file_error_quark (void)
 }
 
 /**
+ * hwp_file_get_hwp_version:
+ * @file:
+ * @major_version:
+ * @minor_version:
+ * @micro_version:
+ * @extra_version:
+ *
  * Since: 0.0.1
  */
 void hwp_file_get_hwp_version (HwpFile *file,
