@@ -64,17 +64,7 @@ HwpHWP3Parser *hwp_hwp3_parser_new         (HwpListener   *listener,
 void           hwp_hwp3_parser_parse       (HwpHWP3Parser *parser,
                                             HwpHWP3File   *file,
                                             GError       **error);
-gboolean       hwp_hwp3_parser_read_uint8  (HwpHWP3Parser *parser,
-                                            guint8        *i);
-gboolean       hwp_hwp3_parser_read_uint16 (HwpHWP3Parser *parser,
-                                            guint16       *i);
-gboolean       hwp_hwp3_parser_read_uint32 (HwpHWP3Parser *parser,
-                                            guint32       *i);
-gboolean       hwp_hwp3_parser_read        (HwpHWP3Parser *parser,
-                                            void          *buffer,
-                                            gsize          count);
-gboolean       hwp_hwp3_parser_skip        (HwpHWP3Parser *parser,
-                                            guint16        count);
+
 G_END_DECLS
 
 #endif /* __HWP_HWP3_PARSER_H__ */

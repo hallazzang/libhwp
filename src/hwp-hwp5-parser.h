@@ -94,12 +94,6 @@ void           hwp_hwp5_parser_parse         (HwpHWP5Parser *parser,
                                               GError       **error);
 gboolean       hwp_hwp5_parser_pull          (HwpHWP5Parser *parser,
                                               GError       **error);
-gboolean       hwp_hwp5_parser_read_uint16   (HwpHWP5Parser *parser,
-                                              guint16       *i);
-gboolean       hwp_hwp5_parser_read_uint32   (HwpHWP5Parser *parser,
-                                              guint32       *i);
-gboolean       hwp_hwp5_parser_skip          (HwpHWP5Parser *parser,
-                                              guint16        count);
 
 G_END_DECLS
 
