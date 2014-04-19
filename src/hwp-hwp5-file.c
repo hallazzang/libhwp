@@ -240,9 +240,9 @@ static gint get_entry_order (char *a)
 
 static gint compare_entry_names (gconstpointer a, gconstpointer b)
 {
-    gint i = get_entry_order (*(char **)a);
-    gint j = get_entry_order (*(char **)b);
-    return i - j;
+  gint i = get_entry_order ((char *) a);
+  gint j = get_entry_order ((char *) b);
+  return i - j;
 }
 
 static void make_stream (HwpHWP5File *file, GError **error)
@@ -261,18 +261,18 @@ static void make_stream (HwpHWP5File *file, GError **error)
     return;
   }
 
-  /* 루트 엔트리 이름을 entry_names 배열에 넣고 우선 순위에 따라 정렬한다 */
-  GArray *entry_names = g_array_new (TRUE, TRUE, sizeof(char *));
+  /* 루트 엔트리 이름을 정렬한다 */
+  GPtrArray *entry_names = g_ptr_array_new_with_free_func (g_free);
   for (gint i = 0; i < n_root_entry; i++) 
   {
     const gchar *name = gsf_infile_name_by_index (ole, i);
-    g_array_append_val (entry_names, name);
+    g_ptr_array_add (entry_names, g_strdup (name));
   }
-  g_array_sort(entry_names, compare_entry_names);
+  g_ptr_array_sort (entry_names, compare_entry_names);
   /* 우선 순위에 따라 스트림을 만든다 */
   for (gint i = 0; i < n_root_entry; i++)
   {
-    char *entry = g_array_index (entry_names, char *, i);
+    char *entry = g_ptr_array_index (entry_names, i);
 
     if (g_str_equal (entry, "FileHeader")) {
       GsfInput *fh = gsf_infile_child_by_name (ole, entry);
@@ -329,7 +329,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
                g_str_equal(entry, "VeiwText")) {
       GsfInfile *infile = (GsfInfile *) gsf_infile_child_by_name (ole, entry);
 
-      file->section_streams = g_array_new (TRUE, TRUE, sizeof (GInputStream*));
+      file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
 
       gint n_section = gsf_infile_num_children (infile);
 
@@ -344,13 +344,15 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      for (gint i = 0; i < n_section; i++) {
+      for (gint i = 0; i < n_section; i++)
+      {
         GsfInput *section = 
                     gsf_infile_child_by_vname (infile,
                                                g_strdup_printf("Section%d", i),
                                                NULL);
 
-        if (gsf_infile_num_children ((GsfInfile *) section) != -1) {
+        if (gsf_infile_num_children ((GsfInfile *) section) != -1)
+        {
           if (GSF_IS_INPUT (section))
             g_object_unref (section);
 
@@ -361,7 +363,8 @@ static void make_stream (HwpHWP5File *file, GError **error)
           return;
         }
 
-        if (file->is_compress) {
+        if (file->is_compress)
+        {
           GInputStream      *gis;
           GZlibDecompressor *zd;
           GInputStream      *cis;
@@ -372,13 +375,13 @@ static void make_stream (HwpHWP5File *file, GError **error)
           g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
 
           GInputStream *tmp = G_INPUT_STREAM (cis);
-          g_array_append_val (file->section_streams, tmp);
+          g_ptr_array_add (file->section_streams, tmp);
           g_object_unref (zd);
           g_object_unref (gis);
         } else {
           GsfInputStream *stream = gsf_input_stream_new (section);
           GInputStream *tmp = G_INPUT_STREAM (stream);
-          g_array_append_val (file->section_streams, tmp);
+          g_ptr_array_add (file->section_streams, tmp);
         }
 
         g_object_unref (section);
@@ -440,8 +443,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
     } /* if */
   } /* for */
 
-  g_array_free (entry_names, TRUE);
-  g_array_unref (entry_names);
+  g_ptr_array_unref (entry_names);
   return;
 }
 
@@ -486,14 +488,15 @@ HwpHWP5File *hwp_hwp5_file_new_for_path (const gchar *path, GError **error)
 static void hwp_hwp5_file_finalize (GObject *object)
 {
   HwpHWP5File *file = HWP_HWP5_FILE(object);
+
   g_object_unref (file->priv->olefile);
   g_object_unref (file->prv_text_stream);
   g_object_unref (file->prv_image_stream);
   g_object_unref (file->file_header_stream);
   g_object_unref (file->doc_info_stream);
-  g_array_free   (file->section_streams, TRUE);
+  g_ptr_array_unref (file->section_streams);
   g_object_unref (file->summary_info_stream);
-  g_free         (file->signature);
+  g_free (file->signature);
 
   G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
 }
@@ -511,6 +514,7 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 
 static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
-  file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWP5_FILE,
-                                                  HwpHWP5FilePrivate);
+  file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file,
+                                            HWP_TYPE_HWP5_FILE,
+                                            HwpHWP5FilePrivate);
 }

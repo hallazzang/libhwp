@@ -8,12 +8,12 @@
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -56,7 +56,7 @@ struct _HwpHWP5File
   HwpFile             parent_instance;
   HwpHWP5FilePrivate *priv;
 
-  GArray             *section_streams;
+  GPtrArray          *section_streams;
   GInputStream       *prv_text_stream;
   GInputStream       *prv_image_stream;
   GInputStream       *file_header_stream;
@@ -93,20 +93,20 @@ struct _HwpHWP5FilePrivate
 };
 
 GType        hwp_hwp5_file_get_type               (void) G_GNUC_CONST;
-HwpHWP5File *hwp_hwp5_file_new_for_path           (const gchar *path,
-                                                   GError     **error);
-gchar       *hwp_hwp5_file_get_hwp_version_string (HwpFile     *file);
-void         hwp_hwp5_file_get_hwp_version        (HwpFile     *file,
-                                                   guint8      *major_version,
-                                                   guint8      *minor_version,
-                                                   guint8      *micro_version,
-                                                   guint8      *extra_version);
 gboolean     hwp_hwp5_file_check_version          (HwpHWP5File *file,
                                                    guint8       major,
                                                    guint8       minor,
                                                    guint8       micro,
                                                    guint8       extra);
 HwpDocument *hwp_hwp5_file_get_document           (HwpFile     *file,
+                                                   GError     **error);
+void         hwp_hwp5_file_get_hwp_version        (HwpFile     *file,
+                                                   guint8      *major_version,
+                                                   guint8      *minor_version,
+                                                   guint8      *micro_version,
+                                                   guint8      *extra_version);
+gchar       *hwp_hwp5_file_get_hwp_version_string (HwpFile     *file);
+HwpHWP5File *hwp_hwp5_file_new_for_path           (const gchar *path,
                                                    GError     **error);
 
 G_END_DECLS
