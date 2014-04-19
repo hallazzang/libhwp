@@ -34,6 +34,9 @@
 
 G_DEFINE_TYPE (HwpSummaryInfo, hwp_summary_info, G_TYPE_OBJECT);
 
+/**
+ * Since: 0.0.1
+ */
 HwpSummaryInfo *hwp_summary_info_new (void)
 {
   return (HwpSummaryInfo *) g_object_new (HWP_TYPE_SUMMARY_INFO, NULL);
@@ -82,6 +85,9 @@ static void hwp_summary_info_class_init (HwpSummaryInfoClass *klass)
 
 G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
+/**
+ * Since: 0.0.1
+ */
 HwpParagraph *hwp_paragraph_new (void)
 {
   return (HwpParagraph *) g_object_new (HWP_TYPE_PARAGRAPH, NULL);
@@ -97,6 +103,15 @@ static void hwp_paragraph_finalize (GObject *object)
   if (paragraph->table)
     g_object_unref (paragraph->table);
 
+  if (paragraph->secd)
+    hwp_secd_free (paragraph->secd);
+
+  if (paragraph->m_pos)
+    g_free (paragraph->m_pos);
+
+  if (paragraph->m_id)
+    g_free (paragraph->m_id);
+
   G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (object);
 }
 
@@ -110,6 +125,9 @@ static void hwp_paragraph_init (HwpParagraph *paragraph)
 {
 }
 
+/**
+ * Since: 0.0.1
+ */
 void hwp_paragraph_set_string (HwpParagraph *paragraph, GString *string)
 {
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
@@ -130,6 +148,19 @@ GString *hwp_paragraph_get_string (HwpParagraph *paragraph)
   return paragraph->string;
 }
 
+/**
+ * Since: 0.0.3
+ */
+void hwp_paragraph_set_secd (HwpParagraph *paragraph, HwpSecd *secd)
+{
+  g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
+  g_return_if_fail (secd != NULL);
+  paragraph->secd = secd;
+}
+
+/**
+ * Since: 0.0.1
+ */
 void hwp_paragraph_set_table (HwpParagraph *paragraph, HwpTable *table)
 {
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
@@ -155,6 +186,9 @@ HwpTable *hwp_paragraph_get_table (HwpParagraph *paragraph)
 
 G_DEFINE_TYPE (HwpTable, hwp_table, G_TYPE_OBJECT);
 
+/**
+ * Since: 0.0.1
+ */
 HwpTable *hwp_table_new (void)
 {
   return (HwpTable *) g_object_new (HWP_TYPE_TABLE, NULL);
@@ -183,7 +217,7 @@ void hexdump(guint8 *data, guint16 data_len)
 
 static void hwp_table_init (HwpTable *table)
 {
-  table->cells = g_array_new (TRUE, TRUE, sizeof (HwpTableCell *));
+  table->cells = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 static void hwp_table_finalize (GObject *object)
@@ -196,7 +230,7 @@ static void hwp_table_finalize (GObject *object)
   if (table->zones)
     g_free (table->zones);
 
-  g_array_free (table->cells, TRUE);
+  g_ptr_array_unref (table->cells);
 
   G_OBJECT_CLASS (hwp_table_parent_class)->finalize (object);
 }
@@ -218,14 +252,17 @@ static void hwp_table_class_init (HwpTableClass *klass)
 HwpTableCell *hwp_table_get_last_cell (HwpTable *table)
 {
   g_return_val_if_fail (HWP_IS_TABLE (table), NULL);
-  return g_array_index (table->cells, HwpTableCell *, table->cells->len - 1);
+  return g_ptr_array_index (table->cells, table->cells->len - 1);
 }
 
+/**
+ * Since: 0.0.1
+ */
 void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell)
 {
   g_return_if_fail (HWP_IS_TABLE (table));
   g_return_if_fail (HWP_IS_TABLE_CELL (cell));
-  g_array_append_val (table->cells, cell);
+  g_ptr_array_add (table->cells, cell);
 }
 
 /** HwpTableCell ************************************************************/
@@ -234,13 +271,14 @@ G_DEFINE_TYPE (HwpTableCell, hwp_table_cell, G_TYPE_OBJECT);
 
 static void hwp_table_cell_init (HwpTableCell *cell)
 {
-  cell->paragraphs = g_array_new (TRUE, TRUE, sizeof (HwpParagraph *));
+  cell->paragraphs = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 static void hwp_table_cell_finalize (GObject *object)
 {
-  HwpTableCell *cell = HWP_TABLE_CELL(object);
-  g_array_free (cell->paragraphs, TRUE);
+  HwpTableCell *cell = HWP_TABLE_CELL (object);
+  g_ptr_array_unref (cell->paragraphs);
+
   G_OBJECT_CLASS (hwp_table_cell_parent_class)->finalize (object);
 }
 
@@ -250,6 +288,9 @@ static void hwp_table_cell_class_init (HwpTableCellClass *klass)
   object_class->finalize     = hwp_table_cell_finalize;
 }
 
+/**
+ * Since: 0.0.1
+ */
 HwpTableCell *hwp_table_cell_new (void)
 {
   return (HwpTableCell *) g_object_new (HWP_TYPE_TABLE_CELL, NULL);
@@ -266,14 +307,103 @@ HwpTableCell *hwp_table_cell_new (void)
 HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell)
 {
   g_return_val_if_fail (HWP_IS_TABLE_CELL (cell), NULL);
-  return g_array_index (cell->paragraphs, HwpParagraph *,
-                        cell->paragraphs->len - 1);
+
+  return g_ptr_array_index (cell->paragraphs, cell->paragraphs->len - 1);
 }
 
-void
-hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
+/**
+ * Since: 0.0.1
+ */
+void hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
 {
   g_return_if_fail (HWP_IS_TABLE_CELL (cell));
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
-  g_array_append_val (cell->paragraphs, paragraph);
+  g_ptr_array_add (cell->paragraphs, paragraph);
+}
+
+HWP_DEFINE_BOXED_TYPE (HwpSecd, hwp_secd, hwp_secd_copy, hwp_secd_free)
+
+/**
+ * Since: 0.0.3
+ */
+HwpSecd *hwp_secd_new ()
+{
+  HwpSecd *secd = g_slice_new0 (HwpSecd);
+
+  /* dafault 값 설정 */
+  secd->page_width_in_points = 595.28;
+  secd->page_height_in_points = 841.88;
+  secd->page_left_margin_in_points = 85.04;
+  secd->page_right_margin_in_points = 85.04;
+  secd->page_top_margin_in_points = 56.68;
+  secd->page_bottom_margin_in_points = 42.52;
+  secd->page_header_margin_in_points = 42.52;
+  secd->page_footer_margin_in_points = 42.52;
+  secd->page_gutter_margin_in_points = 0.0;
+  secd->page_prop = 0.0;
+
+  return secd;
+}
+
+/**
+ * Since: 0.0.3
+ */
+HwpSecd *hwp_secd_copy (HwpSecd *secd)
+{
+  g_return_val_if_fail (secd != NULL, NULL);
+
+  return g_slice_dup (HwpSecd, secd);
+}
+
+/**
+ * Since: 0.0.3
+ */
+void hwp_secd_free (HwpSecd *secd)
+{
+  if (secd)
+    g_slice_free (HwpSecd, secd);
+}
+
+HWP_DEFINE_BOXED_TYPE (HwpFaceName,
+                       hwp_face_name,
+                       hwp_face_name_copy,
+                       hwp_face_name_free)
+
+HwpFaceName *hwp_face_name_new ()
+{
+  return g_slice_new0 (HwpFaceName);
+}
+
+HwpFaceName *hwp_face_name_copy (HwpFaceName *face_name)
+{
+  g_return_val_if_fail (face_name != NULL, NULL);
+
+  return g_slice_dup (HwpFaceName, face_name);
+}
+
+void hwp_face_name_free (HwpFaceName *face_name)
+{
+  g_slice_free (HwpFaceName, face_name);
+}
+
+HWP_DEFINE_BOXED_TYPE (HwpCharShape,
+                       hwp_char_shape,
+                       hwp_char_shape_copy,
+                       hwp_char_shape_free)
+
+HwpCharShape *hwp_char_shape_new ()
+{
+  return g_slice_new0 (HwpCharShape);
+}
+
+HwpCharShape *hwp_char_shape_copy (HwpCharShape *char_shape)
+{
+  g_return_val_if_fail (char_shape != NULL, NULL);
+
+  return g_slice_dup (HwpCharShape, char_shape);
+}
+
+void hwp_char_shape_free (HwpCharShape *char_shape)
+{
+  g_slice_free (HwpCharShape, char_shape);
 }
