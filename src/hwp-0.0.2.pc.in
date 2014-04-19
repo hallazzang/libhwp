@@ -8,6 +8,6 @@ includedir=@includedir@/hwp
 Name: libhwp
 Description: libhwp is a GObject based library for handling HWP documents.
 Version: @VERSION@
-Requires: libgsf-1 cairo
+Requires: libgsf-1 pangocairo poppler-glib
 Libs: -L${libdir} -lhwp
 Cflags: -I${includedir}
