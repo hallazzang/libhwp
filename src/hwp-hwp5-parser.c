@@ -18,6 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * This software have been developed with reference to
+ * the HWP file format open specification by Hancom, Inc.
+ * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
+ * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
+ */
+
 #include "config.h"
 #include <glib/gi18n-lib.h>
 #include <gsf/gsf-input-impl.h>
@@ -85,6 +92,27 @@ gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
   }
 
   parser->data_count += count;
+  return TRUE;
+}
+
+gboolean parser_read_uint8 (HwpHWP5Parser *parser, guint8 *i, GError **error)
+{
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), FALSE);
+
+#ifdef HWP_ENABLE_DEBUG
+  g_assert (parser->data_count <= parser->data_len - 1);
+#endif
+  g_return_val_if_fail (parser->data_count <= parser->data_len - 1, FALSE);
+
+  g_input_stream_read_all (parser->stream, i, 1,
+                           &parser->priv->bytes_read, NULL, error);
+  if (*error || (parser->priv->bytes_read != 1)) {
+    *i = 0;
+    g_input_stream_close (parser->stream, NULL, NULL);
+    return FALSE;
+  }
+
+  parser->data_count += 1;
   return TRUE;
 }
 
@@ -256,12 +284,44 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+
   guint8 id_mappings_len;
 
   if (hwp_hwp5_parser_check_version (parser, 5, 0, 0, 7))
     id_mappings_len = 16;
   else
     id_mappings_len = 14;
+
+/*typedef enum {*/
+/*    ID_BINARY_DATA      = 0,*/
+/*    ID_KOREAN_FONTS     = 1,*/
+/*    ID_ENGLISH_FONTS    = 2,*/
+/*    ID_HANJA_FONTS      = 3,*/
+/*    ID_JAPANESE_FONTS   = 4,*/
+/*    ID_OTHERS_FONTS     = 5,*/
+/*    ID_SYMBOL_FONTS     = 6,*/
+/*    ID_USER_FONTS       = 7,*/
+/*    ID_BORDER_FILLS     = 8,*/
+/*    ID_CHAR_SHAPES      = 9,*/
+/*    ID_TAB_DEFS         = 10,*/
+/*    ID_PARA_NUMBERINGS  = 11,*/
+/*    ID_BULLETS          = 12,*/
+/*    ID_PARA_SHAPES      = 13,*/
+/*    ID_STYLES           = 14,*/
+    /*
+     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
+     * 한/글2007 이전 문서는 data_len <= 60,
+     * v5.0.0.6 : ID_MAPPINGS data_len: 60
+     * v5.0.1.7 : ID_MAPPINGS data_len: 64
+     * v5.0.2.4 : ID_MAPPINGS data_len: 64
+     */
+/*    ID_MEMO_SHAPES      = 15,*/
+    /* 한/글2010 에서 추가된 것으로 추정됨 */
+    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
+/*    ID_KNOWN_16         = 16,*/
+/*    ID_KNOWN_17         = 17,*/
+/*} IDMappingsID;*/
 
   guint32 *id_mappings = g_malloc0_n (id_mappings_len, sizeof(guint32));
 
@@ -274,15 +334,71 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
     case HWP_TAG_ID_MAPPINGS:
       for (guint8 i = 0; i < id_mappings_len; i++)
         parser_read_uint32 (parser, &id_mappings[i], error);
+
       g_free (id_mappings);
       break;
     case HWP_TAG_BIN_DATA:
       break;
     case HWP_TAG_FACE_NAME:
+      {
+        HwpFaceName *hwp_face_name = hwp_face_name_new ();
+
+        parser_read_uint8 (parser, &hwp_face_name->prop1, error);
+        parser_read_uint16 (parser, &hwp_face_name->len1, error);
+
+        GString *gstr = g_string_new (NULL);
+        gunichar2 unichar;
+
+        for (guint16 i = 0; i < hwp_face_name->len1; i++)
+        {
+          parser_read_uint16 (parser, &unichar, error);
+          g_string_append_unichar (gstr, unichar);
+        }
+
+        hwp_face_name->font_name = g_string_free (gstr, FALSE);
+
+        if (iface->face_name)
+          iface->face_name (parser->listener,
+                            hwp_face_name,
+                            parser->user_data,
+                            error);
+        else
+          hwp_face_name_free (hwp_face_name);
+      }
       break;
     case HWP_TAG_BORDER_FILL:
       break;
     case HWP_TAG_CHAR_SHAPE:
+      {
+        HwpCharShape *char_shape = hwp_char_shape_new ();
+
+        for (guint i = 0; i < 7; i++)
+        {
+          parser_read_uint16(parser, &char_shape->face_id[i], error);
+          parser_read_uint8 (parser, &char_shape->ratio[i], error);
+          parser_read_uint8 (parser, &char_shape->char_spacing[i], error);
+          parser_read_uint8 (parser, &char_shape->rel_size[i], error);
+          parser_read_uint8 (parser, &char_shape->char_offset[i], error);
+        }
+
+        guint32 height; parser_read_uint32 (parser, &height, error);
+        char_shape->height_in_points = height / 7200.0 * 72;
+        parser_read_uint32 (parser, &char_shape->prop, error);
+        parser_read_uint8  (parser, &char_shape->space_between_shadows1, error);
+        parser_read_uint8  (parser, &char_shape->space_between_shadows2, error);
+        parser_read_uint32 (parser, &char_shape->text_color, error);
+        parser_read_uint32 (parser, &char_shape->underline_color, error);
+        parser_read_uint32 (parser, &char_shape->shade_color, error);
+        parser_read_uint32 (parser, &char_shape->shadow_color, error);
+
+        if (iface->char_shape)
+          iface->char_shape (parser->listener,
+                             char_shape,
+                             parser->user_data,
+                             error);
+        else
+          hwp_char_shape_free (char_shape);
+      }
       break;
     case HWP_TAG_TAB_DEF:
       break;
@@ -309,13 +425,15 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
   }
 }
 
-static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
-                                                      HwpHWP5File   *file,
-                                                      GError       **error)
+static HwpSecd *
+hwp_hwp5_parser_build_section_definition (HwpHWP5Parser *parser,
+                                          HwpHWP5File   *file,
+                                          GError       **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_PARSER (parser));
+  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
   guint16 level = parser->level;
+  HwpSecd *secd = hwp_secd_new ();
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -327,6 +445,30 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
 
     switch (parser->tag_id) {
     case HWP_TAG_PAGE_DEF:
+      {
+        guint32 tmp;
+        /* TODO 이 경우 gdouble = guint32 / 7200.0 *72 형변환은 어떻게 되는가? */
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_width_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_height_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_left_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_right_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_top_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_bottom_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_header_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_footer_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_gutter_margin_in_points = tmp / 7200.0 * 72;
+        parser_read_uint32 (parser, &tmp, error);
+        secd->page_prop = tmp;
+      }
       break;
     case HWP_TAG_FOOTNOTE_SHAPE:
       break;
@@ -342,6 +484,7 @@ static void hwp_hwp5_parser_parse_section_definition (HwpHWP5Parser *parser,
       break;
     } /* switch */
   } /* while */
+  return secd;
 }
 
 /* 머리말 */
@@ -891,7 +1034,12 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
 #endif
   switch (parser->ctrl_id) {
   case CTRL_ID_SECTION_DEF:
-    hwp_hwp5_parser_parse_section_definition (parser, file, error);
+    {
+      HwpSecd *secd = NULL;
+      secd = hwp_hwp5_parser_build_section_definition (parser, file, error);
+      if (secd)
+        hwp_paragraph_set_secd (paragraph, secd);
+    }
     break;
   case CTRL_ID_NEW_NUM:
     break;
@@ -960,6 +1108,7 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
   GString      *string    = NULL;
+  parser_read_uint16 (parser, &paragraph->n_chars, error);
 
   while (hwp_hwp5_parser_pull (parser, error)) {
     if (parser->level <= level) {
@@ -973,9 +1122,28 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
     case HWP_TAG_PARA_TEXT:
       string = hwp_hwp5_parser_get_string (parser, error);
       hwp_paragraph_set_string (paragraph, string);
+#ifdef HWP_ENABLE_DEBUG
+      printf ("paragraph->n_chars:%d\n", paragraph->n_chars);
+      printf ("parser->data_len:%d\n", parser->data_len);
+      printf ("g_utf8_strlen:%ld\n", g_utf8_strlen (paragraph->string->str, -1));
+      printf ("string:%s\n", paragraph->string->str);
+#endif
       string = NULL;
       break;
     case HWP_TAG_PARA_CHAR_SHAPE:
+      {
+        paragraph->m_len = parser->data_len / 8;
+        paragraph->m_pos = g_malloc (4 * paragraph->m_len);
+        paragraph->m_id  = g_malloc (4 * paragraph->m_len);
+        for (guint i = 0; i < paragraph->m_len; i++)
+        {
+          parser_read_uint32 (parser, &paragraph->m_pos[i], error);
+          parser_read_uint32 (parser, &paragraph->m_id[i], error);
+#ifdef HWP_ENABLE_DEBUG
+          printf ("m_pos[%d]:%d  ", i, paragraph->m_pos[i]);
+#endif
+        }
+      }
       break;
     case HWP_TAG_PARA_LINE_SEG:
       break;
@@ -1013,7 +1181,6 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
 
   while (hwp_hwp5_parser_pull (parser, error))
   {
-    parser_skip (parser, parser->data_len);
     g_assert (parser->level == 0);
 
     switch (parser->tag_id)
@@ -1047,8 +1214,7 @@ static void hwp_hwp5_parser_parse_sections (HwpHWP5Parser *parser,
 
   for (guint i = 0; i < file->section_streams->len; i++)
   {
-    GInputStream *stream = g_array_index (file->section_streams,
-                                          GInputStream *, i);
+    GInputStream *stream = g_ptr_array_index (file->section_streams, i);
     parser->stream = stream;
     hwp_hwp5_parser_parse_section (parser, file, error);
   }
@@ -1217,6 +1383,9 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
   g_object_unref (gis);
 }
 
+/**
+ * Since: 0.0.1
+ */
 gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
                                         guint8         major,
                                         guint8         minor,
@@ -1237,9 +1406,9 @@ gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
           parser->extra_version >= extra);
 }
 
-void hwp_hwp5_parser_parse_file_header (HwpHWP5Parser *parser,
-                                        HwpHWP5File   *file,
-                                        GError       **error)
+static void hwp_hwp5_parser_parse_file_header (HwpHWP5Parser *parser,
+                                               HwpHWP5File   *file,
+                                               GError       **error)
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
@@ -1297,12 +1466,6 @@ static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)
 
 static void hwp_hwp5_parser_finalize (GObject *object)
 {
-  HwpHWP5Parser *parser = HWP_HWP5_PARSER (object);
-  if (G_IS_INPUT_STREAM (parser->stream)) {
-    g_input_stream_close (parser->stream, NULL, NULL);
-    g_object_unref (parser->stream);
-  }
-
   G_OBJECT_CLASS (hwp_hwp5_parser_parent_class)->finalize (object);
 }
 
