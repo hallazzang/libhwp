@@ -5,8 +5,12 @@ Maintainer: Hodong Kim <hodong@cogno.org>
 Build-Depends: cdbs (>= 0.4.93),
                debhelper (>= 9),
                dh-autoreconf,
+               libgsf-1-dev,
                libcairo2-dev,
-               libfreetype6-dev,
+               libpango1.0-dev,
+               libpoppler-glib-dev,
+               libxml2-dev,
+               libgirepository1.0-dev,
                libglib2.0-dev,
                pkg-config
 Standards-Version: 3.9.3
@@ -18,8 +22,13 @@ Package: libhwp-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends},
-         libhwp1 (= ${binary:Version}),
+         libhwp2 (= ${binary:Version}),
+         libgsf-1-dev,
          libcairo2-dev,
+         libpango1.0-dev,
+         libpoppler-glib-dev,
+         libxml2-dev,
+         libgirepository1.0-dev,
          libglib2.0-dev
 Description: handling and rendering HWP documents (development files)
  HWP is a proprietary document file format developed by Hancom for word
@@ -27,7 +36,7 @@ Description: handling and rendering HWP documents (development files)
  .
  This package contains the development files.
 
-Package: libhwp1
+Package: libhwp2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends},
          fonts-nanum
