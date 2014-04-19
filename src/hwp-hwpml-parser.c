@@ -109,6 +109,9 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
   xmlFree(value);
 }
 
+/**
+ * Since: 0.0.1
+ */
 void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
                              HwpHWPMLFile   *file,
                              GError        **error)
