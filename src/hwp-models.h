@@ -90,6 +90,7 @@ HwpSummaryInfo *hwp_summary_info_new (void);
 
 typedef struct _HwpTable     HwpTable;
 typedef struct _HwpTableCell HwpTableCell;
+typedef struct _HwpSecd      HwpSecd;
 
 /** HwpParagraph ************************************************************/
 
@@ -103,11 +104,17 @@ typedef struct _HwpTableCell HwpTableCell;
 typedef struct _HwpParagraph      HwpParagraph;
 typedef struct _HwpParagraphClass HwpParagraphClass;
 
+
 struct _HwpParagraph
 {
   GObject   parent_instance;
   GString  *string;
   HwpTable *table;
+  HwpSecd  *secd;
+  guint16   n_chars;
+  guint32  *m_pos;
+  guint32  *m_id;
+  guint16   m_len;
 };
 
 struct _HwpParagraphClass
@@ -123,6 +130,8 @@ GString      *hwp_paragraph_get_string (HwpParagraph *paragraph);
 HwpTable     *hwp_paragraph_get_table  (HwpParagraph *paragraph);
 void          hwp_paragraph_set_table  (HwpParagraph *paragraph,
                                         HwpTable     *table);
+void          hwp_paragraph_set_secd   (HwpParagraph *paragraph,
+                                        HwpSecd      *secd);
 
 /** HwpTable ****************************************************************/
 
@@ -138,28 +147,28 @@ typedef struct _HwpTableClass HwpTableClass;
 
 struct _HwpTableClass
 {
-    GObjectClass parent_class;
+  GObjectClass parent_class;
 };
 
 struct _HwpTable
 {
-    GObject  parent_instance;
-    guint32  flags;
-    guint16  n_rows; /* 행 개수 */
-    guint16  n_cols; /* 열 개수 */
-    guint16  cell_spacing; /* 셀과 셀 사이의 간격 hwpuint */
-    /* margin */
-    guint16  left_margin;
-    guint16  right_margin;
-    guint16  top_margin;
-    guint16  bottom_margin;
+  GObject    parent_instance;
+  guint32    flags;
+  guint16    n_rows; /* 행 개수 */
+  guint16    n_cols; /* 열 개수 */
+  guint16    cell_spacing; /* 셀과 셀 사이의 간격 hwpuint */
+  /* margin */
+  guint16    left_margin;
+  guint16    right_margin;
+  guint16    top_margin;
+  guint16    bottom_margin;
 
-    guint16 *row_sizes;
-    guint16  border_fill_id;
-    guint16  valid_zone_info_size;
-    guint16 *zones;
+  guint16   *row_sizes;
+  guint16    border_fill_id;
+  guint16    valid_zone_info_size;
+  guint16   *zones;
 
-    GArray  *cells;
+  GPtrArray *cells;
 };
 
 GType         hwp_table_get_type         (void) G_GNUC_CONST;
@@ -207,7 +216,7 @@ struct _HwpTableCell
 
   /* private use */
   gdouble _y;
-  GArray *paragraphs;
+  GPtrArray *paragraphs;
 };
 
 struct _HwpTableCellClass
@@ -220,6 +229,64 @@ HwpTableCell *hwp_table_cell_new                (void);
 HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell);
 void          hwp_table_cell_add_paragraph      (HwpTableCell *cell,
                                                  HwpParagraph *paragraph);
+
+typedef struct _HwpSecd HwpSecd;
+struct _HwpSecd
+{
+  gdouble page_width_in_points;
+  gdouble page_height_in_points;
+  gdouble page_left_margin_in_points;
+  gdouble page_right_margin_in_points;
+  gdouble page_top_margin_in_points;
+  gdouble page_bottom_margin_in_points;
+  gdouble page_header_margin_in_points;
+  gdouble page_footer_margin_in_points;
+  gdouble page_gutter_margin_in_points;
+  gdouble page_prop;
+};
+
+GType    hwp_secd_get_type (void) G_GNUC_CONST;
+HwpSecd *hwp_secd_new      (void);
+HwpSecd *hwp_secd_copy     (HwpSecd *secd);
+void     hwp_secd_free     (HwpSecd *secd);
+
+
+typedef struct _HwpCharShape HwpCharShape;
+struct _HwpCharShape
+{
+  guint16 face_id[7];
+  guint8  ratio[7];               /* 장평 */
+  guint8  char_spacing[7];        /* 자간 */
+  guint8  rel_size[7];            /* 상대 크기 */
+  guint8  char_offset[7];         /* 글자 위치 */
+  gdouble height_in_points;       /* guint32 / 7200.0 * 72 */
+  guint32 prop;                   /* 속성 */
+  guint8  space_between_shadows1; /* 그림자 간격 */
+  guint8  space_between_shadows2; /* 그림자 간격 */
+  guint32 text_color;             /* 글자 색 */
+  guint32 underline_color;        /* 밑줄 색 */
+  guint32 shade_color;            /* 음영 색 */
+  guint32 shadow_color;           /* 그림자 색 */
+};
+
+GType         hwp_char_shape_get_type (void) G_GNUC_CONST;
+HwpCharShape *hwp_char_shape_new      (void);
+HwpCharShape *hwp_char_shape_copy     (HwpCharShape *char_shape);
+void          hwp_char_shape_free     (HwpCharShape *char_shape);
+
+
+typedef struct _HwpFaceName HwpFaceName;
+struct _HwpFaceName
+{
+  guint8  prop1;
+  guint16 len1;
+  gchar  *font_name;
+};
+
+GType        hwp_face_name_get_type (void) G_GNUC_CONST;
+HwpFaceName *hwp_face_name_new      (void);
+HwpFaceName *hwp_face_name_copy     (HwpFaceName *face_name);
+void         hwp_face_name_free     (HwpFaceName *face_name);
 
 G_END_DECLS
 
