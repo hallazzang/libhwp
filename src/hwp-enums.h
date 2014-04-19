@@ -96,6 +96,8 @@ typedef enum
 } HwpSelectionStyle;
 
 /**
+ * HwpTag:
+ *
  * Since: 0.0.1
  */
 #define HWP_TAG_BEGIN                    16
@@ -152,36 +154,6 @@ typedef enum
 
     HWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
 } HwpTag;
-
-/*typedef enum {*/
-/*    ID_BINARY_DATA      = 0,*/
-/*    ID_KOREAN_FONTS     = 1,*/
-/*    ID_ENGLISH_FONTS    = 2,*/
-/*    ID_HANJA_FONTS      = 3,*/
-/*    ID_JAPANESE_FONTS   = 4,*/
-/*    ID_OTHERS_FONTS     = 5,*/
-/*    ID_SYMBOL_FONTS     = 6,*/
-/*    ID_USER_FONTS       = 7,*/
-/*    ID_BORDER_FILLS     = 8,*/
-/*    ID_CHAR_SHAPES      = 9,*/
-/*    ID_TAB_DEFS         = 10,*/
-/*    ID_PARA_NUMBERINGS  = 11,*/
-/*    ID_BULLETS          = 12,*/
-/*    ID_PARA_SHAPES      = 13,*/
-/*    ID_STYLES           = 14,*/
-    /*
-     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
-     * 한/글2007 이전 문서는 data_len <= 60,
-     * v5.0.0.6 : ID_MAPPINGS data_len: 60
-     * v5.0.1.7 : ID_MAPPINGS data_len: 64
-     * v5.0.2.4 : ID_MAPPINGS data_len: 64
-     */
-/*    ID_MEMO_SHAPES      = 15,*/
-    /* 한/글2010 에서 추가된 것으로 추정됨 */
-    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
-/*    ID_KNOWN_16         = 16,*/
-/*    ID_KNOWN_17         = 17,*/
-/*} IDMappingsID;*/
 
 /**
  * MAKE_CTRL_ID:
