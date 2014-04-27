@@ -41,10 +41,11 @@ http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 INSTALL
 -------
 sudo apt-get update
-sudo apt-get install build-essential cdbs devscripts dh-autoreconf intltool  \
+sudo apt-get install build-essential git devscripts dh-autoreconf intltool   \
   libgsf-1-dev libcairo2-dev libpango1.0-dev libpoppler-glib-dev libxml2-dev \
   libgirepository1.0-dev gtk-doc-tools
 
+git clone https://bitbucket.org/hodong/libhwp.git
 cd libhwp
 mkdir -p m4
 gtkdocize
