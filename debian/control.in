@@ -2,8 +2,7 @@ Source: libhwp
 Priority: optional
 Section: libs
 Maintainer: Hodong Kim <hodong@cogno.org>
-Build-Depends: cdbs (>= 0.4.93),
-               debhelper (>= 9),
+Build-Depends: debhelper (>= 9),
                dh-autoreconf,
                libgsf-1-dev,
                libcairo2-dev,
