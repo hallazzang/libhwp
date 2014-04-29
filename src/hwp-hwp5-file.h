@@ -57,11 +57,11 @@ struct _HwpHWP5File
   HwpHWP5FilePrivate *priv;
 
   GPtrArray          *section_streams;
-  GInputStream       *prv_text_stream;
-  GInputStream       *prv_image_stream;
-  GInputStream       *file_header_stream;
-  GInputStream       *doc_info_stream;
-  GInputStream       *summary_info_stream;
+  GsfInput           *prv_text_stream;
+  GsfInput           *prv_image_stream;
+  GsfInput           *file_header_stream;
+  GsfInput           *doc_info_stream;
+  GsfInput           *summary_info_stream;
 
   gchar              *signature;
   guint8              major_version;

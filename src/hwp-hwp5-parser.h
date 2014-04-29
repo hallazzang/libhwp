@@ -42,7 +42,6 @@ G_BEGIN_DECLS
 
 typedef struct _HwpHWP5Parser        HwpHWP5Parser;
 typedef struct _HwpHWP5ParserClass   HwpHWP5ParserClass;
-typedef struct _HwpHWP5ParserPrivate HwpHWP5ParserPrivate;
 
 struct _HwpHWP5ParserClass
 {
@@ -51,37 +50,29 @@ struct _HwpHWP5ParserClass
 
 struct _HwpHWP5Parser
 {
-  GObject                  parent_instance;
-  HwpHWP5ParserPrivate    *priv;
+  GObject      parent_instance;
 
-  HwpListener             *listener;
-  gpointer                 user_data;
-  GInputStream            *stream;
+  HwpListener *listener;
+  gpointer     user_data;
+  GsfInput    *stream;
   /* from record header */
-  guint16                  tag_id;
-  guint16                  level;
-  guint16                  data_len;
+  guint32      header;
+  guint16      tag_id;
+  guint16      level;
+  guint16      data_len;
   /* for sanity checking */
-  guint16                  data_count;
+  guint16      data_count;
   /* for parsing */
-  guint8                   state;
-  guint32                  ctrl_id;
+  guint8       state;
+  guint32      ctrl_id;
   /* for version check */
-  guint8                   major_version;
-  guint8                   minor_version;
-  guint8                   micro_version;
-  guint8                   extra_version;
+  guint8       major_version;
+  guint8       minor_version;
+  guint8       micro_version;
+  guint8       extra_version;
 };
 
-struct _HwpHWP5ParserPrivate
-{
-  guint32  header;
-  gsize    bytes_read;
-  gboolean ret;
-};
-
-GType          hwp_hwp5_parser_get_type    (void) G_GNUC_CONST;
-
+GType          hwp_hwp5_parser_get_type      (void) G_GNUC_CONST;
 gboolean       hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
                                               guint8         major,
                                               guint8         minor,

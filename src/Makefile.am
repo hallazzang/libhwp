@@ -23,7 +23,6 @@ INST_H_FILES =          \
 	$(NULL)
 
 NOINST_H_FILES =        \
-	gsf-input-stream.h  \
 	$(NULL)
 
 hwpincludedir = $(includedir)/hwp
@@ -37,7 +36,6 @@ BUILT_SOURCES =      \
 	$(NULL)
 
 libhwp_la_SOURCES =     \
-	gsf-input-stream.c  \
 	hwp-charset.c       \
 	hwp-document.c      \
 	hwp-enums.c         \
@@ -132,7 +130,7 @@ INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) --warn-all \
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-introspection_sources = $(filter-out $(NOINST_H_FILES) gsf-input-stream.c, $(libhwp_la_SOURCES))
+introspection_sources = $(filter-out $(NOINST_H_FILES), $(libhwp_la_SOURCES))
 
 Hwp-0.0.gir: libhwp.la
 Hwp_0_0_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0

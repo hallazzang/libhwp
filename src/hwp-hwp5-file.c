@@ -34,13 +34,13 @@
 #include <gsf/gsf-input-impl.h>
 #include <gsf/gsf-input-memory.h>
 #include <gsf/gsf-msole-utils.h>
+#include <gsf/gsf-input-gzip.h>
 #include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-infile-impl.h>
 #include <gsf/gsf-doc-meta-data.h>
 #include <gsf/gsf-meta-names.h>
 #include <gsf/gsf-timestamp.h>
 
-#include "gsf-input-stream.h"
 #include "hwp-hwp5-file.h"
 #include "hwp-listener.h"
 #include "hwp-models.h"
@@ -165,47 +165,36 @@ gchar *hwp_hwp5_file_get_hwp_version_string (HwpFile *file)
 
 static void parse_file_header (HwpHWP5File *file)
 {
-    g_return_if_fail (file != NULL);
+  size_t size = gsf_input_size (file->file_header_stream);
+  const guint8 *buf = gsf_input_read (file->file_header_stream, size, NULL);
+  guint32 prop = 0;
 
-    GsfInputStream *gis;
-    gssize          size;
-    gsize           bytes_read;
-    guint8         *buf;
-    guint32         prop = 0;
+  if (buf == NULL)
+    return;
 
-    gis  = (GsfInputStream *) g_object_ref (file->file_header_stream);
-    size = gsf_input_stream_size (gis);
-    buf  = g_malloc (size);
+  file->signature = g_strndup ((const gchar *) buf, 32); /* null로 끝남 */
+  file->major_version = buf[35];
+  file->minor_version = buf[34];
+  file->micro_version = buf[33];
+  file->extra_version = buf[32];
 
-    g_input_stream_read_all ((GInputStream*) gis, buf, (gsize) size,
-                             &bytes_read, NULL, NULL);
-    g_object_unref (gis);
+  memcpy (&prop, buf + 36, 4);
+  prop = GUINT32_FROM_LE(prop);
 
-    if (bytes_read >= 40) {
-        file->signature = g_strndup ((const gchar *)buf, 32); /* null로 끝남 */
-        file->major_version = buf[35];
-        file->minor_version = buf[34];
-        file->micro_version = buf[33];
-        file->extra_version = buf[32];
+  file->is_compress            = prop & (1 <<  0);
+  file->is_encrypt             = prop & (1 <<  1);
+  file->is_distribute          = prop & (1 <<  2);
+  file->is_script              = prop & (1 <<  3);
+  file->is_drm                 = prop & (1 <<  4);
+  file->is_xml_template        = prop & (1 <<  5);
+  file->is_history             = prop & (1 <<  6);
+  file->is_sign                = prop & (1 <<  7);
+  file->is_certificate_encrypt = prop & (1 <<  8);
+  file->is_sign_spare          = prop & (1 <<  9);
+  file->is_certificate_drm     = prop & (1 << 10);
+  file->is_ccl                 = prop & (1 << 11);
 
-        memcpy (&prop, buf + 36, 4);
-        prop = GUINT32_FROM_LE(prop);
-
-        file->is_compress            = prop & (1 <<  0);
-        file->is_encrypt             = prop & (1 <<  1);
-        file->is_distribute          = prop & (1 <<  2);
-        file->is_script              = prop & (1 <<  3);
-        file->is_drm                 = prop & (1 <<  4);
-        file->is_xml_template        = prop & (1 <<  5);
-        file->is_history             = prop & (1 <<  6);
-        file->is_sign                = prop & (1 <<  7);
-        file->is_certificate_encrypt = prop & (1 <<  8);
-        file->is_sign_spare          = prop & (1 <<  9);
-        file->is_certificate_drm     = prop & (1 << 10);
-        file->is_ccl                 = prop & (1 << 11);
-    }
-
-    buf = (g_free (buf), NULL);
+  g_free ((guint8 *) buf);
 }
 
 static gint get_entry_order (char *a)
@@ -247,8 +236,6 @@ static gint compare_entry_names (gconstpointer a, gconstpointer b)
 
 static void make_stream (HwpHWP5File *file, GError **error)
 {
-  g_return_if_fail (HWP_IS_HWP5_FILE (file));
-
   GsfInfile   *ole          = GSF_INFILE (file->priv->olefile);
   gint         n_root_entry = gsf_infile_num_children (ole);
 
@@ -274,7 +261,8 @@ static void make_stream (HwpHWP5File *file, GError **error)
   {
     char *entry = g_ptr_array_index (entry_names, i);
 
-    if (g_str_equal (entry, "FileHeader")) {
+    if (g_str_equal (entry, "FileHeader"))
+    {
       GsfInput *fh = gsf_infile_child_by_name (ole, entry);
 
       if (gsf_infile_num_children (GSF_INFILE (fh)) != -1)
@@ -289,13 +277,14 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      file->file_header_stream = G_INPUT_STREAM (gsf_input_stream_new (fh));
+      file->file_header_stream = fh;
       parse_file_header (file);
-      g_object_unref (fh);
-    } else if (g_str_equal (entry, "DocInfo")) {
+    }
+    else if (g_str_equal (entry, "DocInfo"))
+    {
       GsfInput *docinfo = gsf_infile_child_by_name (ole, entry);
 
-      if (gsf_infile_num_children ((GsfInfile*) docinfo) != -1)
+      if (gsf_infile_num_children ((GsfInfile *) docinfo) != -1)
       {
         if (GSF_IS_INPUT (docinfo))
           g_object_unref (docinfo);
@@ -307,26 +296,22 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      if (file->is_compress) {
-        GsfInputStream    *gis;
-        GZlibDecompressor *zd;
-        GInputStream      *cis;
-
-        gis = gsf_input_stream_new (docinfo);
-        zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-        cis = g_converter_input_stream_new ((GInputStream*) gis,
-                                            (GConverter*) zd);
-        g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
-        file->doc_info_stream = cis;
-
-        g_object_unref (zd);
-        g_object_unref (gis);
-      } else {
-        file->doc_info_stream = (GInputStream*) gsf_input_stream_new (docinfo);
+      if (file->is_compress)
+      {
+        file->doc_info_stream = g_object_new (GSF_INPUT_GZIP_TYPE,
+                                              "raw",    TRUE,
+                                              "source", docinfo,
+                                              "uncompressed_size", -1,
+                                              NULL);
       }
-      g_object_unref (docinfo);
-    } else if (g_str_equal(entry, "BodyText") ||
-               g_str_equal(entry, "VeiwText")) {
+      else
+      {
+        file->doc_info_stream = docinfo;
+      }
+    }
+    else if (g_str_equal(entry, "BodyText") ||
+               g_str_equal(entry, "VeiwText"))
+    {
       GsfInfile *infile = (GsfInfile *) gsf_infile_child_by_name (ole, entry);
 
       file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
@@ -365,29 +350,22 @@ static void make_stream (HwpHWP5File *file, GError **error)
 
         if (file->is_compress)
         {
-          GInputStream      *gis;
-          GZlibDecompressor *zd;
-          GInputStream      *cis;
-
-          gis = (GInputStream *) gsf_input_stream_new (section);
-          zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
-          cis = g_converter_input_stream_new (gis, (GConverter *) zd);
-          g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
-
-          GInputStream *tmp = G_INPUT_STREAM (cis);
-          g_ptr_array_add (file->section_streams, tmp);
-          g_object_unref (zd);
-          g_object_unref (gis);
-        } else {
-          GsfInputStream *stream = gsf_input_stream_new (section);
-          GInputStream *tmp = G_INPUT_STREAM (stream);
+          GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
+                                        "raw",    TRUE,
+                                        "source", section,
+                                        "uncompressed_size", -1,
+                                        NULL);
           g_ptr_array_add (file->section_streams, tmp);
         }
-
-        g_object_unref (section);
+        else
+        {
+          g_ptr_array_add (file->section_streams, section);
+        }
       } /* for */
       g_object_unref (infile);
-    } else if (g_str_equal (entry, "\005HwpSummaryInformation")) {
+    }
+    else if (g_str_equal (entry, "\005HwpSummaryInformation"))
+    {
       GsfInput *summary = gsf_infile_child_by_name (ole, entry);
       g_object_ref (summary);
 
@@ -402,9 +380,10 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      file->summary_info_stream = (GInputStream*) gsf_input_stream_new (summary);
-      g_object_unref (summary);
-    } else if (g_str_equal (entry, "PrvText")) {
+      file->summary_info_stream = summary;
+    }
+    else if (g_str_equal (entry, "PrvText"))
+    {
       GsfInput *prvtext = gsf_infile_child_by_name (ole, entry);
       g_object_ref (prvtext);
 
@@ -419,9 +398,10 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      file->prv_text_stream = (GInputStream *) gsf_input_stream_new (prvtext);
-      g_object_unref (prvtext);
-    } else if (g_str_equal (entry, "PrvImage")) {
+      file->prv_text_stream = prvtext;
+    }
+    else if (g_str_equal (entry, "PrvImage"))
+    {
       GsfInput *prvimage = gsf_infile_child_by_name (ole, entry);
       g_object_ref (prvimage);
 
@@ -436,9 +416,10 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      file->prv_image_stream = (GInputStream*) gsf_input_stream_new (prvimage);
-      g_object_unref (prvimage);
-    } else {
+      file->prv_image_stream = prvimage;
+    }
+    else
+    {
       g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
     } /* if */
   } /* for */
