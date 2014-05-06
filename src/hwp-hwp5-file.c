@@ -25,26 +25,17 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <glib.h>
-#include <glib-object.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#include <gsf/gsf-input-impl.h>
-#include <gsf/gsf-input-memory.h>
-#include <gsf/gsf-msole-utils.h>
-#include <gsf/gsf-input-gzip.h>
-#include <gsf/gsf-input-stdio.h>
-#include <gsf/gsf-infile-impl.h>
 #include <gsf/gsf-doc-meta-data.h>
+#include <gsf/gsf-input-gzip.h>
+#include <gsf/gsf-input-memory.h>
+#include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-meta-names.h>
 #include <gsf/gsf-timestamp.h>
+#include <gsf/gsf-utils.h>
 
 #include "hwp-hwp5-file.h"
-#include "hwp-listener.h"
-#include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
+#include "hwp-models.h"
 
 G_DEFINE_TYPE (HwpHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
 
@@ -137,12 +128,12 @@ void hwp_hwp5_file_get_hwp_version (HwpFile *file,
                                     guint8  *micro_version,
                                     guint8  *extra_version)
 {
-    g_return_if_fail (HWP_IS_HWP5_FILE (file));
+  g_return_if_fail (HWP_IS_HWP5_FILE (file));
 
-    if (major_version) *major_version = HWP_HWP5_FILE(file)->major_version;
-    if (minor_version) *minor_version = HWP_HWP5_FILE(file)->minor_version;
-    if (micro_version) *micro_version = HWP_HWP5_FILE(file)->micro_version;
-    if (extra_version) *extra_version = HWP_HWP5_FILE(file)->extra_version;
+  if (major_version) *major_version = HWP_HWP5_FILE(file)->major_version;
+  if (minor_version) *minor_version = HWP_HWP5_FILE(file)->minor_version;
+  if (micro_version) *micro_version = HWP_HWP5_FILE(file)->micro_version;
+  if (extra_version) *extra_version = HWP_HWP5_FILE(file)->extra_version;
 }
 
 /**
@@ -178,9 +169,7 @@ static void parse_file_header (HwpHWP5File *file)
   file->micro_version = buf[33];
   file->extra_version = buf[32];
 
-  memcpy (&prop, buf + 36, 4);
-  prop = GUINT32_FROM_LE(prop);
-
+  prop = GSF_LE_GET_GUINT32(buf + 36);
   file->is_compress            = prop & (1 <<  0);
   file->is_encrypt             = prop & (1 <<  1);
   file->is_distribute          = prop & (1 <<  2);
@@ -197,47 +186,11 @@ static void parse_file_header (HwpHWP5File *file)
   g_free ((guint8 *) buf);
 }
 
-static gint get_entry_order (char *a)
-{
-    if (g_str_equal (a, "FileHeader"))
-        return 0;
-    if (g_str_equal (a, "DocInfo"))
-        return 1;
-    if (g_str_equal (a, "BodyText"))
-        return 2;
-    if (g_str_equal (a, "ViewText"))
-        return 3;
-    if (g_str_equal (a, "\005HwpSummaryInformation"))
-        return 4;
-    if (g_str_equal (a, "BinData"))
-        return 5;
-    if (g_str_equal (a, "PrvText"))
-        return 6;
-    if (g_str_equal (a, "PrvImage"))
-        return 7;
-    if (g_str_equal (a, "DocOptions"))
-        return 8;
-    if (g_str_equal (a, "Scripts"))
-        return 9;
-    if (g_str_equal (a, "XMLTemplate"))
-        return 10;
-    if (g_str_equal (a, "DocHistory"))
-        return 11;
-
-    return G_MAXINT;
-}
-
-static gint compare_entry_names (gconstpointer a, gconstpointer b)
-{
-  gint i = get_entry_order ((char *) a);
-  gint j = get_entry_order ((char *) b);
-  return i - j;
-}
-
 static void make_stream (HwpHWP5File *file, GError **error)
 {
-  GsfInfile   *ole          = GSF_INFILE (file->priv->olefile);
-  gint         n_root_entry = gsf_infile_num_children (ole);
+  GsfInput  *input        = NULL;
+  GsfInfile *ole          = GSF_INFILE (file->priv->olefile);
+  gint       n_root_entry = gsf_infile_num_children (ole);
 
   if (n_root_entry < 1)
   {
@@ -248,46 +201,56 @@ static void make_stream (HwpHWP5File *file, GError **error)
     return;
   }
 
-  /* 루트 엔트리 이름을 정렬한다 */
-  GPtrArray *entry_names = g_ptr_array_new_with_free_func (g_free);
-  for (gint i = 0; i < n_root_entry; i++) 
-  {
-    const gchar *name = gsf_infile_name_by_index (ole, i);
-    g_ptr_array_add (entry_names, g_strdup (name));
-  }
-  g_ptr_array_sort (entry_names, compare_entry_names);
   /* 우선 순위에 따라 스트림을 만든다 */
-  for (gint i = 0; i < n_root_entry; i++)
+  input = gsf_infile_child_by_name (ole, "FileHeader");
+  if (input && gsf_infile_num_children (GSF_INFILE (input)) == -1)
   {
-    char *entry = g_ptr_array_index (entry_names, i);
+    file->file_header_stream = input;
+    input = NULL;
+    parse_file_header (file);
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-    if (g_str_equal (entry, "FileHeader"))
+  input = gsf_infile_child_by_name (ole, "DocInfo");
+  if (input && gsf_infile_num_children (GSF_INFILE (input)) == -1)
+  {
+    if (file->is_compress)
     {
-      GsfInput *fh = gsf_infile_child_by_name (ole, entry);
-
-      if (gsf_infile_num_children (GSF_INFILE (fh)) != -1)
-      {
-        if (GSF_IS_INPUT (fh))
-          g_object_unref (fh);
-
-        g_set_error_literal (error,
-                             HWP_FILE_ERROR,
-                             HWP_FILE_ERROR_INVALID,
-                             "invalid hwp file");
-        return;
-      }
-
-      file->file_header_stream = fh;
-      parse_file_header (file);
+      file->doc_info_stream = g_object_new (GSF_INPUT_GZIP_TYPE,
+                                            "raw",    TRUE,
+                                            "source", input,
+                                            "uncompressed_size", -1,
+                                            NULL);
+      input = NULL;
     }
-    else if (g_str_equal (entry, "DocInfo"))
+    else
     {
-      GsfInput *docinfo = gsf_infile_child_by_name (ole, entry);
+      file->doc_info_stream = input;
+    }
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-      if (gsf_infile_num_children ((GsfInfile *) docinfo) != -1)
+  input = gsf_infile_child_by_name (ole, "BodyText");
+  gint n_section = gsf_infile_num_children (GSF_INFILE (input));
+
+  if (input && n_section > 0)
+  {
+    for (gint i = 0; i < n_section; i++)
+    {
+      GsfInput *section =
+                  gsf_infile_child_by_name (GSF_INFILE (input),
+                                            g_strdup_printf("Section%d", i));
+
+      if (gsf_infile_num_children (GSF_INFILE (section)) != -1)
       {
-        if (GSF_IS_INPUT (docinfo))
-          g_object_unref (docinfo);
+        if (GSF_IS_INPUT (section))
+          g_object_unref (section);
 
         g_set_error_literal (error,
                              HWP_FILE_ERROR,
@@ -298,133 +261,72 @@ static void make_stream (HwpHWP5File *file, GError **error)
 
       if (file->is_compress)
       {
-        file->doc_info_stream = g_object_new (GSF_INPUT_GZIP_TYPE,
-                                              "raw",    TRUE,
-                                              "source", docinfo,
-                                              "uncompressed_size", -1,
-                                              NULL);
+        GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
+                                      "raw",    TRUE,
+                                      "source", section,
+                                      "uncompressed_size", -1,
+                                      NULL);
+        g_ptr_array_add (file->section_streams, tmp);
       }
       else
       {
-        file->doc_info_stream = docinfo;
+        g_ptr_array_add (file->section_streams, section);
       }
-    }
-    else if (g_str_equal(entry, "BodyText") ||
-               g_str_equal(entry, "VeiwText"))
-    {
-      GsfInfile *infile = (GsfInfile *) gsf_infile_child_by_name (ole, entry);
+    } /* for */
+    g_object_unref (input);
+    input = NULL;
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-      file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
+  /* TODO viewtext */
 
-      gint n_section = gsf_infile_num_children (infile);
+  input = gsf_infile_child_by_name (ole, "\005HwpSummaryInformation");
+  if (input && gsf_infile_num_children (GSF_INFILE (input)) == -1)
+  {
+    file->summary_info_stream = input;
+    input = NULL;
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-      if (n_section <= 0) {
-        if (GSF_IS_INFILE (infile))
-          g_object_unref (infile);
+  input = gsf_infile_child_by_name (ole, "PrvText");
+  if (input && gsf_infile_num_children (GSF_INFILE (input)) == -1)
+  {
+    file->prv_text_stream = input;
+    input = NULL;
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-        g_set_error (error,
-                     HWP_FILE_ERROR,
-                     HWP_FILE_ERROR_INVALID,
-                     "can't read section in %s\n", entry);
-        return;
-      }
+  input = gsf_infile_child_by_name (ole, "PrvImage");
+  if (input && gsf_infile_num_children (GSF_INFILE (input)) == -1)
+  {
+    file->prv_image_stream = input;
+    input = NULL;
+  }
+  else
+  {
+    goto FAIL;
+  }
 
-      for (gint i = 0; i < n_section; i++)
-      {
-        GsfInput *section = 
-                    gsf_infile_child_by_vname (infile,
-                                               g_strdup_printf("Section%d", i),
-                                               NULL);
+  return;
 
-        if (gsf_infile_num_children ((GsfInfile *) section) != -1)
-        {
-          if (GSF_IS_INPUT (section))
-            g_object_unref (section);
+  FAIL:
 
-          g_set_error_literal (error,
-                               HWP_FILE_ERROR,
-                               HWP_FILE_ERROR_INVALID,
-                               "invalid hwp file");
-          return;
-        }
+  if (GSF_IS_INPUT (input))
+    g_object_unref (input);
 
-        if (file->is_compress)
-        {
-          GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
-                                        "raw",    TRUE,
-                                        "source", section,
-                                        "uncompressed_size", -1,
-                                        NULL);
-          g_ptr_array_add (file->section_streams, tmp);
-        }
-        else
-        {
-          g_ptr_array_add (file->section_streams, section);
-        }
-      } /* for */
-      g_object_unref (infile);
-    }
-    else if (g_str_equal (entry, "\005HwpSummaryInformation"))
-    {
-      GsfInput *summary = gsf_infile_child_by_name (ole, entry);
-      g_object_ref (summary);
-
-      if (gsf_infile_num_children ((GsfInfile *) summary) != -1) {
-        if (GSF_IS_INPUT (summary))
-          g_object_unref (summary);
-
-        g_set_error_literal (error,
-                             HWP_FILE_ERROR,
-                             HWP_FILE_ERROR_INVALID,
-                             "invalid hwp file");
-        return;
-      }
-
-      file->summary_info_stream = summary;
-    }
-    else if (g_str_equal (entry, "PrvText"))
-    {
-      GsfInput *prvtext = gsf_infile_child_by_name (ole, entry);
-      g_object_ref (prvtext);
-
-      if (gsf_infile_num_children ((GsfInfile *) prvtext) != -1) {
-        if (GSF_IS_INPUT (prvtext))
-          g_object_unref (prvtext);
-
-        g_set_error_literal (error,
-                             HWP_FILE_ERROR,
-                             HWP_FILE_ERROR_INVALID,
-                             "invalid hwp file");
-        return;
-      }
-
-      file->prv_text_stream = prvtext;
-    }
-    else if (g_str_equal (entry, "PrvImage"))
-    {
-      GsfInput *prvimage = gsf_infile_child_by_name (ole, entry);
-      g_object_ref (prvimage);
-
-      if (gsf_infile_num_children ((GsfInfile *) prvimage) != -1) {
-        if (GSF_IS_INPUT (prvimage))
-          g_object_unref (prvimage);
-
-        g_set_error_literal (error,
-                             HWP_FILE_ERROR,
-                             HWP_FILE_ERROR_INVALID,
-                             "invalid hwp file");
-        return;
-      }
-
-      file->prv_image_stream = prvimage;
-    }
-    else
-    {
-      g_warning("%s:%d: %s not implemented\n", __FILE__, __LINE__, entry);
-    } /* if */
-  } /* for */
-
-  g_ptr_array_unref (entry_names);
+  g_set_error_literal (error,
+                       HWP_FILE_ERROR,
+                       HWP_FILE_ERROR_INVALID,
+                       "invalid hwp file");
   return;
 }
 
@@ -495,6 +397,7 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 
 static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
+  file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
   file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file,
                                             HWP_TYPE_HWP5_FILE,
                                             HwpHWP5FilePrivate);
