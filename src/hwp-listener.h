@@ -51,6 +51,7 @@ typedef struct _HwpListener          HwpListener; /* dummy typedef */
 typedef struct _HwpListenerInterface HwpListenerInterface;
 
 /**
+ * HwpListenerInterface:
  * Since: 0.0.1
  */
 struct _HwpListenerInterface

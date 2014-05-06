@@ -506,6 +506,7 @@ static void _hwp_hwp3_parser_parse_supplementary_info_block2 (HwpHWP3Parser *par
 }
 
 /**
+ * hwp_hwp3_parser_parse:
  * Since: 0.0.1
  */
 void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
@@ -544,6 +545,7 @@ void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
 }
 
 /**
+ * hwp_hwp3_parser_new:
  * Since: 0.0.1
  */
 HwpHWP3Parser *hwp_hwp3_parser_new (HwpListener *listener,

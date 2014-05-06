@@ -17,16 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * SECTION:hwp-version
- * @Short_description: Variables and functions to check the HWP version
- * @Title: Version Information
- *
- * HWP provides version information, primarily useful in configure checks
- * for builds that have a configure script. Applications will not typically
- * use the features described here.
- */
-
 #if !defined (__HWP_H_INSIDE__) && !defined (HWP_COMPILATION)
 #error "Only <hwp/hwp.h> can be included directly."
 #endif

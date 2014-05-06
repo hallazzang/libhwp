@@ -1328,6 +1328,7 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
 }
 
 /**
+ * hwp_hwp5_parser_check_version:
  * Since: 0.0.1
  */
 gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,

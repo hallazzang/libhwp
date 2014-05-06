@@ -174,6 +174,7 @@ typedef enum
               (((guint8)(c)) <<  8) | \
               (((guint8)(d)) <<  0))
 /**
+ * HwpCtrlID:
  * Since: 0.0.1
  */
 typedef enum

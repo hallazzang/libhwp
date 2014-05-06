@@ -30,11 +30,12 @@
 #include "hwp-models.h"
 #include "hwp-hwp5-parser.h"
 
-/** HwpSummaryInfo **********************************************************/
+/* HwpSummaryInfo **********************************************************/
 
 G_DEFINE_TYPE (HwpSummaryInfo, hwp_summary_info, G_TYPE_OBJECT);
 
 /**
+ * hwp_summary_info_new:
  * Since: 0.0.1
  */
 HwpSummaryInfo *hwp_summary_info_new (void)
@@ -81,11 +82,12 @@ static void hwp_summary_info_class_init (HwpSummaryInfoClass *klass)
   object_class->finalize = hwp_summary_info_finalize;
 }
 
-/** HwpParagraph ************************************************************/
+/* HwpParagraph ************************************************************/
 
 G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
 /**
+ * hwp_paragraph_new:
  * Since: 0.0.1
  */
 HwpParagraph *hwp_paragraph_new (void)
@@ -126,6 +128,7 @@ static void hwp_paragraph_init (HwpParagraph *paragraph)
 }
 
 /**
+ * hwp_paragraph_set_string:
  * Since: 0.0.1
  */
 void hwp_paragraph_set_string (HwpParagraph *paragraph, GString *string)
@@ -149,6 +152,7 @@ GString *hwp_paragraph_get_string (HwpParagraph *paragraph)
 }
 
 /**
+ * hwp_paragraph_set_secd:
  * Since: 0.0.3
  */
 void hwp_paragraph_set_secd (HwpParagraph *paragraph, HwpSecd *secd)
@@ -159,6 +163,7 @@ void hwp_paragraph_set_secd (HwpParagraph *paragraph, HwpSecd *secd)
 }
 
 /**
+ * hwp_paragraph_set_table:
  * Since: 0.0.1
  */
 void hwp_paragraph_set_table (HwpParagraph *paragraph, HwpTable *table)
@@ -182,11 +187,12 @@ HwpTable *hwp_paragraph_get_table (HwpParagraph *paragraph)
   return paragraph->table;
 }
 
-/** HwpTable ****************************************************************/
+/* HwpTable ****************************************************************/
 
 G_DEFINE_TYPE (HwpTable, hwp_table, G_TYPE_OBJECT);
 
 /**
+ * hwp_table_new:
  * Since: 0.0.1
  */
 HwpTable *hwp_table_new (void)
@@ -256,6 +262,7 @@ HwpTableCell *hwp_table_get_last_cell (HwpTable *table)
 }
 
 /**
+ * hwp_table_add_cell:
  * Since: 0.0.1
  */
 void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell)
@@ -265,7 +272,7 @@ void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell)
   g_ptr_array_add (table->cells, cell);
 }
 
-/** HwpTableCell ************************************************************/
+/* HwpTableCell ************************************************************/
 
 G_DEFINE_TYPE (HwpTableCell, hwp_table_cell, G_TYPE_OBJECT);
 
@@ -289,6 +296,7 @@ static void hwp_table_cell_class_init (HwpTableCellClass *klass)
 }
 
 /**
+ * hwp_table_cell_new:
  * Since: 0.0.1
  */
 HwpTableCell *hwp_table_cell_new (void)
@@ -312,6 +320,7 @@ HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell)
 }
 
 /**
+ * hwp_table_cell_add_paragraph:
  * Since: 0.0.1
  */
 void hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
@@ -324,6 +333,7 @@ void hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
 HWP_DEFINE_BOXED_TYPE (HwpSecd, hwp_secd, hwp_secd_copy, hwp_secd_free)
 
 /**
+ * hwp_secd_new:
  * Since: 0.0.3
  */
 HwpSecd *hwp_secd_new ()
@@ -346,6 +356,7 @@ HwpSecd *hwp_secd_new ()
 }
 
 /**
+ * hwp_secd_copy:
  * Since: 0.0.3
  */
 HwpSecd *hwp_secd_copy (HwpSecd *secd)
@@ -356,6 +367,7 @@ HwpSecd *hwp_secd_copy (HwpSecd *secd)
 }
 
 /**
+ * hwp_secd_free:
  * Since: 0.0.3
  */
 void hwp_secd_free (HwpSecd *secd)

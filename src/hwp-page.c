@@ -27,7 +27,7 @@ G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);
  * hwp_page_get_size:
  * @page: #HwpPage
  * @width:
- * @hegiht:
+ * @height:
  *
  * Returns:
  *
@@ -65,6 +65,7 @@ char *hwp_page_get_selected_text (HwpPage          *page,
 }
 
 /**
+ * hwp_page_get_selected_region:
  * Since: 0.0.3
  */
 cairo_region_t *
@@ -80,6 +81,7 @@ hwp_page_get_selected_region (HwpPage          *page,
 }
 
 /**
+ * hwp_page_render_selection:
  * Since: 0.0.3
  */
 void hwp_page_render_selection (HwpPage          *page,
@@ -151,6 +153,7 @@ void hwp_page_render (HwpPage *page, cairo_t *cr)
 }
 
 /**
+ * hwp_page_render_for_printing:
  * Since: 0.0.3
  */
 void hwp_page_render_for_printing (HwpPage *page,

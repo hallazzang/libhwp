@@ -110,6 +110,7 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
 }
 
 /**
+ * hwp_hwpml_parser_parse:
  * Since: 0.0.1
  */
 void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,

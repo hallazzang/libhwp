@@ -36,7 +36,7 @@
 
 G_BEGIN_DECLS
 
-/** HwpSummaryInfo **********************************************************/
+/* HwpSummaryInfo **********************************************************/
 
 #define HWP_TYPE_SUMMARY_INFO             (hwp_summary_info_get_type ())
 #define HWP_SUMMARY_INFO(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_SUMMARY_INFO, HwpSummaryInfo))
@@ -92,7 +92,7 @@ typedef struct _HwpTable     HwpTable;
 typedef struct _HwpTableCell HwpTableCell;
 typedef struct _HwpSecd      HwpSecd;
 
-/** HwpParagraph ************************************************************/
+/* HwpParagraph ************************************************************/
 
 #define HWP_TYPE_PARAGRAPH             (hwp_paragraph_get_type ())
 #define HWP_PARAGRAPH(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_PARAGRAPH, HwpParagraph))
@@ -133,7 +133,7 @@ void          hwp_paragraph_set_table  (HwpParagraph *paragraph,
 void          hwp_paragraph_set_secd   (HwpParagraph *paragraph,
                                         HwpSecd      *secd);
 
-/** HwpTable ****************************************************************/
+/* HwpTable ****************************************************************/
 
 #define HWP_TYPE_TABLE             (hwp_table_get_type ())
 #define HWP_TABLE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TABLE, HwpTable))
@@ -177,7 +177,7 @@ HwpTableCell *hwp_table_get_last_cell    (HwpTable     *table);
 void          hwp_table_add_cell         (HwpTable     *table,
                                           HwpTableCell *cell);
 
-/** HwpTableCell ************************************************************/
+/* HwpTableCell ************************************************************/
 
 #define HWP_TYPE_TABLE_CELL             (hwp_table_cell_get_type ())
 #define HWP_TABLE_CELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TABLE_CELL, HwpTableCell))
