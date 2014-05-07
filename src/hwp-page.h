@@ -40,11 +40,12 @@ G_BEGIN_DECLS
 #define HWP_IS_PAGE_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_PAGE))
 #define HWP_PAGE_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_PAGE, HwpPageClass))
 
-typedef struct _HwpPage       HwpPage;
-typedef struct _HwpPageClass  HwpPageClass;
+typedef struct _HwpPage            HwpPage;
+typedef struct _HwpPageClass       HwpPageClass;
 
-typedef struct _HwpRectangle  HwpRectangle;
-typedef struct _HwpColor      HwpColor;
+typedef struct _HwpRectangle       HwpRectangle;
+typedef struct _HwpColor           HwpColor;
+typedef struct _HwpTextAttributes  HwpTextAttributes;
 
 struct _HwpPage
 {
@@ -58,53 +59,57 @@ struct _HwpPageClass
   GObjectClass parent_class;
 };
 
-GType    hwp_page_get_type   (void) G_GNUC_CONST;
-HwpPage *hwp_page_new        (void);
-void     hwp_page_get_size   (HwpPage          *page,
-                              gdouble          *width,
-                              gdouble          *height);
-void     hwp_page_render     (HwpPage          *page,
-                              cairo_t          *cr);
-void
-hwp_page_render_selection    (HwpPage          *page,
-                              cairo_t          *cairo,
-                              HwpRectangle     *selection,
-                              HwpRectangle     *old_selection,
-                              HwpSelectionStyle style,
-                              HwpColor         *glyph_color,
-                              HwpColor         *background_color);
-char *
-hwp_page_get_selected_text   (HwpPage          *page,
-                              HwpSelectionStyle style,
-                              HwpRectangle     *selection);
+GType     hwp_page_get_type             (void) G_GNUC_CONST;
+
+HwpPage  *hwp_page_new                  (void);
+void      hwp_page_free_text_attributes (GList *list);
+GList    *hwp_page_find_text            (HwpPage           *page,
+                                         const char        *text);
 cairo_region_t *
-hwp_page_get_selected_region (HwpPage          *page,
-                              gdouble           scale,
-                              HwpSelectionStyle style,
-                              HwpRectangle     *selection);
-GList *hwp_page_find_text    (HwpPage          *page,
-                              const char       *text);
-void
-hwp_page_render_for_printing (HwpPage          *page,
-                              cairo_t          *cairo);
+          hwp_page_get_selected_region  (HwpPage           *page,
+                                         gdouble            scale,
+                                         HwpSelectionStyle  style,
+                                         HwpRectangle      *selection);
+char     *hwp_page_get_selected_text    (HwpPage           *page,
+                                         HwpSelectionStyle  style,
+                                         HwpRectangle      *selection);
+void      hwp_page_get_size             (HwpPage           *page,
+                                         gdouble           *width,
+                                         gdouble           *height);
+char     *hwp_page_get_text             (HwpPage           *page);
+GList    *hwp_page_get_text_attributes  (HwpPage           *page);
+gboolean  hwp_page_get_text_layout      (HwpPage           *page,
+                                         HwpRectangle     **rectangles,
+                                         guint             *n_rectangles);
+void      hwp_page_render               (HwpPage           *page,
+                                         cairo_t           *cr);
+void      hwp_page_render_for_printing  (HwpPage           *page,
+                                         cairo_t           *cairo);
+void      hwp_page_render_selection     (HwpPage           *page,
+                                         cairo_t           *cairo,
+                                         HwpRectangle      *selection,
+                                         HwpRectangle      *old_selection,
+                                         HwpSelectionStyle  style,
+                                         HwpColor          *glyph_color,
+                                         HwpColor          *background_color);
 
 /*
  * A convenience macro for boxed type implementations, which defines a
  * type_name_get_type() function registering the boxed type.
  */
-#define HWP_DEFINE_BOXED_TYPE(TypeName, type_name, copy_func, free_func)          \
-GType                                                                                 \
-type_name##_get_type (void)                                                           \
-{                                                                                     \
-        static volatile gsize g_define_type_id__volatile = 0;                         \
-	if (g_once_init_enter (&g_define_type_id__volatile)) {                        \
-	        GType g_define_type_id =                                              \
-		    g_boxed_type_register_static (g_intern_static_string (#TypeName), \
-		                                  (GBoxedCopyFunc) copy_func,         \
-						  (GBoxedFreeFunc) free_func);        \
-		g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);    \
-	}                                                                             \
-	return g_define_type_id__volatile;                                            \
+#define HWP_DEFINE_BOXED_TYPE(TypeName, type_name, copy_func, free_func)  \
+GType type_name##_get_type (void)                                         \
+{                                                                         \
+  static volatile gsize g_define_type_id__volatile = 0;                   \
+  if (g_once_init_enter (&g_define_type_id__volatile))                    \
+  {                                                                       \
+    GType g_define_type_id =                                              \
+      g_boxed_type_register_static (g_intern_static_string (#TypeName),   \
+                                    (GBoxedCopyFunc) copy_func,           \
+                                    (GBoxedFreeFunc) free_func);          \
+    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);    \
+  }                                                                       \
+  return g_define_type_id__volatile;                                      \
 }
 
 /* A rectangle on a page */
@@ -155,6 +160,37 @@ GType     hwp_color_get_type (void) G_GNUC_CONST;
 HwpColor *hwp_color_new      (void);
 HwpColor *hwp_color_copy     (HwpColor *color);
 void      hwp_color_free     (HwpColor *color);
+
+/* Text attributes. */
+#define HWP_TYPE_TEXT_ATTRIBUTES       (hwp_text_attributes_get_type ())
+/**
+ * HwpTextAttributes:
+ * @font_name: font name
+ * @font_size: font size
+ * @is_underlined: if text is underlined
+ * @color: a #HwpColor, the foreground color
+ * @start_index: start position this text attributes apply
+ * @end_index: end position this text text attributes apply
+ *
+ * A #HwpTextAttributes is used to describe text attributes of a range of text
+ *
+ * Since: 0.0.4
+ */
+struct _HwpTextAttributes
+{
+  gchar   *font_name;
+  gdouble  font_size;
+  gboolean is_underlined;
+  HwpColor color;
+
+  gint     start_index;
+  gint     end_index;
+};
+
+GType              hwp_text_attributes_get_type (void) G_GNUC_CONST;
+HwpTextAttributes *hwp_text_attributes_new      (void);
+HwpTextAttributes *hwp_text_attributes_copy     (HwpTextAttributes *text_attrs);
+void               hwp_text_attributes_free     (HwpTextAttributes *text_attrs);
 
 G_END_DECLS
 

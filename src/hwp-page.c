@@ -51,10 +51,10 @@ void hwp_page_get_size (HwpPage *page, gdouble *width, gdouble *height)
  * Return value: a pointer to the contents of the @selection
  *               as a string
  * Since: 0.0.3
- **/
-char *hwp_page_get_selected_text (HwpPage          *page,
-                                  HwpSelectionStyle style,
-                                  HwpRectangle     *selection)
+ */
+char *hwp_page_get_selected_text (HwpPage           *page,
+                                  HwpSelectionStyle  style,
+                                  HwpRectangle      *selection)
 {
   g_return_val_if_fail (HWP_IS_PAGE (page), NULL);
   g_return_val_if_fail (selection != NULL, NULL);
@@ -62,6 +62,23 @@ char *hwp_page_get_selected_text (HwpPage          *page,
   return poppler_page_get_selected_text (POPPLER_PAGE (page->poppler_page),
                                          (PopplerSelectionStyle) style,
                                          (PopplerRectangle *) selection);
+}
+
+/**
+ * hwp_page_get_text:
+ * @page: a #HwpPage
+ *
+ * Retrieves the text of @page.
+ *
+ * Return value: a pointer to the text of the @page
+ *               as a string
+ * Since: 0.0.4
+ */
+char *hwp_page_get_text (HwpPage *page)
+{
+  g_return_val_if_fail (HWP_IS_PAGE (page), NULL);
+
+  return poppler_page_get_text (POPPLER_PAGE (page->poppler_page));
 }
 
 /**
@@ -173,7 +190,7 @@ void hwp_page_render_for_printing (HwpPage *page,
  * The coordinates are in HWP points.
  *
  * Return value: (element-type HwpRectangle) (transfer full): a #GList of #HwpRectangle,
- **/
+ */
 GList *hwp_page_find_text (HwpPage *page, const char *text)
 {
   return poppler_page_find_text (page->poppler_page, text);
@@ -265,4 +282,123 @@ HwpColor *hwp_color_copy (HwpColor *color)
 void hwp_color_free (HwpColor *color)
 {
   g_free (color);
+}
+
+/* HwpTextAttributes type */
+
+HWP_DEFINE_BOXED_TYPE (HwpTextAttributes, hwp_text_attributes,
+                       hwp_text_attributes_copy,
+                       hwp_text_attributes_free)
+
+/**
+ * hwp_text_attributes_new:
+ *
+ * Creates a new #HwpTextAttributes
+ *
+ * Returns: a new #HwpTextAttributes, use hwp_text_attributes_free() to free it
+ *
+ * Since: 0.0.4
+ */
+HwpTextAttributes *hwp_text_attributes_new (void)
+{
+  return (HwpTextAttributes *) g_slice_new0 (HwpTextAttributes);
+}
+
+/**
+ * hwp_text_attributes_copy:
+ * @text_attrs: a #HwpTextAttributes to copy
+ *
+ * Creates a copy of @text_attrs
+ *
+ * Returns: a new allocated copy of @text_attrs
+ *
+ * Since: 0.0.4
+ */
+HwpTextAttributes *hwp_text_attributes_copy (HwpTextAttributes *text_attrs)
+{
+  HwpTextAttributes *attrs;
+
+  attrs = g_slice_dup (HwpTextAttributes, text_attrs);
+  attrs->font_name = g_strdup (text_attrs->font_name);
+  return attrs;
+}
+
+/**
+ * hwp_text_attributes_free:
+ * @text_attrs: a #HwpTextAttributes
+ *
+ * Frees the given #HwpTextAttributes
+ *
+ * Since: 0.0.4
+ */
+void hwp_text_attributes_free (HwpTextAttributes *text_attrs)
+{
+  g_free (text_attrs->font_name);
+  g_slice_free (HwpTextAttributes, text_attrs);
+}
+
+/**
+ * hwp_page_get_text_attributes:
+ * @page: A #HwpPage
+ *
+ * Obtains the attributes of the text as a GList of #HwpTextAttributes.
+ * This list must be freed with hwp_page_free_text_attributes() when done.
+ *
+ * Each list element is a #HwpTextAttributes struct where start_index and
+ * end_index indicates the range of text (as returned by hwp_page_get_text())
+ * to which text attributes apply.
+ *
+ * Return value: (element-type HwpTextAttributes) (transfer full): A #GList of #HwpTextAttributes
+ *
+ * Since: 0.0.4
+ */
+GList *hwp_page_get_text_attributes (HwpPage *page)
+{
+  g_return_val_if_fail (HWP_IS_PAGE (page), NULL);
+  return poppler_page_get_text_attributes (page->poppler_page);
+}
+
+/**
+ * hwp_page_get_text_layout:
+ * @page: A #HwpPage
+ * @rectangles: (out) (array length=n_rectangles) (transfer container): return location for an array of #HwpRectangle
+ * @n_rectangles: (out): length of returned array
+ *
+ * Obtains the layout of the text as a list of #HwpRectangle
+ * This array must be freed with g_free () when done.
+ *
+ * The position in the array represents an offset in the text returned by
+ * hwp_page_get_text()
+ *
+ * Return value: %TRUE if the page contains text, %FALSE otherwise
+ *
+ * Since: 0.0.4
+ */
+gboolean hwp_page_get_text_layout (HwpPage       *page,
+                                   HwpRectangle **rectangles,
+                                   guint         *n_rectangles)
+{
+  g_return_val_if_fail (HWP_IS_PAGE (page), FALSE);
+  return poppler_page_get_text_layout (page->poppler_page,
+                                       (PopplerRectangle **) rectangles,
+                                       n_rectangles);
+}
+
+/**
+ * hwp_page_free_text_attributes:
+ * @list: (element-type HwpTextAttributes): A list of
+ *   #HwpTextAttributes<!-- -->s
+ *
+ * Frees a list of #HwpTextAttributes<!-- -->s allocated by
+ * hwp_page_get_text_attributes().
+ *
+ * Since: 0.0.4
+ */
+void hwp_page_free_text_attributes (GList *list)
+{
+  if (G_UNLIKELY (list == NULL))
+    return;
+
+  g_list_foreach (list, (GFunc) hwp_text_attributes_free, NULL);
+  g_list_free (list);
 }
