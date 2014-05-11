@@ -91,69 +91,43 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
   for (guint i = 0; i < document->paragraphs->len; i++)
   {
     paragraph = g_ptr_array_index (document->paragraphs, i);
-
-    /* markup text 만들기 */
-    const gchar *text = "";
-
-    if (paragraph->string)
-      text = paragraph->string->str;
-
-    GString *markup = g_string_new (NULL);
+    PangoAttrList *attrs = pango_attr_list_new ();
 
     for (guint j = 0; j < paragraph->m_len; j++)
     {
-      guint32 pos1 = paragraph->m_pos[j];
-      guint32 pos2;
-
-      if (j + 1 > paragraph->m_len - 1)
-        /* n_chars 의 크기는 parser->data_len / 2 */
-        /* 즉, PARA_TEXT를 다시 손질해야 합니다. */
-        pos2 = paragraph->n_chars - 1;
-      else
-        pos2 = paragraph->m_pos[j+1];
-
-      /* pos 값 보정 */
-      if (pos1 > 0 && pos1 > g_utf8_strlen (text, -1) - 1)
-        pos1 = g_utf8_strlen (text, -1);
-
-      if (pos2 > g_utf8_strlen (text, -1) - 1)
-        pos2 = g_utf8_strlen (text, -1);
-
-      /* NOTE: substring의 길이는 pos2 - pos1 입니다. */
-      gchar *substring = g_utf8_substring (text, pos1, pos2);
-
-      guint16 char_shape_id = paragraph->m_id[j];
-      HwpCharShape *char_shape;
-      char_shape = g_ptr_array_index (document->char_shapes, char_shape_id);
-      guint16 face_id = char_shape->face_id[0]; /* 한국어의 경우 0 */
-
-      HwpFaceName *hwp_face_name;
-      hwp_face_name = g_ptr_array_index (document->face_names, face_id);
-      gchar *face_name = hwp_face_name->font_name;
-
+      HwpCharShape *char_shape = g_ptr_array_index (document->char_shapes,
+                                                    paragraph->m_id[j]);
       gdouble font_size_in_points = char_shape->height_in_points;
 
-      gchar *span = g_strdup_printf ("<span face=\"%s\" font=\"%f\">",
-                                     face_name,
-                                     font_size_in_points);
-      g_string_append (markup, span);
-      g_free (span);
+      HwpFaceName *hwp_face_name = g_ptr_array_index (document->face_names,
+                                                      char_shape->face_id[0]); /* 한국어의 경우 0 */
+      gchar *face_name = hwp_face_name->font_name;
 
-      if (substring != NULL)
-        g_string_append (markup, substring);
+      HwpTextAttributes *text_attrs = g_ptr_array_index (paragraph->text_attrs, j);
+      PangoAttribute *family = pango_attr_family_new (face_name);
+      family->start_index = text_attrs->start_index;
+      family->end_index   = text_attrs->end_index;
 
-      g_free (substring);
-      g_string_append (markup, "</span>");
-    }
+      PangoAttribute *size;
+      size = pango_attr_size_new (font_size_in_points * PANGO_SCALE);
+      size->start_index = text_attrs->start_index;
+      size->end_index = text_attrs->end_index;
 
-    /* hwp5의 경우 */
-    if (major_version == 5)
-      pango_layout_set_markup (layout, markup->str, -1);
-    /* hwp3, hwpml의 경우 */
+      pango_attr_list_insert (attrs, family);
+      pango_attr_list_insert (attrs, size);
+    } /* for (guint j = 0; j < paragraph->m_len; j++) */
+
+    if (paragraph->text)
+      pango_layout_set_text (layout, paragraph->text, -1);
     else
-      pango_layout_set_text (layout, text, -1);
+      continue;
 
-    g_string_free (markup, TRUE);
+    /* hwp5의 경우 attrs 적용합니다. */
+    if (major_version == 5)
+      pango_layout_set_attributes (layout, attrs);
+
+    pango_attr_list_unref (attrs);
+
     pango_cairo_update_layout (cr, layout);
     PangoLayoutIter *iter = pango_layout_get_iter (layout);
 
@@ -180,7 +154,7 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
     } while (pango_layout_iter_next_line (iter));
 
     pango_layout_iter_free (iter);
-  }
+  } /* for (guint j = 0; j < paragraph->m_len; j++) */
 
   g_object_unref (layout);
   cairo_destroy (cr);

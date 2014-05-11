@@ -33,6 +33,7 @@
 #define __HWP_MODELS_H__
 
 #include <glib-object.h>
+#include "hwp-page.h"
 
 G_BEGIN_DECLS
 
@@ -57,29 +58,29 @@ struct _HwpSummaryInfo
 {
   GObject parent_instance;
 
-  const gchar    *title;
-  const gchar    *format;
-  const gchar    *author;
-  const gchar    *subject;
-  const gchar    *keywords;
-  const gchar    *layout;
-  const gchar    *start_mode;
-  const gchar    *permissions;
-  const gchar    *ui_hints;
-  const gchar    *creator;
-  const gchar    *producer;
-  GTime           creation_date;
-  GTime           mod_date;
-  const gchar    *linearized;
-  const gchar    *security;
-  const gchar    *paper_size;
-  const gchar    *license;
+  char  *title;
+  char  *format;
+  char  *author;
+  char  *subject;
+  char  *keywords;
+  char  *layout;
+  char  *start_mode;
+  char  *permissions;
+  char  *ui_hints;
+  char  *creator;
+  char  *producer;
+  GTime  creation_date;
+  GTime  mod_date;
+  char  *linearized;
+  char  *security;
+  char  *paper_size;
+  char  *license;
   /* hwp info */
-  const gchar    *desc;
-  GTime           last_printed;
-  const gchar    *last_saved_by;
+  char  *desc;
+  GTime  last_printed;
+  char  *last_saved_by;
   /* version of hanword */
-  const gchar    *hanword_version;
+  char  *hanword_version;
 };
 
 GType hwp_summary_info_get_type (void) G_GNUC_CONST;
@@ -107,14 +108,15 @@ typedef struct _HwpParagraphClass HwpParagraphClass;
 
 struct _HwpParagraph
 {
-  GObject   parent_instance;
-  GString  *string;
-  HwpTable *table;
-  HwpSecd  *secd;
-  guint16   n_chars;
-  guint32  *m_pos;
-  guint32  *m_id;
-  guint16   m_len;
+  GObject     parent_instance;
+  const char *text;
+  HwpTable   *table;
+  HwpSecd    *secd;
+  guint16     n_chars;
+  guint32    *m_pos;
+  guint32    *m_id;
+  guint16     m_len;
+  GPtrArray  *text_attrs;
 };
 
 struct _HwpParagraphClass
@@ -124,9 +126,9 @@ struct _HwpParagraphClass
 
 GType         hwp_paragraph_get_type   (void) G_GNUC_CONST;
 HwpParagraph *hwp_paragraph_new        (void);
-void          hwp_paragraph_set_string (HwpParagraph *paragraph,
-                                        GString      *string);
-GString      *hwp_paragraph_get_string (HwpParagraph *paragraph);
+void          hwp_paragraph_set_text   (HwpParagraph *paragraph,
+                                        const gchar  *text);
+const char   *hwp_paragraph_get_text   (HwpParagraph *paragraph);
 HwpTable     *hwp_paragraph_get_table  (HwpParagraph *paragraph);
 void          hwp_paragraph_set_table  (HwpParagraph *paragraph,
                                         HwpTable     *table);

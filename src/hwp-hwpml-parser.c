@@ -51,6 +51,7 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
   gchar *tag_p    = g_utf8_casefold ("P", strlen("P"));
   gchar *tag_text = g_utf8_casefold ("TEXT", strlen("TEXT"));
   gchar *tag_char = g_utf8_casefold ("CHAR", strlen("CHAR"));
+  GString *string = g_string_new (NULL);
 
   switch (node_type) {
   case XML_READER_TYPE_ELEMENT:
@@ -64,8 +65,6 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
       tag_p_count++;
       if (tag_p_count > 1) {
         paragraph = hwp_paragraph_new ();
-        GString *string = g_string_new ("");
-        hwp_paragraph_set_string (paragraph, string);
       }
     /* char */
     } else if (g_utf8_collate (tag_name, tag_char) == 0) {
@@ -74,7 +73,7 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
     break;
   case XML_READER_TYPE_TEXT:
     if ((hwp_parse_state & HWP_PARSE_STATE_CHAR) == HWP_PARSE_STATE_CHAR) {
-      g_string_append (paragraph->string, (const gchar *) value);
+      g_string_append (string, (const gchar *) value);
     }
     break;
   case XML_READER_TYPE_END_ELEMENT:
@@ -87,6 +86,8 @@ static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
                              parser->user_data,
                              error);
     } else if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
+      hwp_paragraph_set_text (paragraph, g_string_free (string, FALSE));
+
       if (iface->paragraph)
         iface->paragraph (parser->listener,
                           paragraph,

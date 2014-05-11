@@ -687,96 +687,6 @@ static HwpTable *hwp_hwp5_parser_build_table (HwpHWP5Parser *parser,
   return table;
 }
 
-static GString *hwp_hwp5_parser_get_string (HwpHWP5Parser *parser, GError **error)
-{
-  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
-
-  gunichar2 ch; /* guint16 */
-  GString  *string = g_string_new (NULL);
-  guint     i;
-
-  for (i = 0; i < parser->data_len; i = i + 2)
-  {
-    parser_read_uint16 (parser, &ch, error);
-    switch (ch) {
-    case 0:
-      break;
-    case 1:
-    case 2:
-    case 3:
-    case 4: /* inline */
-    case 5: /* inline */
-    case 6: /* inline */
-    case 7: /* inline */
-    case 8: /* inline */
-      i = i + 14;
-      parser_skip (parser, 14);
-      break;
-    case 9: /* inline */ /* tab */
-      i = i + 14;
-      parser_skip (parser, 14);
-      g_string_append_unichar (string, ch);
-      break;
-    case 10:
-      break;
-    case 11:
-    case 12:
-      i = i + 14;
-      parser_skip (parser, 14);
-      break;
-    case 13:
-      break;
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19: /* inline */
-    case 20: /* inline */
-    case 21:
-    case 22:
-    case 23:
-      i = i + 14;
-      parser_skip (parser, 14);
-      break;
-    case 24:
-    case 25:
-    case 26:
-    case 27:
-    case 28:
-    case 29:
-    case 30:
-    case 31:
-      break;
-    default:
-      /* 한양PUA 코드 */
-      if (ch >= 0xe0bc && ch <= 0xf8f7)
-      {
-        const gunichar2 *unichar2;
-        unichar2 = hyc2uni_page14[ch-0xe0bc];
-        for (int i = 0; i < 3; i++)
-        {
-          if (unichar2[i] == 0)
-            break;
-          g_string_append_unichar (string, unichar2[i]);
-        }
-      }
-      else
-      {
-        g_string_append_unichar (string, ch);
-      }
-      break;
-    } /* switch */
-  } /* for */
-
-  if (parser->data_count != parser->data_len) {
-    g_string_free (string, TRUE);
-    return NULL;
-  }
-
-  return string;
-}
-
 static void hwp_hwp5_parser_parse_shape_component (HwpHWP5Parser *parser,
                                                    HwpHWP5File   *file,
                                                    GError       **error)
@@ -1060,72 +970,180 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
                                                       HwpHWP5File   *file,
                                                       GError       **error)
 {
-  g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
-  g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
-
   guint16 level = parser->level;
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
-  GString      *string    = NULL;
+  gchar        *raw_text  = NULL;
+
   parser_read_uint16 (parser, &paragraph->n_chars, error);
 
-  while (hwp_hwp5_parser_pull (parser, error)) {
-    if (parser->level <= level) {
+  while (hwp_hwp5_parser_pull (parser, error))
+  {
+    if (parser->level <= level)
+    {
       parser->state = HWP_PARSE_STATE_PASSING;
       break;
     }
 
     g_assert (parser->level == level + 1);
 
-    switch (parser->tag_id) {
-    case HWP_TAG_PARA_TEXT:
-      string = hwp_hwp5_parser_get_string (parser, error);
-      hwp_paragraph_set_string (paragraph, string);
+    switch (parser->tag_id)
+    {
+      case HWP_TAG_PARA_TEXT:
+        raw_text = g_malloc (parser->data_len);
+        gsf_input_read (parser->stream, parser->data_len, (guint8 *) raw_text);
+        parser->data_count += parser->data_len;
 #ifdef HWP_ENABLE_DEBUG
-      printf ("paragraph->n_chars:%d\n", paragraph->n_chars);
-      printf ("parser->data_len:%d\n", parser->data_len);
-      printf ("g_utf8_strlen:%ld\n", g_utf8_strlen (paragraph->string->str, -1));
-      printf ("string:%s\n", paragraph->string->str);
+        printf ("paragraph->n_chars:%d\n", paragraph->n_chars);
+        printf ("parser->data_len:%d\n", parser->data_len);
 #endif
-      string = NULL;
-      break;
-    case HWP_TAG_PARA_CHAR_SHAPE:
-      {
-        paragraph->m_len = parser->data_len / 8;
-        paragraph->m_pos = g_malloc (4 * paragraph->m_len);
-        paragraph->m_id  = g_malloc (4 * paragraph->m_len);
-        for (guint i = 0; i < paragraph->m_len; i++)
+        break;
+      case HWP_TAG_PARA_CHAR_SHAPE:
         {
-          parser_read_uint32 (parser, &paragraph->m_pos[i], error);
-          parser_read_uint32 (parser, &paragraph->m_id[i], error);
+          paragraph->m_len = parser->data_len / 8;
+          paragraph->m_pos = g_malloc (4 * paragraph->m_len);
+          paragraph->m_id  = g_malloc (4 * paragraph->m_len);
+          paragraph->text_attrs = g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_text_attributes_free);
+
+          for (guint i = 0; i < paragraph->m_len; i++)
+          {
+            parser_read_uint32 (parser, &paragraph->m_pos[i], error);
+            parser_read_uint32 (parser, &paragraph->m_id[i], error);
+
 #ifdef HWP_ENABLE_DEBUG
-          printf ("m_pos[%d]:%d  ", i, paragraph->m_pos[i]);
+            printf ("m_pos[%d]:%d\n", i, paragraph->m_pos[i]);
 #endif
+          }
+
+          gint prev_index = 0;
+          GString *string = g_string_new (NULL);
+
+          for (guint j = 0; j < paragraph->m_len; j++)
+          {
+            GString *substring = g_string_new (NULL);
+            guint32 pos1, pos2;
+            pos1 = paragraph->m_pos[j];
+
+            if (j + 1 == paragraph->m_len)
+              pos2 = paragraph->n_chars;
+            else
+              pos2 = paragraph->m_pos[j+1];
+
+            for (guint i = pos1 * 2; i < pos2 * 2; i = i + 2)
+            {
+              if (!raw_text)
+                break;
+
+              gunichar2 c = GSF_LE_GET_GUINT16(raw_text + i);
+              switch (c)
+              {
+                case 0:
+                  break;
+                case 1:
+                case 2:
+                case 3:
+                case 4: /* inline */
+                case 5: /* inline */
+                case 6: /* inline */
+                case 7: /* inline */
+                case 8: /* inline */
+                  i = i + 14;
+                  break;
+                case 9: /* inline */ /* tab */
+                  i = i + 14;
+                  g_string_append_unichar (substring, c);
+                  break;
+                case 10:
+                  break;
+                case 11:
+                case 12:
+                  i = i + 14;
+                  break;
+                case 13:
+                  break;
+                case 14:
+                case 15:
+                case 16:
+                case 17:
+                case 18:
+                case 19: /* inline */
+                case 20: /* inline */
+                case 21:
+                case 22:
+                case 23:
+                  i = i + 14;
+                  break;
+                case 24:
+                case 25:
+                case 26:
+                case 27:
+                case 28:
+                case 29:
+                case 30:
+                case 31:
+                  break;
+                default:
+                  /* HyPUA code */
+                  if (c >= 0xe0bc && c <= 0xf8f7)
+                  {
+                    const gunichar2 *unichar2;
+                    unichar2 = hyc2uni_page14[c-0xe0bc];
+                    for (int j = 0; j < 3; j++)
+                    {
+                      if (unichar2[j] == 0)
+                        break;
+
+                      g_string_append_unichar (substring, unichar2[j]);
+                    }
+                  }
+                  else
+                  {
+                    g_string_append_unichar (substring, c);
+                  }
+                  break;
+              } /* switch */
+            } /* for (guint i = pos1 * 2; i < pos2 * 2; i = i + 2) */
+
+            HwpTextAttributes *text_attrs = hwp_text_attributes_new ();
+            text_attrs->start_index = prev_index;
+            /* The character at end_index is not included */
+            text_attrs->end_index = text_attrs->start_index + strlen (substring->str);
+            g_ptr_array_add (paragraph->text_attrs, text_attrs);
+#ifdef HWP_ENABLE_DEBUG
+            printf ("start:%d ~ end:%d:text:%s\n",
+                    text_attrs->start_index,
+                    text_attrs->end_index,
+                    substring->str);
+#endif
+            prev_index = text_attrs->end_index;
+            g_string_append (string, g_string_free (substring, FALSE));
+          } /* for (guint j = 0; j < paragraph->m_len; j++) */
+          paragraph->text = g_string_free (string, FALSE);
         }
-      }
-      break;
-    case HWP_TAG_PARA_LINE_SEG:
-      break;
-    case HWP_TAG_CTRL_HEADER:
-      hwp_hwp5_parser_parse_ctrl_header (parser, file, paragraph, error);
-      break;
-    case HWP_TAG_MEMO_LIST:
-      break;
-    /* TODO: HWP_TAG_LIST_HEADER
-       계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
-    case HWP_TAG_LIST_HEADER: /* memo list 가 사용합니다 */
-      break;
-    /* TODO: HWP_TAG_PARA_HEADER
-       계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
-    case HWP_TAG_PARA_HEADER: /* memo list 가 사용합니다. */
-      hwp_hwp5_parser_build_paragraph (parser, file, error);
-      break;
-    default:
-      WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
-      break;
+        break;
+      case HWP_TAG_PARA_LINE_SEG:
+        break;
+      case HWP_TAG_CTRL_HEADER:
+        hwp_hwp5_parser_parse_ctrl_header (parser, file, paragraph, error);
+        break;
+      case HWP_TAG_MEMO_LIST:
+        break;
+      /* TODO: HWP_TAG_LIST_HEADER
+         계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
+      case HWP_TAG_LIST_HEADER: /* memo list 가 사용합니다 */
+        break;
+      /* TODO: HWP_TAG_PARA_HEADER
+         계층화를 위해 HWP_TAG_MEMO_LIST 를 파싱하는 부분에서 처리할 필요가 있습니다. */
+      case HWP_TAG_PARA_HEADER: /* memo list 가 사용합니다. */
+        hwp_hwp5_parser_build_paragraph (parser, file, error);
+        break;
+      default:
+        WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
+        break;
     } /* switch */
   } /* while */
 
+  g_free (raw_text);
   return paragraph;
 }
 

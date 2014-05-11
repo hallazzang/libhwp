@@ -51,26 +51,26 @@ static void hwp_summary_info_finalize (GObject *object)
 {
   HwpSummaryInfo *info = HWP_SUMMARY_INFO (object);
 
-  g_free ((gchar *) info->title);
-  g_free ((gchar *) info->format);
-  g_free ((gchar *) info->author);
-  g_free ((gchar *) info->subject);
-  g_free ((gchar *) info->keywords);
-  g_free ((gchar *) info->layout);
-  g_free ((gchar *) info->start_mode);
-  g_free ((gchar *) info->permissions);
-  g_free ((gchar *) info->ui_hints);
-  g_free ((gchar *) info->creator);
-  g_free ((gchar *) info->producer);
-  g_free ((gchar *) info->linearized);
-  g_free ((gchar *) info->security);
-  g_free ((gchar *) info->paper_size);
-  g_free ((gchar *) info->license);
+  g_free (info->title);
+  g_free (info->format);
+  g_free (info->author);
+  g_free (info->subject);
+  g_free (info->keywords);
+  g_free (info->layout);
+  g_free (info->start_mode);
+  g_free (info->permissions);
+  g_free (info->ui_hints);
+  g_free (info->creator);
+  g_free (info->producer);
+  g_free (info->linearized);
+  g_free (info->security);
+  g_free (info->paper_size);
+  g_free (info->license);
   /* hwp info */
-  g_free ((gchar *) info->desc);
-  g_free ((gchar *) info->last_saved_by);
+  g_free (info->desc);
+  g_free (info->last_saved_by);
   /* version of hanword */
-  g_free ((gchar *) info->hanword_version);
+  g_free (info->hanword_version);
 
   G_OBJECT_CLASS (hwp_summary_info_parent_class)->finalize (object);
 }
@@ -92,15 +92,15 @@ G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
  */
 HwpParagraph *hwp_paragraph_new (void)
 {
-  return (HwpParagraph *) g_object_new (HWP_TYPE_PARAGRAPH, NULL);
+  return g_object_new (HWP_TYPE_PARAGRAPH, NULL);
 }
 
 static void hwp_paragraph_finalize (GObject *object)
 {
   HwpParagraph *paragraph = HWP_PARAGRAPH (object);
 
-  if (paragraph->string)
-    g_string_free (paragraph->string, TRUE);
+  if (paragraph->text)
+    g_free ((char *) paragraph->text);
 
   if (paragraph->table)
     g_object_unref (paragraph->table);
@@ -113,6 +113,9 @@ static void hwp_paragraph_finalize (GObject *object)
 
   if (paragraph->m_id)
     g_free (paragraph->m_id);
+
+  if (paragraph->text_attrs)
+    g_ptr_array_free (paragraph->text_attrs, TRUE);
 
   G_OBJECT_CLASS (hwp_paragraph_parent_class)->finalize (object);
 }
@@ -128,27 +131,30 @@ static void hwp_paragraph_init (HwpParagraph *paragraph)
 }
 
 /**
- * hwp_paragraph_set_string:
- * Since: 0.0.1
+ * hwp_paragraph_set_text:
+ * @paragraph: a #HwpParagraph
+ * @text: a valid UTF-8 string
+ *
+ * Since: 0.0.4
  */
-void hwp_paragraph_set_string (HwpParagraph *paragraph, GString *string)
+void hwp_paragraph_set_text (HwpParagraph *paragraph, const gchar *text)
 {
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
-  paragraph->string = string;
+  paragraph->text = text;
 }
 
 /**
- * hwp_paragraph_get_string:
+ * hwp_paragraph_get_text:
  * @paragraph: a #HwpParagraph
  *
- * Return value: (transfer none): A #GString, or %NULL
+ * Return value: (transfer none): the text in the paragraph
  *
- * Since: 0.0.1
+ * Since: 0.0.4
  */
-GString *hwp_paragraph_get_string (HwpParagraph *paragraph)
+const char *hwp_paragraph_get_text (HwpParagraph *paragraph)
 {
   g_return_val_if_fail (HWP_IS_PARAGRAPH (paragraph), NULL);
-  return paragraph->string;
+  return paragraph->text;
 }
 
 /**

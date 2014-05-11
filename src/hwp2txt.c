@@ -22,6 +22,7 @@
 #include <glib-object.h>
 #include "hwp.h"
 #include "hwp2txt.h"
+#include <string.h>
 
 /** HwpToTxt class ***********************************************************/
 static void hwp_to_txt_iface_init (HwpListenerInterface *iface);
@@ -71,15 +72,17 @@ void extract_text (HwpListener  *listener,
 {
   HwpToTxt *hwp2txt = HWP_TO_TXT (listener);
 
-  GString *string = paragraph->string;
-  if (string) {
+  if (paragraph->text) {
     if (hwp2txt->output_stream) {
-      g_output_stream_write (hwp2txt->output_stream, string->str, string->len,
-                             NULL, error);
+      g_output_stream_write (hwp2txt->output_stream,
+                             paragraph->text,
+                             strlen (paragraph->text),
+                             NULL,
+                             error);
       gchar lf = '\n';
       g_output_stream_write (hwp2txt->output_stream, &lf, 1, NULL, error);
     } else {
-      printf ("%s\n", string->str);
+      printf ("%s\n", paragraph->text);
     }
   }
 }
