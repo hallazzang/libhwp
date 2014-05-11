@@ -170,7 +170,7 @@ void      hwp_color_free     (HwpColor *color);
  * @is_underlined: if text is underlined
  * @color: a #HwpColor, the foreground color
  * @start_index: start position this text attributes apply
- * @end_index: end position this text text attributes apply
+ * @end_index: end position this text text attributes apply, the character at end_index is not included
  *
  * A #HwpTextAttributes is used to describe text attributes of a range of text
  *
