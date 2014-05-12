@@ -47,8 +47,6 @@ sudo apt-get install build-essential git devscripts dh-autoreconf intltool   \
 
 git clone https://bitbucket.org/hodong/libhwp.git
 cd libhwp
-mkdir -p m4
-gtkdocize
 dpkg-buildpackage -b
 cd ..
 ls *.deb
