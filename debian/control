@@ -17,6 +17,20 @@ Homepage: https://bitbucket.org/hodong/libhwp
 Vcs-Git: git@bitbucket.org:hodong/libhwp.git
 Vcs-Browser: https://bitbucket.org/hodong/libhwp
 
+Package: libhwp2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Description: handling and rendering HWP documents (library)
+ The libhwp is a parser and renderer library for hwp documents.
+ .
+ HWP is a proprietary document file format developed by Hancom for word
+ processing documents.
+ .
+ This package contains the library. It is being used by evince to read HWP
+ documents.
+
 Package: libhwp-dev
 Section: libdevel
 Architecture: any
@@ -30,19 +44,37 @@ Depends: ${misc:Depends},
          libgirepository1.0-dev,
          libglib2.0-dev
 Description: handling and rendering HWP documents (development files)
+ The libhwp is a parser and renderer library for hwp documents.
+ .
  HWP is a proprietary document file format developed by Hancom for word
  processing documents.
  .
  This package contains the development files.
 
-Package: libhwp2
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Pre-Depends: ${misc:Pre-Depends}
-Multi-Arch: same
-Description: handling and rendering HWP documents (library)
- HWP is a proprietary document file format developed by Hancom for word
- processing documents.
+Package: libhwp-doc
+Architecture: all
+Section: doc
+Depends: libglib2.0-doc,
+         libcairo2-doc,
+         ${misc:Depends}
+Description: handling and rendering HWP documents (documentation files)
+ The libhwp is a parser and renderer library for hwp documents.
  .
- This package contains the library. It is being used by evince to read HWP 
- documents.
+ This package contains the API documentation of the libhwp.
+
+Package: libhwp-utils
+Architecture: any
+Section: utils
+Multi-Arch: foreign
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: HWP utilities (based on libhwp)
+ The libhwp is a parser and renderer library for hwp documents.
+ .
+ This package contains command line utilities (based on libhwp) for getting
+ information of HWP documents, convert them to other formats, or manipulate
+ them:
+  * hwp2pdf -- HWP to PDF converter
+  * hwp2svg -- HWP to SVG converter
+  * hwp2txt -- text extraction
+  * unhwp -- hwp v5.0 extraction tool
