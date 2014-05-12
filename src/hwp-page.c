@@ -83,6 +83,17 @@ char *hwp_page_get_text (HwpPage *page)
 
 /**
  * hwp_page_get_selected_region:
+ * @page: a #HwpPage
+ * @scale: scale specified as pixels per point
+ * @style: a #HwpSelectionStyle
+ * @selection: start and end point of selection as a rectangle
+ *
+ * Returns a region containing the area that would be rendered by
+ * hwp_page_render_selection().
+ * The returned region must be freed with cairo_region_destroy()
+ *
+ * Return value: (transfer full): a cairo_region_t
+ *
  * Since: 0.0.3
  */
 cairo_region_t *
@@ -99,6 +110,23 @@ hwp_page_get_selected_region (HwpPage          *page,
 
 /**
  * hwp_page_render_selection:
+ * @page: the #HwpPage for which to render selection
+ * @cairo: cairo context to render to
+ * @selection: start and end point of selection as a rectangle
+ * @old_selection: previous selection
+ * @style: a #HwpSelectionStyle
+ * @glyph_color: color to use for drawing glyphs
+ * @background_color: color to use for the selection background
+ *
+ * Render the selection specified by @selection for @page to
+ * the given cairo context.  The selection will be rendered, using
+ * @glyph_color for the glyphs and @background_color for the selection
+ * background.
+ *
+ * If non-NULL, @old_selection specifies the selection that is already
+ * rendered to @cairo, in which case this function will (some day)
+ * only render the changed part of the selection.
+ *
  * Since: 0.0.3
  */
 void hwp_page_render_selection (HwpPage          *page,
@@ -171,6 +199,9 @@ void hwp_page_render (HwpPage *page, cairo_t *cr)
 
 /**
  * hwp_page_render_for_printing:
+ * @page: a #HwpPage
+ * @cairo: a #cairo_t
+ *
  * Since: 0.0.3
  */
 void hwp_page_render_for_printing (HwpPage *page,

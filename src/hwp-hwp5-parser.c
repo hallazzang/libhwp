@@ -220,8 +220,8 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 
 /**
  * hwp_hwp5_parser_new:
- * @listener:
- * @user_data
+ * @listener: a #HwpListener
+ * @user_data: a #gpointer
  *
  * Returns:
  *
@@ -1347,6 +1347,12 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
 
 /**
  * hwp_hwp5_parser_check_version:
+ * @parser: a #HwpHWP5Parser
+ * @major: a #guint8
+ * @minor: a #guint8
+ * @micro: a #guint8
+ * @extra: a #guint8
+ *
  * Since: 0.0.1
  */
 gboolean hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,

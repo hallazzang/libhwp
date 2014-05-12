@@ -98,6 +98,8 @@ typedef enum
 /**
  * HwpTag:
  *
+ * hwp tag
+ *
  * Since: 0.0.1
  */
 #define HWP_TAG_BEGIN                    16
@@ -175,6 +177,9 @@ typedef enum
               (((guint8)(d)) <<  0))
 /**
  * HwpCtrlID:
+ *
+ * Hwp Control ID
+ *
  * Since: 0.0.1
  */
 typedef enum

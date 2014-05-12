@@ -83,42 +83,43 @@ void hwp_file_get_hwp_version (HwpFile *file,
  */
 HwpDocument *hwp_file_get_document (HwpFile *file, GError **error)
 {
-    g_return_val_if_fail (HWP_IS_FILE (file), NULL);
+  g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
-    return HWP_FILE_GET_CLASS (file)->get_document (file, error);
+  return HWP_FILE_GET_CLASS (file)->get_document (file, error);
 }
 
 /**
  * hwp_file_get_hwp_version_string:
+ * @file:
  *
  * Since: 0.0.1
  */
 gchar *hwp_file_get_hwp_version_string (HwpFile *file)
 {
-    g_return_val_if_fail (HWP_IS_FILE (file), NULL);
+  g_return_val_if_fail (HWP_IS_FILE (file), NULL);
 
-    return HWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
+  return HWP_FILE_GET_CLASS (file)->get_hwp_version_string (file);
 }
 
 static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 {
-    gchar *ptr1;
-    gchar *ptr2;
-    gchar *lowercase       = g_utf8_strdown (haystack, haystack_len);
-    gchar *signature_xml   = g_utf8_strdown ("<?xml version=\"", 15);
-    gchar *signature_hwpml = g_utf8_strdown ("<HWPML Version=\"", 16);
+  gchar *ptr1;
+  gchar *ptr2;
+  gchar *lowercase       = g_utf8_strdown (haystack, haystack_len);
+  gchar *signature_xml   = g_utf8_strdown ("<?xml version=\"", 15);
+  gchar *signature_hwpml = g_utf8_strdown ("<HWPML Version=\"", 16);
 
-    ptr1 = g_strstr_len (lowercase, haystack_len, signature_xml);
-    ptr2 = g_strstr_len (lowercase, haystack_len, signature_hwpml);
+  ptr1 = g_strstr_len (lowercase, haystack_len, signature_xml);
+  ptr2 = g_strstr_len (lowercase, haystack_len, signature_hwpml);
 
-    g_free (lowercase);
-    g_free (signature_xml);
-    g_free (signature_hwpml);
+  g_free (lowercase);
+  g_free (signature_xml);
+  g_free (signature_hwpml);
 
-    if (ptr1 && ptr2 && (ptr1 < ptr2))
-        return TRUE;
-    else
-        return FALSE;
+  if (ptr1 && ptr2 && (ptr1 < ptr2))
+    return TRUE;
+  else
+    return FALSE;
 }
 
 /**

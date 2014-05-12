@@ -36,6 +36,11 @@ G_DEFINE_TYPE (HwpSummaryInfo, hwp_summary_info, G_TYPE_OBJECT);
 
 /**
  * hwp_summary_info_new:
+ *
+ * Creates a new #HwpSummaryInfo
+ *
+ * Returns: a new #HwpSummaryInfo
+ *
  * Since: 0.0.1
  */
 HwpSummaryInfo *hwp_summary_info_new (void)
@@ -88,6 +93,11 @@ G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
 /**
  * hwp_paragraph_new:
+ *
+ * Creates a new #HwpParagraph
+ *
+ * Returns: a new #HwpParagraph
+ *
  * Since: 0.0.1
  */
 HwpParagraph *hwp_paragraph_new (void)
@@ -159,6 +169,9 @@ const char *hwp_paragraph_get_text (HwpParagraph *paragraph)
 
 /**
  * hwp_paragraph_set_secd:
+ * @paragraph: a #HwpParagraph
+ * @secd: a #HwpSecd
+ *
  * Since: 0.0.3
  */
 void hwp_paragraph_set_secd (HwpParagraph *paragraph, HwpSecd *secd)
@@ -170,6 +183,9 @@ void hwp_paragraph_set_secd (HwpParagraph *paragraph, HwpSecd *secd)
 
 /**
  * hwp_paragraph_set_table:
+ * @paragraph: a #HwpParagraph
+ * @table: a #HwpTable
+ *
  * Since: 0.0.1
  */
 void hwp_paragraph_set_table (HwpParagraph *paragraph, HwpTable *table)
@@ -199,6 +215,11 @@ G_DEFINE_TYPE (HwpTable, hwp_table, G_TYPE_OBJECT);
 
 /**
  * hwp_table_new:
+ *
+ * Creates a new #HwpTable
+ *
+ * Returns: a new #HwpTable
+ *
  * Since: 0.0.1
  */
 HwpTable *hwp_table_new (void)
@@ -269,6 +290,9 @@ HwpTableCell *hwp_table_get_last_cell (HwpTable *table)
 
 /**
  * hwp_table_add_cell:
+ * @table: a #HwpTable
+ * @cell: a #HwpTableCell
+ *
  * Since: 0.0.1
  */
 void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell)
@@ -303,6 +327,11 @@ static void hwp_table_cell_class_init (HwpTableCellClass *klass)
 
 /**
  * hwp_table_cell_new:
+ *
+ * Creates a new #HwpTableCell
+ *
+ * Returns: a new #HwpTableCell
+ *
  * Since: 0.0.1
  */
 HwpTableCell *hwp_table_cell_new (void)
@@ -327,6 +356,9 @@ HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell)
 
 /**
  * hwp_table_cell_add_paragraph:
+ * @cell: a #HwpTableCell
+ * @paragraph: a#HwpParagraph
+ *
  * Since: 0.0.1
  */
 void hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
@@ -340,6 +372,11 @@ HWP_DEFINE_BOXED_TYPE (HwpSecd, hwp_secd, hwp_secd_copy, hwp_secd_free)
 
 /**
  * hwp_secd_new:
+ *
+ * Creates a new #HwpSecd
+ *
+ * Returns: a new #HwpSecd
+ *
  * Since: 0.0.3
  */
 HwpSecd *hwp_secd_new ()
@@ -363,6 +400,8 @@ HwpSecd *hwp_secd_new ()
 
 /**
  * hwp_secd_copy:
+ * @secd: a #HwpSecd
+ *
  * Since: 0.0.3
  */
 HwpSecd *hwp_secd_copy (HwpSecd *secd)
@@ -374,6 +413,8 @@ HwpSecd *hwp_secd_copy (HwpSecd *secd)
 
 /**
  * hwp_secd_free:
+ * @secd: a #HwpSecd
+ *
  * Since: 0.0.3
  */
 void hwp_secd_free (HwpSecd *secd)

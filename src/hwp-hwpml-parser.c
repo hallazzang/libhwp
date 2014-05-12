@@ -27,6 +27,10 @@ G_DEFINE_TYPE (HwpHWPMLParser, hwp_hwpml_parser, G_TYPE_OBJECT)
 
 /**
  * hwp_hwpml_parser_parse:
+ * @parser: a #HwpHWPMLParser
+ * @file: a #HwpHWPMLFile
+ * @error: a #GError
+ *
  * Since: 0.0.1
  */
 void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
@@ -175,8 +179,8 @@ static void hwp_hwpml_parser_init (HwpHWPMLParser *parser)
 
 /**
  * hwp_hwpml_parser_new:
- * @listener:
- * @user_data:
+ * @listener: a #HwpListener
+ * @user_data: a #gpointer
  *
  * Returns:
  *

@@ -52,6 +52,14 @@ typedef struct _HwpListenerInterface HwpListenerInterface;
 
 /**
  * HwpListenerInterface:
+ * @base_iface: base interface
+ * @document_version: document version
+ * @face_name: face name
+ * @char_shape: char shape
+ * @paragraph: paragraph
+ * @prv_text: prv text
+ * @summary_info: summary info
+ *
  * Since: 0.0.1
  */
 struct _HwpListenerInterface

@@ -53,6 +53,8 @@ HwpHWPMLFile *hwp_hwpml_file_new_for_path (const gchar *path, GError **error)
 
 /**
  * hwp_hwpml_file_get_hwp_version_string:
+ * @file: a #HwpFile
+ *
  * Since: 0.0.1
  */
 gchar *hwp_hwpml_file_get_hwp_version_string (HwpFile *file)
@@ -62,6 +64,12 @@ gchar *hwp_hwpml_file_get_hwp_version_string (HwpFile *file)
 
 /**
  * hwp_hwpml_file_get_hwp_version:
+ * @file:
+ * @major_version:
+ * @minor_version:
+ * @micro_version:
+ * @extra_version:
+ *
  * Since: 0.0.1
  */
 void hwp_hwpml_file_get_hwp_version (HwpFile *file,
