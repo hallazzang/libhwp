@@ -17,7 +17,7 @@ Homepage: https://bitbucket.org/hodong/libhwp
 Vcs-Git: git@bitbucket.org:hodong/libhwp.git
 Vcs-Browser: https://bitbucket.org/hodong/libhwp
 
-Package: libhwp2
+Package: libhwp3
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Pre-Depends: ${misc:Pre-Depends}
@@ -35,7 +35,7 @@ Package: libhwp-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends},
-         libhwp2 (= ${binary:Version}),
+         libhwp3 (= ${binary:Version}),
          libgsf-1-dev,
          libcairo2-dev,
          libpango1.0-dev,

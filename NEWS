@@ -1,3 +1,12 @@
+libhwp (0.0.4) UNRELEASED; urgency=medium
+
+  [ Hodong Kim ]
+  * change license to GPL-2+ (hwp2pdf, hwp2svg, hwp2txt)
+  * fix text attributes
+  * add packages: libhwp-doc, libhwp-utils
+
+ -- Hodong Kim <hodong@cogno.org>  Mon, 12 May 2014 17:37:45 +0900
+
 libhwp (0.0.3) UNRELEASED; urgency=low
 
   [ Hodong Kim ]
