@@ -25,91 +25,6 @@
 
 G_DEFINE_TYPE (HwpHWPMLParser, hwp_hwpml_parser, G_TYPE_OBJECT)
 
-static guint hwp_parse_state;
-static guint tag_p_count;
-static HwpParagraph *paragraph = NULL;
-
-static void _hwp_hwpml_file_parse_node (HwpHWPMLParser  *parser,
-                                        HwpHWPMLFile    *file,
-                                        xmlTextReaderPtr reader,
-                                        GError         **error)
-{
-  g_return_if_fail (HWP_IS_HWPML_PARSER (parser));
-
-  xmlChar *name, *value;
-  int node_type = 0;
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
-
-  name = xmlTextReaderName (reader);
-  value = xmlTextReaderValue (reader);
-  node_type = xmlTextReaderNodeType (reader);
-
-  gchar *tag_name = g_utf8_casefold ((const char*) name,
-                                     strlen ((const char*) name));
-
-  gchar *tag_docsummary = g_utf8_casefold ("DOCSUMMARY", strlen("DOCSUMMARY"));
-  gchar *tag_p    = g_utf8_casefold ("P", strlen("P"));
-  gchar *tag_text = g_utf8_casefold ("TEXT", strlen("TEXT"));
-  gchar *tag_char = g_utf8_casefold ("CHAR", strlen("CHAR"));
-  GString *string = g_string_new (NULL);
-
-  switch (node_type) {
-  case XML_READER_TYPE_ELEMENT:
-    /* document summary */
-    if (g_utf8_collate (tag_name, tag_docsummary) == 0) {
-      hwp_parse_state |= HWP_PARSE_STATE_DOCSUMMARY;
-      parser->priv->info = hwp_summary_info_new ();
-    /* paragraph */
-    } else if (g_utf8_collate (tag_name, tag_p) == 0) {
-      hwp_parse_state |= HWP_PARSE_STATE_P;
-      tag_p_count++;
-      if (tag_p_count > 1) {
-        paragraph = hwp_paragraph_new ();
-      }
-    /* char */
-    } else if (g_utf8_collate (tag_name, tag_char) == 0) {
-      hwp_parse_state |= HWP_PARSE_STATE_CHAR;
-    }
-    break;
-  case XML_READER_TYPE_TEXT:
-    if ((hwp_parse_state & HWP_PARSE_STATE_CHAR) == HWP_PARSE_STATE_CHAR) {
-      g_string_append (string, (const gchar *) value);
-    }
-    break;
-  case XML_READER_TYPE_END_ELEMENT:
-    if (g_utf8_collate (tag_name, tag_docsummary) == 0) {
-      hwp_parse_state &= ~HWP_PARSE_STATE_DOCSUMMARY;
-
-      if (iface->summary_info)
-        iface->summary_info (parser->listener,
-                             g_object_ref (parser->priv->info),
-                             parser->user_data,
-                             error);
-    } else if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1)) {
-      hwp_paragraph_set_text (paragraph, g_string_free (string, FALSE));
-
-      if (iface->paragraph)
-        iface->paragraph (parser->listener,
-                          paragraph,
-                          parser->user_data,
-                          error);
-    } else if (g_utf8_collate (tag_name, tag_char) == 0) {
-      hwp_parse_state &= ~HWP_PARSE_STATE_CHAR;
-    }
-    break;
-  default:
-    break;
-  }
-
-  g_free (tag_name);
-  g_free (tag_p);
-  g_free (tag_text);
-  g_free (tag_char);
-
-  xmlFree(name);
-  xmlFree(value);
-}
-
 /**
  * hwp_hwpml_parser_parse:
  * Since: 0.0.1
@@ -121,24 +36,117 @@ void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
   g_return_if_fail (HWP_IS_HWPML_PARSER (parser));
 
   gchar *uri = file->priv->uri;
-  
-  xmlTextReaderPtr reader;
-  int              ret;
 
-  reader = xmlNewTextReaderFilename (uri);
+  int ret;
 
-  if (reader != NULL) {
-    while ((ret = xmlTextReaderRead (reader)) == 1) {
-      _hwp_hwpml_file_parse_node (parser, file, reader, error);
-    }
+  xmlTextReaderPtr reader = xmlNewTextReaderFilename (uri);
 
-    xmlFreeTextReader (reader);
-    if (ret != 0) {
-      g_warning ("%s : failed to parse\n", uri);
-    }
-  } else {
+  if (reader == NULL)
+  {
     g_warning ("Unable to open %s\n", uri);
+    return;
   }
+
+  HwpParseState parse_state = HWP_PARSE_STATE_NORMAL;
+  guint tag_p_count = 0;
+  HwpParagraph *paragraph = NULL;
+  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+
+  gchar *tag_docsummary = g_utf8_casefold ("DOCSUMMARY", strlen("DOCSUMMARY"));
+  gchar *tag_p          = g_utf8_casefold ("P",          strlen("P"));
+  gchar *tag_text       = g_utf8_casefold ("TEXT",       strlen("TEXT"));
+  gchar *tag_char       = g_utf8_casefold ("CHAR",       strlen("CHAR"));
+
+  while ((ret = xmlTextReaderRead (reader)) == 1)
+  {
+    xmlChar *name  = xmlTextReaderName (reader);
+    xmlChar *value = xmlTextReaderValue (reader);
+    int node_type  = xmlTextReaderNodeType (reader);
+
+    gchar *tag_name = g_utf8_casefold ((const char *) name,
+                                       strlen ((const char *) name));
+
+    switch (node_type)
+    {
+      case XML_READER_TYPE_ELEMENT:
+        /* document summary */
+        if (g_utf8_collate (tag_name, tag_docsummary) == 0)
+        {
+          parse_state = HWP_PARSE_STATE_DOCSUMMARY;
+          parser->priv->info = hwp_summary_info_new ();
+        /* paragraph */
+        }
+        else if (g_utf8_collate (tag_name, tag_p) == 0)
+        {
+          parse_state = HWP_PARSE_STATE_P;
+          tag_p_count++;
+          if (tag_p_count > 1)
+            paragraph = hwp_paragraph_new ();
+        /* char */
+        }
+        else if (g_utf8_collate (tag_name, tag_char) == 0)
+        {
+          parse_state = HWP_PARSE_STATE_CHAR;
+        }
+        break;
+      case XML_READER_TYPE_TEXT:
+        if (parse_state == HWP_PARSE_STATE_CHAR)
+        {
+          if (paragraph)
+            paragraph->text = g_strdup ((const char *) value);
+        }
+        break;
+      case XML_READER_TYPE_END_ELEMENT:
+        if (g_utf8_collate (tag_name, tag_docsummary) == 0)
+        {
+          parse_state = HWP_PARSE_STATE_NORMAL;
+
+          if (iface->summary_info)
+            iface->summary_info (parser->listener,
+                                 g_object_ref (parser->priv->info),
+                                 parser->user_data,
+                                 error);
+        }
+        else if ((g_utf8_collate (tag_name, tag_p) == 0) && (tag_p_count > 1))
+        {
+          if (iface->paragraph)
+          {
+            iface->paragraph (parser->listener,
+                              paragraph,
+                              parser->user_data,
+                              error);
+          }
+          else
+          {
+            g_object_unref (paragraph);
+            paragraph = NULL;
+          }
+        }
+        else if (g_utf8_collate (tag_name, tag_char) == 0)
+        {
+          parse_state = HWP_PARSE_STATE_NORMAL;
+        }
+        break;
+      case -1:
+        /* TODO: error handling */
+      default:
+        break;
+    } /* switch */
+
+    g_free  (tag_name);
+    xmlFree (name);
+    xmlFree (value);
+  }
+
+  g_free (tag_docsummary);
+  g_free (tag_p);
+  g_free (tag_text);
+  g_free (tag_char);
+
+  xmlFreeTextReader (reader);
+
+  if (ret != 0)
+    g_warning ("%s : failed to parse\n", uri);
 }
 
 static void hwp_hwpml_parser_finalize (GObject *object)
