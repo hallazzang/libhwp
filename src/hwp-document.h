@@ -53,21 +53,21 @@ typedef struct _HwpDocumentClass HwpDocumentClass;
 
 struct _HwpDocument
 {
-  GObject      parent_instance;
+  GObject          parent_instance;
 
-  GPtrArray   *char_shapes;
-  GPtrArray   *face_names;
+  GPtrArray       *char_shapes;
+  GPtrArray       *face_names;
 
-  GPtrArray   *paragraphs;
-  GPtrArray   *pages;
-  const gchar *prv_text;
+  GPtrArray       *paragraphs;
+  GPtrArray       *pages;
+  gchar           *prv_text;
   /* hwp version */
-  guint8       major_version;
-  guint8       minor_version;
-  guint8       micro_version;
-  guint8       extra_version;
+  guint8           major_version;
+  guint8           minor_version;
+  guint8           micro_version;
+  guint8           extra_version;
 
-  HwpSummaryInfo *info;
+  HwpSummaryInfo  *info;
 
   GByteArray      *pdf_data;
   PopplerDocument *poppler_document;

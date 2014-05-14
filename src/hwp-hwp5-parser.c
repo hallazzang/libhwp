@@ -1317,32 +1317,34 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
-  gssize  size  = gsf_input_size (file->prv_text_stream);
-  const guint8 *buf;
+  gsf_off_t    size = gsf_input_size (file->prv_text_stream);
+  const guint8 *buf = gsf_input_read (file->prv_text_stream, size, NULL);
 
-  buf = gsf_input_read (file->prv_text_stream, size, NULL);
-
-  if (buf == NULL) {
-    g_warning("%s:%d\n", __FILE__, __LINE__);
-    return;
-  }
+  if (buf == NULL)
+    goto FAIL;
 
   /* g_convert() can be used to convert a byte buffer of UTF-16 data of
      ambiguous endianess. */
-  gchar *prv_text = g_convert ((const gchar*) buf, (gssize) size,
+  gchar *prv_text = g_convert ((const gchar *) buf, (gssize) size,
                                "UTF-8", "UTF-16LE", NULL, NULL, error);
 
+  if (*error)
+    goto FAIL;
+
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+
   if (iface->prv_text)
-    iface->prv_text (HWP_LISTENER (parser->listener), prv_text, parser->user_data, error);
-
-  if (*error) {
-    g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+    iface->prv_text (HWP_LISTENER (parser->listener),
+                     prv_text,
+                     parser->user_data,
+                     error);
+  else
     g_free (prv_text);
-    return;
-  }
 
-  g_free (prv_text);
+  return;
+
+  FAIL:
+  g_warning("%s:%d\n", __FILE__, __LINE__);
 }
 
 /**

@@ -90,7 +90,7 @@ struct _HwpListenerInterface
                              GError        **error);
   /* preview text */
   void (* prv_text)         (HwpListener    *listener,
-                             const gchar    *prv_text,
+                             gchar          *prv_text,
                              gpointer        user_data,
                              GError        **error);
   void (* summary_info)     (HwpListener    *listener,

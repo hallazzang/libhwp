@@ -448,7 +448,7 @@ static void hwp_document_finalize (GObject *object)
   g_ptr_array_free (document->face_names, TRUE);
   g_ptr_array_free (document->paragraphs, TRUE);
   g_ptr_array_free (document->pages, TRUE);
-  g_free ((gchar *) document->prv_text);
+  g_free (document->prv_text);
   g_object_unref (document->info);
   g_byte_array_free (document->pdf_data, TRUE);
 
