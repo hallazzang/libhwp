@@ -168,13 +168,14 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   if (parser->data_len - parser->data_count > 0)
     parser_skip (parser, parser->data_len - parser->data_count);
 
+  const guint8 *ret;
   /* 4바이트 읽기 */
-  const guint8 *ret1 = gsf_input_read (parser->stream, 4, NULL);
+  ret = gsf_input_read (parser->stream, 4, NULL);
 
-  if (ret1 == NULL)
+  if (ret == NULL)
     return FALSE;
 
-  parser->header = GSF_LE_GET_GUINT32(ret1);
+  parser->header = GSF_LE_GET_GUINT32(ret);
 
   /* 4바이트 헤더 디코딩하기 */
   parser->tag_id   = (guint16) ( parser->header        & 0x3ff);
@@ -182,23 +183,15 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   parser->data_len = (guint16) ((parser->header >> 20) & 0xfff);
   /* 비정상 */
   if (parser->data_len == 0)
-  {
-    g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
-                         _("File corrupted"));
-    return FALSE;
-  }
+    goto FAIL;
   /* data_len == 0xfff 이면 다음 4바이트는 data_len 이다 */
   if (parser->data_len == 0xfff)
   {
-    const guint8 *ret2 = gsf_input_read (parser->stream, 4, NULL);
-    if (ret2 == NULL)
-    {
-      g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
-                           _("File corrupted"));
-      return FALSE;
-    }
+    ret = gsf_input_read (parser->stream, 4, NULL);
+    if (ret == NULL)
+      goto FAIL;
 
-    parser->data_len = GSF_LE_GET_GUINT32(ret2);
+    parser->data_len = GSF_LE_GET_GUINT32(ret);
   }
 
 #ifdef HWP_ENABLE_DEBUG
@@ -216,6 +209,11 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
   parser->data_count = 0;
 
   return TRUE;
+
+  FAIL:
+  g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
+                       _("File corrupted"));
+  return FALSE;
 }
 
 /**

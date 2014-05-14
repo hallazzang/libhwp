@@ -279,7 +279,7 @@ static void _hwp_hwp3_parser_parse_font_names (HwpHWP3Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
   guint16 n_fonts;
-  guint8 *buffer = NULL;
+  gchar *buffer = NULL;
   gsize bytes_read;
   GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
 
@@ -288,8 +288,8 @@ static void _hwp_hwp3_parser_parse_font_names (HwpHWP3Parser *parser,
     g_input_stream_read_all (stream, &n_fonts, 2, &bytes_read, NULL, NULL);
     buffer = g_malloc (40 * n_fonts);
     g_input_stream_read_all (stream, buffer, 40 * n_fonts, &bytes_read, NULL, NULL);
-    gchar *fontname = g_convert ((const gchar*) buffer, bytes_read,
-                                 "UTF-8", "JOHAB", NULL, NULL, error);
+    gchar *fontname = g_convert (buffer, bytes_read, "UTF-8", "JOHAB",
+                                 NULL, NULL, error);
     g_free (buffer);
     g_free (fontname);
   }
@@ -301,7 +301,7 @@ static void _hwp_hwp3_parser_parse_styles (HwpHWP3Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP3_FILE (file));
   guint16 n_styles;
-  guint8 *buffer = NULL;
+  gchar *buffer = NULL;
   gsize bytes_read;
   GInputStream *stream = HWP_HWP3_FILE (file)->priv->stream;
   g_input_stream_read_all (stream, &n_styles, 2, &bytes_read, NULL, error);
@@ -310,8 +310,8 @@ static void _hwp_hwp3_parser_parse_styles (HwpHWP3Parser *parser,
   {
     buffer = g_malloc (20 + 31 + 187);
     g_input_stream_read_all (stream, buffer, 20 + 31 + 187, &bytes_read, NULL, error);
-    gchar *stylename = g_convert ((const gchar*) buffer, 20,
-                                  "UTF-8", "JOHAB", NULL, NULL, error);
+    gchar *stylename = g_convert (buffer, 20, "UTF-8", "JOHAB",
+                                  NULL, NULL, error);
     g_free (buffer);
     g_free (stylename);
   }

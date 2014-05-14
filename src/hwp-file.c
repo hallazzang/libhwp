@@ -25,6 +25,7 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include "hwp-file.h"
 #include "hwp-hwp3-file.h"
@@ -140,11 +141,14 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
   g_return_val_if_fail (path != NULL, NULL);
 
   /* check signature */
-  static const guint8 const signature_ole[] = {
+  /* FIXME for hwp v5.0 */
+  guint8 signature_ole[] =
+  {
     0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
   };
 
-  static const guint8 signature_v3[] = {
+  guint8 signature_v3[] =
+  {
     /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
     0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
     0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
@@ -152,18 +156,16 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
     0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
   };
 
-  GFile            *file   = g_file_new_for_path (path);
-  GFileInputStream *stream = g_file_read (file, NULL, error);
-  g_object_unref (file);
-
-  if (*error)
-    return NULL;
-
   gsize bytes_read = 0;
   guint8 *buffer = g_malloc0 (4096);
-  g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
-                           &bytes_read, NULL, error);
-  g_object_unref(stream);
+
+  FILE *fp = fopen (path, "r");
+
+  if (!fp)
+    return NULL;
+
+  bytes_read = fread (buffer, 4096, 1, fp) * 4096;
+  fclose (fp);
 
   HwpFile *retval = NULL;
 
