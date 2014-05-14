@@ -43,7 +43,7 @@ static const char hwp_version[] = PACKAGE_VERSION;
 /**
  * hwp_get_version:
  *
- * Returns the version of hwp in use.  This result is not to be freed.
+ * Returns the version of libhwp in use.  This result is not to be freed.
  *
  * Return value: the version of hwp.
  *
