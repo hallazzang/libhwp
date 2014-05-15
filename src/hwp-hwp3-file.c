@@ -101,7 +101,7 @@ void hwp_hwp3_file_get_hwp_version (HwpFile *file,
  * @file: a #HwpFile
  * @error: location to store the error occurring, or %NULL to ignore
  *
- * Return value: (transfer none): A #HwpDocument, or %NULL
+ * Return value: (transfer full): A #HwpDocument, or %NULL
  *
  * Since: 0.0.1
  */

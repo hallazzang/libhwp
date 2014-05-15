@@ -44,7 +44,7 @@ G_DEFINE_TYPE (HwpHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
  * @file: a #HwpFile
  * @error: location to store the error occurring, or %NULL to ignore
  *
- * Return value: (transfer none): A #HwpDocument, or %NULL
+ * Return value: (transfer full): A #HwpDocument, or %NULL
  *
  * Since: 0.0.1
  */
