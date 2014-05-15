@@ -150,7 +150,7 @@ static void hwp_paragraph_init (HwpParagraph *paragraph)
 void hwp_paragraph_set_text (HwpParagraph *paragraph, const gchar *text)
 {
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
-  paragraph->text = text;
+  paragraph->text = g_strdup (text);
 }
 
 /**
