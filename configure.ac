@@ -85,6 +85,7 @@ AC_SUBST([HWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 # check for gtk-doc
 # *****************
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+AM_CONDITIONAL([ENABLE_GTK_DOC], true)
 
 # ****************************************
 
