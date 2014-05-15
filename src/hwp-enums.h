@@ -62,13 +62,7 @@ typedef enum
     HWP_ERROR_DAMAGED
 } HwpError;
 
-/**
- * HwpParseState:
- *
- * This type indicates the current state of parsing.
- *
- * Since: 0.0.1
- */
+#ifndef __GTK_DOC_IGNORE__
 typedef enum {
   HWP_PARSE_STATE_NORMAL,
   HWP_PARSE_STATE_PASSING,
@@ -77,6 +71,7 @@ typedef enum {
   HWP_PARSE_STATE_TEXT,
   HWP_PARSE_STATE_CHAR
 } HwpParseState;
+#endif
 
 /**
  * HwpSelectionStyle:
@@ -95,14 +90,8 @@ typedef enum
     HWP_SELECTION_LINE
 } HwpSelectionStyle;
 
-/**
- * HwpTag:
- *
- * hwp tag
- *
- * Since: 0.0.1
- */
 #define HWP_TAG_BEGIN                    16
+#ifndef __GTK_DOC_IGNORE__
 typedef enum
 {
     HWP_TAG_DOCUMENT_PROPERTIES       =  16,
@@ -156,6 +145,7 @@ typedef enum
 
     HWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
 } HwpTag;
+#endif
 
 /**
  * MAKE_CTRL_ID:
@@ -175,13 +165,8 @@ typedef enum
               (((guint8)(b)) << 16) | \
               (((guint8)(c)) <<  8) | \
               (((guint8)(d)) <<  0))
-/**
- * HwpCtrlID:
- *
- * Hwp Control ID
- *
- * Since: 0.0.1
- */
+
+#ifndef __GTK_DOC_IGNORE__
 typedef enum
 {
   CTRL_ID_SECTION_DEF          = MAKE_CTRL_ID('s', 'e', 'c', 'd'), /* 구역 */
@@ -269,5 +254,6 @@ typedef enum
   FIELD_MEMO                   = MAKE_CTRL_ID('%', '%', 'm', 'e'),
   FIELD_PRIVATE_INFO_SECURITY  = MAKE_CTRL_ID('%', 'c', 'p', 'r')
 } HwpCtrlID;
+#endif
 
 #endif /* __HWP_ENUMS__ */
