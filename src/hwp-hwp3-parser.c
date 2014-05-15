@@ -470,7 +470,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   } /* while */
 
   /* FIXME 다음 내포된 ;문단이 먼저 넘어간 후 이곳 문단이 넘어가는 버그가 있다. */
-  hwp_paragraph_set_text (paragraph, g_string_free (string, FALSE));
+  paragraph->text = g_string_free (string, FALSE);
 
   if (iface->paragraph)
     iface->paragraph (parser->listener,
