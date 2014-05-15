@@ -110,7 +110,7 @@ static void hwp_paragraph_finalize (GObject *object)
   HwpParagraph *paragraph = HWP_PARAGRAPH (object);
 
   if (paragraph->text)
-    g_free ((char *) paragraph->text);
+    g_free (paragraph->text);
 
   if (paragraph->table)
     g_object_unref (paragraph->table);

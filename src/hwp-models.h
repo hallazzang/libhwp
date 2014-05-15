@@ -108,15 +108,15 @@ typedef struct _HwpParagraphClass HwpParagraphClass;
 
 struct _HwpParagraph
 {
-  GObject     parent_instance;
-  const char *text;
-  HwpTable   *table;
-  HwpSecd    *secd;
-  guint16     n_chars;
-  guint32    *m_pos;
-  guint32    *m_id;
-  guint16     m_len;
-  GPtrArray  *text_attrs;
+  GObject    parent_instance;
+  char      *text;
+  HwpTable  *table;
+  HwpSecd   *secd;
+  guint16    n_chars;
+  guint32   *m_pos;
+  guint32   *m_id;
+  guint16    m_len;
+  GPtrArray *text_attrs;
 };
 
 struct _HwpParagraphClass
