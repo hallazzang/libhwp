@@ -109,6 +109,7 @@ AC_SUBST(HWP_DEBUG_FLAGS)
 
 AC_OUTPUT([
     Makefile
+    docs/libhwp-docs.xml
     docs/Makefile
     docs/version.xml
     po/Makefile.in
