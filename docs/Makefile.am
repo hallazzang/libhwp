@@ -3,8 +3,11 @@
 # The name of the module.
 DOC_MODULE = libhwp
 
-# The top-level SGML file. You can change this if you want to.
+# The top-level SGML file.
 DOC_MAIN_SGML_FILE = $(DOC_MODULE)-docs.xml
+
+# Extra options to supply to gtkdoc-scan
+SCAN_OPTIONS = --rebuild-types
 
 # The directory containing the source code. Relative to $(srcdir).
 # gtk-doc will search all .c & .h files beneath here for inline comments
@@ -32,3 +35,20 @@ include $(top_srcdir)/gtk-doc.make
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += \
 	version.xml.in
+
+CLEANFILES += \
+	$(DOC_MODULE)-decl-list.txt \
+	$(DOC_MODULE)-decl.txt \
+	$(DOC_MODULE)-overrides.txt \
+	$(DOC_MODULE)-sections.txt \
+	$(DOC_MODULE)-undeclared.txt \
+	$(DOC_MODULE)-undocumented.txt \
+	$(DOC_MODULE)-unused.txt \
+	$(DOC_MODULE).args \
+	$(DOC_MODULE).hierarchy \
+	$(DOC_MODULE).interfaces \
+	$(DOC_MODULE).prerequisites \
+	$(DOC_MODULE).signals \
+	$(DOC_MODULE).types \
+	*.stamp \
+	-r html xml

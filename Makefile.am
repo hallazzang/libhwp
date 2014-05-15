@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src docs
+SUBDIRS = src docs po
 
 libhwpdocdir = ${prefix}/share/doc/libhwp
 libhwpdoc_DATA =  \
@@ -20,19 +20,22 @@ uninstall-local:
 	-rm -r $(libhwpdocdir)
 
 MAINTAINERCLEANFILES =         \
-	ChangeLog              \
+	$(srcdir)/ChangeLog    \
 	$(srcdir)/INSTALL      \
 	$(srcdir)/aclocal.m4   \
+	$(srcdir)/compile      \
 	$(srcdir)/config.guess \
 	$(srcdir)/config.h.in  \
 	$(srcdir)/config.h.in~ \
 	$(srcdir)/config.sub   \
 	$(srcdir)/configure    \
 	$(srcdir)/depcomp      \
+	$(srcdir)/gtk-doc.make \
 	$(srcdir)/install-sh   \
 	$(srcdir)/ltmain.sh    \
 	$(srcdir)/missing      \
-	`find "$(srcdir)" -type f -name Makefile.in -print`
+	`find "$(srcdir)" -type f -name Makefile.in -print` \
+	-r $(srcdir)/m4
 
 ChangeLog:
 	$(AM_V_GEN) if test -d "$(srcdir)/.git"; then \

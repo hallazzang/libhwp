@@ -86,7 +86,7 @@ EXTRA_DIST =                  \
 	hwp-version.h.in          \
 	$(NULL)
 
-DISTCLEANFILES =     \
+CLEANFILES =             \
 	hwp-0.0.4.pc     \
 	hwp-enum-types.c \
 	hwp-enum-types.h \
