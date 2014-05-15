@@ -26,60 +26,6 @@
 #include <cairo-svg.h>
 #include "hwp.h"
 
-void convert (char *in_filename, char *out_filename, GError **error)
-{
-  HwpPage *page;
-  gdouble  width = 0.0, height = 0.0;
-  HwpFile *file = hwp_file_new_for_path (in_filename, error);
-
-  if (*error)
-    return;
-
-  HwpDocument *document = hwp_file_get_document (file, error);
-  g_object_unref (file);
-
-  guint n_pages = hwp_document_get_n_pages (document);
-
-  if (n_pages < 1) {
-    g_set_error_literal (error,
-                         HWP_FILE_ERROR,
-                         HWP_FILE_ERROR_INVALID,
-                         "There is no page");
-    return;
-  }
-
-  if (g_file_test (out_filename, G_FILE_TEST_EXISTS)) {
-    g_set_error_literal (error,
-                         G_FILE_ERROR,
-                         G_FILE_ERROR_EXIST,
-                         "file exist");
-    return;
-  }
-
-  mkdir (out_filename, S_IRWXU);
-  cairo_surface_t *surface;
-  cairo_t *cr;
-
-  for (guint i = 0; i < n_pages; i++)
-  {
-    page = hwp_document_get_page (document, i);
-    hwp_page_get_size (page, &width, &height);
-    char *filename = g_strdup_printf ("%s/%d.svg", out_filename, i);
-    surface = cairo_svg_surface_create (filename, width, height);
-    g_free (filename);
-    cr = cairo_create (surface);
-
-    hwp_page_render (page, cr);
-    g_object_unref (page);
-    cairo_show_page (cr);
-
-    cairo_destroy (cr);
-    cairo_surface_destroy (surface);
-  }
-
-  g_object_unref (document);
-}
-
 int main (int argc, char **argv)
 {
   char **in_filenames = NULL;
@@ -104,25 +50,36 @@ int main (int argc, char **argv)
   context = g_option_context_new (NULL);
   g_option_context_set_summary (context, "Convert hwp file to svg files");
   g_option_context_add_main_entries (context, entries, NULL);
+  g_slice_free (GOptionEntry, entries);
 
   if (!g_option_context_parse (context, &argc, &argv, &error))
   {
     g_print ("option parsing failed: %s\n", error->message);
     g_option_context_free (context);
-    return 1;
+    goto FAIL;
   }
 
+  g_option_context_free (context);
+
   if (!in_filenames)
-    goto CATCH;
+  {
+    char *help_msg = g_option_context_get_help (context, FALSE, NULL);
+    printf ("%s", help_msg);
+    g_free (help_msg);
+    goto FAIL;
+  }
 
   int count = 0;
   while (in_filenames[count])
   { count++; }
 
   if (count != 1)
-    goto CATCH;
-
-  g_option_context_free (context);
+  {
+    char *help_msg = g_option_context_get_help (context, FALSE, NULL);
+    printf ("%s", help_msg);
+    g_free (help_msg);
+    goto FAIL;
+  }
 
   if (!out_filename)
   {
@@ -142,26 +99,69 @@ int main (int argc, char **argv)
     g_free (basename);
   }
 
-  convert (in_filenames[0], out_filename, &error);
-
-  g_strfreev (in_filenames);
-
-  if (error) {
-    fprintf (stderr, "Error: %s %s\n", out_filename, error->message);
-    g_free (out_filename);
-    return 1;
+  if (g_file_test (out_filename, G_FILE_TEST_EXISTS)) {
+    fprintf (stderr, "%s file exist\n", out_filename);
+    goto FAIL;
   }
 
+  HwpPage *page;
+  gdouble  width = 0.0, height = 0.0;
+  HwpFile *file = hwp_file_new_for_path (in_filenames[0], &error);
+
+  if (error)
+  {
+    fprintf (stderr, "%s\n", error->message);
+    goto FAIL;
+  }
+
+  HwpDocument *document = hwp_file_get_document (file, &error);
+  g_object_unref (file);
+
+  if (document == NULL)
+  {
+    fprintf (stderr, "%s: invalid hwp file\n", in_filenames[0]);
+    goto FAIL;
+  }
+
+  guint n_pages = hwp_document_get_n_pages (document);
+
+  if (n_pages < 1) {
+    fprintf (stderr, "There is no page");
+    g_object_unref (document);
+    goto FAIL;
+  }
+
+  mkdir (out_filename, S_IRWXU);
+  cairo_surface_t *surface;
+  cairo_t *cr;
+
+  for (guint i = 0; i < n_pages; i++)
+  {
+    page = hwp_document_get_page (document, i);
+    hwp_page_get_size (page, &width, &height);
+    char *filename = g_strdup_printf ("%s/%d.svg", out_filename, i);
+    surface = cairo_svg_surface_create (filename, width, height);
+    g_free (filename);
+    cr = cairo_create (surface);
+
+    hwp_page_render (page, cr);
+    g_object_unref (page);
+    cairo_show_page (cr);
+
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+  }
+
+  g_object_unref (document);
+  g_strfreev (in_filenames);
   g_free (out_filename);
 
   return 0;
 
-  CATCH:
-  {
-    char *help_msg = g_option_context_get_help (context, FALSE, NULL);
-    printf ("%s", help_msg);
-    g_free (help_msg);
-    g_option_context_free (context);
-    return 1;
-  }
+  FAIL:
+
+  g_clear_error (&error);
+  g_strfreev (in_filenames);
+  g_free (out_filename);
+  return 1;
 }
