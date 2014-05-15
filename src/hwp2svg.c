@@ -60,7 +60,8 @@ void convert (char *in_filename, char *out_filename, GError **error)
   cairo_surface_t *surface;
   cairo_t *cr;
 
-  for (guint i = 0; i < n_pages; i++) {
+  for (guint i = 0; i < n_pages; i++)
+  {
     page = hwp_document_get_page (document, i);
     hwp_page_get_size (page, &width, &height);
     char *filename = g_strdup_printf ("%s/%d.svg", out_filename, i);
@@ -69,6 +70,7 @@ void convert (char *in_filename, char *out_filename, GError **error)
     cr = cairo_create (surface);
 
     hwp_page_render (page, cr);
+    g_object_unref (page);
     cairo_show_page (cr);
 
     cairo_destroy (cr);
