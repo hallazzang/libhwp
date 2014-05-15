@@ -59,7 +59,6 @@ struct _HwpDocument
   GPtrArray       *face_names;
 
   GPtrArray       *paragraphs;
-  GPtrArray       *pages;
   gchar           *prv_text;
   /* hwp version */
   guint8           major_version;

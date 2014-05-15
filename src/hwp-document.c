@@ -165,18 +165,6 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
     poppler_document_new_from_data ((char *) document->pdf_data->data,
                                     document->pdf_data->len,
                                     NULL, NULL);
-
-  int n_pages = poppler_document_get_n_pages (document->poppler_document);
-
-  HwpPage *page;
-
-  for (int i = 0; i < n_pages; i++)
-  {
-    page = hwp_page_new ();
-    page->poppler_page = poppler_document_get_page (document->poppler_document,
-                                                    i);
-    g_ptr_array_add (document->pages, page);
-  }
 }
 
 /**
@@ -237,11 +225,12 @@ guint hwp_document_get_n_pages (HwpDocument *document)
  *
  * Returns a #HwpPage representing the page at index
  *
- * Returns: (transfer none): a #HwpPage
- *     DO NOT FREE the page.
+ * Returns: (transfer full): a new #HwpPage or %NULL on error.
+ * Free the returned object with g_object_unref ().
  *
  * Since: 0.0.1
  */
+
 HwpPage *hwp_document_get_page (HwpDocument *document, gint n_page)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
@@ -249,9 +238,10 @@ HwpPage *hwp_document_get_page (HwpDocument *document, gint n_page)
   if (!document->poppler_document)
     hwp_document_create_poppler_document (document);
 
-  HwpPage *page = g_ptr_array_index (document->pages, (guint) n_page);
-
-  return g_object_ref (page);
+  HwpPage *page = hwp_page_new ();
+  page->poppler_page = poppler_document_get_page (document->poppler_document,
+                                                  n_page);
+  return page;
 }
 
 /**
@@ -447,7 +437,6 @@ static void hwp_document_finalize (GObject *object)
   g_ptr_array_free (document->char_shapes, TRUE);
   g_ptr_array_free (document->face_names, TRUE);
   g_ptr_array_free (document->paragraphs, TRUE);
-  g_ptr_array_free (document->pages, TRUE);
   g_free (document->prv_text);
   g_object_unref (document->info);
   g_byte_array_free (document->pdf_data, TRUE);
@@ -472,8 +461,6 @@ static void hwp_document_init (HwpDocument *document)
     g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_face_name_free);
 
   document->paragraphs = g_ptr_array_new_with_free_func (g_object_unref);
-
-  document->pages = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /* callback */
