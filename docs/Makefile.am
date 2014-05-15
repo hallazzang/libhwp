@@ -21,7 +21,6 @@ CFILE_GLOB = $(top_srcdir)/src/*.c
 # Header files to ignore when scanning. Use base file name, no paths
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
 IGNORE_HFILES =            \
-	gsf-input-stream.h \
 	hwp2txt.h
 
 GTKDOC_LIBS = $(top_builddir)/src/libhwp.la
