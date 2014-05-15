@@ -24,7 +24,7 @@
  * hwp_error_quark:
  *
  * Returns:  the #GQuark used to identify libhwp errors in #GError structures.
- *  Specific error codes come from the #HWPError enumeration.
+ *  Specific error codes come from the #HwpError enumeration.
  *
  * Since: 0.0.1
  **/

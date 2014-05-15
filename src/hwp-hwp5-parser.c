@@ -145,7 +145,7 @@ gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
  * @parser: #HwpHWP5Parser
  * @error: #GError
  *
- * On a successful pull, %TURE is returned.
+ * On a successful pull, %TRUE is returned.
  *
  * If we reached the end of the stream %FALSE is returned and error is not set.
  *
