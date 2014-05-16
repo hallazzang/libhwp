@@ -74,14 +74,14 @@ struct _HwpFileClass
 
 /**
  * HwpFileError:
+ * @HWP_FILE_ERROR_FAILED: failed for unspecified reason
  * @HWP_FILE_ERROR_INVALID: The HWP is invalid.
  *
  * Error codes returned by #HwpFile functions.
- *
- * Since: 0.0.1
  */
 typedef enum
 {
+  HWP_FILE_ERROR_FAILED,
   HWP_FILE_ERROR_INVALID
 } HwpFileError;
 
