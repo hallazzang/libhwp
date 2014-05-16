@@ -2,3 +2,4 @@
 # Please keep this file sorted alphabetically.
 [encoding: UTF-8]
 src/hwp-hwp5-parser.c
+src/hwp-file.c
