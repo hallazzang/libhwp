@@ -53,14 +53,12 @@ typedef struct _HwpListenerInterface HwpListenerInterface;
 /**
  * HwpListenerInterface:
  * @base_iface: base interface
- * @document_version: document version
- * @face_name: face name
- * @char_shape: char shape
- * @paragraph: paragraph
- * @prv_text: prv text
- * @summary_info: summary info
- *
- * Since: 0.0.1
+ * @document_version: Callback to invoke for document version
+ * @face_name: Callback to invoke for #HwpFaceName
+ * @char_shape: Callback to invoke for #HwpCharShape
+ * @paragraph: Callback to invoke when #HwpParagraph instance has been built
+ * @prv_text: Callback to invoke for prv text
+ * @summary_info: Callback to invoke for #HwpSummaryInfo
  */
 struct _HwpListenerInterface
 {

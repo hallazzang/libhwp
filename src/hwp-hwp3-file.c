@@ -36,7 +36,7 @@ G_DEFINE_TYPE (HwpHWP3File, hwp_hwp3_file, HWP_TYPE_FILE);
  * @error: location to store the error occurring, or %NULL to ignore
  *
  * Creates a new #HwpHWP3File.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
  * domains.
  *
  * Return value: A newly created #HwpHWP3File, or %NULL

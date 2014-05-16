@@ -173,7 +173,7 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
  * @error: location to store the error occurring, or %NULL to ignore
  * 
  * Creates a new #HwpDocument.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
  * domains.
  * 
  * Returns: a new #HwpDocument, or %NULL

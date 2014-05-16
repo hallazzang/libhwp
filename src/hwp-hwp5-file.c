@@ -336,7 +336,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
  * @error: location to store the error occurring, or %NULL to ignore
  *
  * Creates a new #HwpHWP5File.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
  * domains.
  *
  * Returns: A newly created #HwpHWP5File, or %NULL
