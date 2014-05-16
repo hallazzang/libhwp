@@ -91,20 +91,6 @@ static void hwp_summary_info_class_init (HwpSummaryInfoClass *klass)
 
 G_DEFINE_TYPE (HwpParagraph, hwp_paragraph, G_TYPE_OBJECT);
 
-/**
- * hwp_paragraph_new:
- *
- * Creates a new #HwpParagraph
- *
- * Returns: a new #HwpParagraph
- *
- * Since: 0.0.1
- */
-HwpParagraph *hwp_paragraph_new (void)
-{
-  return g_object_new (HWP_TYPE_PARAGRAPH, NULL);
-}
-
 static void hwp_paragraph_finalize (GObject *object)
 {
   HwpParagraph *paragraph = HWP_PARAGRAPH (object);
@@ -138,6 +124,20 @@ static void hwp_paragraph_class_init (HwpParagraphClass *klass)
 
 static void hwp_paragraph_init (HwpParagraph *paragraph)
 {
+}
+
+/**
+ * hwp_paragraph_new:
+ *
+ * Creates a new #HwpParagraph
+ *
+ * Returns: a new #HwpParagraph
+ *
+ * Since: 0.0.1
+ */
+HwpParagraph *hwp_paragraph_new (void)
+{
+  return g_object_new (HWP_TYPE_PARAGRAPH, NULL);
 }
 
 /**
