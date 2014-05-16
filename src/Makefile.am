@@ -113,7 +113,7 @@ hwp2svg_SOURCES = hwp2svg.c
 hwp2svg_CFLAGS  = $(HWP_DEP_CFLAGS)
 hwp2svg_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 
-hwp2txt_SOURCES = hwp2txt.c hwp2txt.h
+hwp2txt_SOURCES = hwp2txt.c
 hwp2txt_CFLAGS  = $(HWP_DEP_CFLAGS)
 hwp2txt_LDADD   = libhwp.la $(HWP_DEP_LIBS)
 

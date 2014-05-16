@@ -19,10 +19,35 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <glib-object.h>
 #include "hwp.h"
-#include "hwp2txt.h"
-#include <string.h>
+
+#define HWP_TYPE_TO_TXT             (hwp_to_txt_get_type ())
+#define HWP_TO_TXT(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), HWP_TYPE_TO_TXT, HwpToTxt))
+#define HWP_TO_TXT_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), HWP_TYPE_TO_TXT, HwpToTxtClass))
+#define HWP_IS_TO_TXT(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), HWP_TYPE_TO_TXT))
+#define HWP_IS_TO_TXT_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), HWP_TYPE_TO_TXT))
+#define HWP_TO_TXT_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), HWP_TYPE_TO_TXT, HwpToTxtClass))
+
+typedef struct _HwpToTxt      HwpToTxt;
+typedef struct _HwpToTxtClass HwpToTxtClass;
+
+struct _HwpToTxtClass
+{
+  GObjectClass parent_class;
+};
+
+struct _HwpToTxt
+{
+  GObject parent_instance;
+
+  GOutputStream *output_stream;
+};
+
+GType hwp_to_txt_get_type (void) G_GNUC_CONST;
+
+HwpToTxt *hwp_to_txt_new ();
 
 /** HwpToTxt class ***********************************************************/
 static void hwp_to_txt_iface_init (HwpListenerInterface *iface);

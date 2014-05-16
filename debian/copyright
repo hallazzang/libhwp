@@ -9,7 +9,6 @@ License: LGPL-3+
 Files: src/hwp2pdf.c
        src/hwp2svg.c
        src/hwp2txt.c
-       src/hwp2txt.h
        src/hwp-document.c
        src/hwp-document.h
        src/hwp-page.c
