@@ -1,0 +1,19 @@
+# libhwp Korean translation
+# This file is distributed under the same licence as the libhwp package.
+# Hodong Kim <hodong@cogno.org>, 2014.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: libhwp\n"
+"Report-Msgid-Bugs-To: https://bitbucket.org/hodong/libhwp/issues\n"
+"POT-Creation-Date: 2014-05-17 01:53+9000\n"
+"PO-Revision-Date: 2014-05-17 01:53+0900\n"
+"Last-Translator: Hodong Kim <hodong@cogno.org>\n"
+"Language: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Failed to load document “%s”"
+msgstr "“%s” 문서를 읽어오는데 실패함"
