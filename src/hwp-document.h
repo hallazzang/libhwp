@@ -77,32 +77,35 @@ struct _HwpDocumentClass
   GObjectClass parent_class;
 };
 
-GType        hwp_document_get_type               (void) G_GNUC_CONST;
-void         hwp_document_add_char_shape         (HwpDocument  *document,
-                                                  HwpCharShape *char_shape);
-void         hwp_document_add_face_name          (HwpDocument  *document,
-                                                  HwpFaceName  *face_name);
-void         hwp_document_add_paragraph          (HwpDocument  *document,
-                                                  HwpParagraph *paragraph);
-GTime        hwp_document_get_creation_date      (HwpDocument  *document);
-gchar       *hwp_document_get_creator            (HwpDocument  *document);
-gchar       *hwp_document_get_format             (HwpDocument  *document);
-void         hwp_document_get_hwp_version        (HwpDocument  *document,
-                                                  guint8       *major_version,
-                                                  guint8       *minor_version,
-                                                  guint8       *micro_version,
-                                                  guint8       *extra_version);
-gchar       *hwp_document_get_hwp_version_string (HwpDocument  *document);
-gchar       *hwp_document_get_keywords           (HwpDocument  *document);
-GTime        hwp_document_get_modification_date  (HwpDocument  *document);
-guint        hwp_document_get_n_pages            (HwpDocument  *document);
-HwpPage     *hwp_document_get_page               (HwpDocument  *document,
-                                                  gint          n_page);
-gchar       *hwp_document_get_subject            (HwpDocument  *document);
-gchar       *hwp_document_get_title              (HwpDocument  *document);
-HwpDocument *hwp_document_new                    (void);
-HwpDocument *hwp_document_new_from_file          (const gchar  *filename,
-                                                  GError      **error);
+GType         hwp_document_get_type               (void) G_GNUC_CONST;
+
+HwpDocument  *hwp_document_new                    (void);
+HwpDocument  *hwp_document_new_from_file          (const gchar  *filename,
+                                                   GError      **error);
+void          hwp_document_add_char_shape         (HwpDocument  *document,
+                                                   HwpCharShape *char_shape);
+void          hwp_document_add_face_name          (HwpDocument  *document,
+                                                   HwpFaceName  *face_name);
+void          hwp_document_add_paragraph          (HwpDocument  *document,
+                                                   HwpParagraph *paragraph);
+HwpParagraph *hwp_document_get_paragraph          (HwpDocument  *document,
+                                                   guint         index);
+GTime         hwp_document_get_creation_date      (HwpDocument  *document);
+gchar        *hwp_document_get_creator            (HwpDocument  *document);
+gchar        *hwp_document_get_format             (HwpDocument  *document);
+void          hwp_document_get_hwp_version        (HwpDocument  *document,
+                                                   guint8       *major_version,
+                                                   guint8       *minor_version,
+                                                   guint8       *micro_version,
+                                                   guint8       *extra_version);
+gchar        *hwp_document_get_hwp_version_string (HwpDocument  *document);
+gchar        *hwp_document_get_keywords           (HwpDocument  *document);
+GTime         hwp_document_get_modification_date  (HwpDocument  *document);
+guint         hwp_document_get_n_pages            (HwpDocument  *document);
+HwpPage      *hwp_document_get_page               (HwpDocument  *document,
+                                                   gint          n_page);
+gchar        *hwp_document_get_subject            (HwpDocument  *document);
+gchar        *hwp_document_get_title              (HwpDocument  *document);
 
 G_END_DECLS
 

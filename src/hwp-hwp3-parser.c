@@ -154,9 +154,9 @@ static void _hwp_hwp3_parser_parse_doc_info (HwpHWP3Parser *parser,
   /* sub revision */
   hwp_hwp3_parser_read_uint8 (parser, &(file->rev));
   file->major_version = 3;
-  file->minor_version = 0;
+  file->minor_version = file->rev;
   file->micro_version = 0;
-  file->extra_version = file->rev;
+  file->extra_version = 0;
 
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
   if (iface->document_version)

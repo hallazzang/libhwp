@@ -56,7 +56,7 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
 {
   g_return_if_fail (document->paragraphs->len > 0);
 
-  HwpParagraph *paragraph0 = g_ptr_array_index (document->paragraphs, 0);
+  HwpParagraph *paragraph0 = hwp_document_get_paragraph (document, 0);
   HwpParagraph *paragraph = NULL;
   guint8 major_version;
   hwp_document_get_hwp_version (document, &major_version, NULL, NULL, NULL);
@@ -90,7 +90,7 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
 
   for (guint i = 0; i < document->paragraphs->len; i++)
   {
-    paragraph = g_ptr_array_index (document->paragraphs, i);
+    paragraph = hwp_document_get_paragraph (document, i);
     PangoAttrList *attrs = pango_attr_list_new ();
 
     for (guint j = 0; j < paragraph->m_len; j++)
@@ -398,10 +398,14 @@ gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
 {
   g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
 
-  return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
-                                         document->minor_version,
-                                         document->micro_version,
-                                         document->extra_version);
+  if (document->major_version == 3)
+    return g_strdup_printf ("%d.%d", document->major_version,
+                                     document->minor_version);
+  else
+    return g_strdup_printf ("%d.%d.%d.%d", document->major_version,
+                                           document->minor_version,
+                                           document->micro_version,
+                                           document->extra_version);
 }
 
 /**
@@ -492,6 +496,23 @@ void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
   g_return_if_fail (HWP_IS_PARAGRAPH (paragraph));
 
   g_ptr_array_add (document->paragraphs, paragraph);
+}
+
+/**
+ * hwp_document_get_paragraph:
+ * @document: a #HwpDocument
+ * @index: the index of the paragraph to get
+ *
+ * Returns a #HwpParagraph representing the paragraph at index
+ *
+ * Returns: (transfer none): a #HwpParagraph or %NULL on error.
+ *
+ * Since: 0.0.5
+ */
+HwpParagraph *hwp_document_get_paragraph (HwpDocument *document, guint index)
+{
+  g_return_if_fail (HWP_IS_DOCUMENT  (document));
+  return g_ptr_array_index (document->paragraphs, index);
 }
 
 /**
