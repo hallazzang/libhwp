@@ -49,7 +49,7 @@ static void hwp_parser_class_init (HwpParserClass *klass)
  *
  * Returns: a new #HwpParser
  *
- * Since: 0.0.5
+ * Since: 0.1
  */
 HwpParser *hwp_parser_new (HwpListener *listener, gpointer user_data)
 {
@@ -68,7 +68,7 @@ HwpParser *hwp_parser_new (HwpListener *listener, gpointer user_data)
  * @file: a #HwpFile
  * @error: a #GError
  *
- * Since: 0.0.5
+ * Since: 0.1
  */
 void hwp_parser_parse (HwpParser *parser, HwpFile *file, GError **error)
 {

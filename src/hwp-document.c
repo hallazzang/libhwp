@@ -507,7 +507,7 @@ void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
  *
  * Returns: (transfer none): a #HwpParagraph or %NULL on error.
  *
- * Since: 0.0.5
+ * Since: 0.1
  */
 HwpParagraph *hwp_document_get_paragraph (HwpDocument *document, guint index)
 {

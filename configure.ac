@@ -3,8 +3,8 @@
 # *****************************************************************************
 
 m4_define([hwp_major_version],[0])
-m4_define([hwp_minor_version],[0])
-m4_define([hwp_micro_version],[4])
+m4_define([hwp_minor_version],[1])
+m4_define([hwp_micro_version],[0])
 m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 
 # Libtool versioning. The backend and view libraries have separate versions.
@@ -17,9 +17,9 @@ m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 # - If the interface is the same as the previous version, change to C:R+1:A
 
 # Libtool version
-m4_define([hwp_lt_current], [3])
+m4_define([hwp_lt_current], [4])
 m4_define([hwp_lt_revision],[0])
-m4_define([hwp_lt_age],     [0])
+m4_define([hwp_lt_age],     [1])
 m4_define([hwp_lt_version_info],[hwp_lt_current:hwp_lt_revision:hwp_lt_age])
 m4_define([hwp_lt_current_minus_age],[m4_eval(hwp_lt_current - hwp_lt_age)])
 
@@ -113,7 +113,7 @@ AC_OUTPUT([
     docs/Makefile
     docs/version.xml
     po/Makefile.in
-    src/hwp-0.0.4.pc
+    src/libhwp.pc
     src/Makefile
     src/hwp-version.h
 ])

@@ -26,7 +26,7 @@ INST_H_FILES =          \
 NOINST_H_FILES =        \
 	$(NULL)
 
-hwpincludedir = $(includedir)/hwp
+hwpincludedir = $(includedir)/libhwp
 hwpinclude_HEADERS =   \
 	$(INST_H_FILES)    \
 	$(NULL)
@@ -79,17 +79,17 @@ libhwp_la_LDFLAGS =                      \
 libhwp_la_LIBADD = $(HWP_DEP_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = hwp-0.0.4.pc
+pkgconfig_DATA = libhwp.pc
 
 EXTRA_DIST =                  \
-	hwp-0.0.4.pc.in           \
+	libhwp.pc.in           \
 	hwp-enum-types.c.template \
 	hwp-enum-types.h.template \
 	hwp-version.h.in          \
 	$(NULL)
 
 CLEANFILES =             \
-	hwp-0.0.4.pc     \
+	libhwp.pc     \
 	hwp-enum-types.c \
 	hwp-enum-types.h \
 	hwp-version.h    \
@@ -123,7 +123,7 @@ unhwp_SOURCES   = unhwp.c
 unhwp_CFLAGS    = $(HWP_DEP_CFLAGS)
 unhwp_LDADD     = libhwp.la $(HWP_DEP_LIBS)
 
-CLEANFILES = $(bin_PROGRAMS) $(gir_DATA) $(typelib_DATA)
+CLEANFILES += $(bin_PROGRAMS) $(gir_DATA) $(typelib_DATA)
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
@@ -134,15 +134,15 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 if HAVE_INTROSPECTION
 introspection_sources = $(filter-out $(NOINST_H_FILES), $(libhwp_la_SOURCES))
 
-Hwp-0.0.gir: libhwp.la
-Hwp_0_0_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0
-Hwp_0_0_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_DEP_CFLAGS)
-Hwp_0_0_gir_LIBS = libhwp.la
-Hwp_0_0_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
+Hwp-0.1.gir: libhwp.la
+Hwp_0_1_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0
+Hwp_0_1_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_DEP_CFLAGS)
+Hwp_0_1_gir_LIBS = libhwp.la
+Hwp_0_1_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
 
-INTROSPECTION_GIRS += Hwp-0.0.gir
+INTROSPECTION_GIRS += Hwp-0.1.gir
 
-girdir = $(datadir)/gir-1.2
+girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
 
 typelibdir = $(libdir)/girepository-1.0

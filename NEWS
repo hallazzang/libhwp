@@ -1,3 +1,9 @@
+libhwp (0.1) UNRELEASED; urgency=medium
+
+  * fix double free
+
+ -- Hodong Kim <hodong@cogno.org>  Sat, 17 May 2014 04:08:24 +0900
+
 libhwp (0.0.4) UNRELEASED; urgency=medium
 
   [ Hodong Kim ]

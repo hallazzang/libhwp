@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 datarootdir=@datarootdir@
 datadir=@datadir@
-includedir=@includedir@/hwp
+includedir=@includedir@/libhwp
 
 Name: libhwp
 Description: The libhwp is a parser and renderer library for hwp documents.
