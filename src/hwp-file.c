@@ -32,6 +32,9 @@
 #include "hwp-hwp5-file.h"
 #include "hwp-hwpml-file.h"
 
+#include "config.h"
+#include <glib/gi18n-lib.h>
+
 G_DEFINE_ABSTRACT_TYPE (HwpFile, hwp_file, G_TYPE_OBJECT);
 
 /**
@@ -45,7 +48,7 @@ G_DEFINE_ABSTRACT_TYPE (HwpFile, hwp_file, G_TYPE_OBJECT);
  */
 GQuark hwp_file_error_quark (void)
 {
-    return g_quark_from_string ("hwp-file-error-quark");
+  return g_quark_from_string ("hwp-file-error-quark");
 }
 
 /**
@@ -129,7 +132,7 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
  * @error: location to store the error occurring, or %NULL to ignore
  * 
  * Creates a new #HwpFile.  If %NULL is returned, then @error will be
- * set. Possible errors include those in the #HWP_ERROR and #G_FILE_ERROR
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
  * domains.
  * 
  * Return value: A newly created #HwpFile, or %NULL
@@ -162,7 +165,15 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
   FILE *fp = fopen (path, "r");
 
   if (!fp)
+  {
+    g_set_error (error,
+                 HWP_FILE_ERROR,
+                 HWP_FILE_ERROR_FAILED,
+                 _("Failed to load document “%s”"),
+                 path);
+
     return NULL;
+  }
 
   bytes_read = fread (buffer, 4096, 1, fp) * 4096;
   fclose (fp);

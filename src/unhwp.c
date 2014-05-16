@@ -71,10 +71,6 @@ int main (int argc, char **argv)
   g_free (basename);
 
   if (g_file_test (out_filename, G_FILE_TEST_EXISTS)) {
-    g_set_error_literal (&error,
-                         G_FILE_ERROR,
-                         G_FILE_ERROR_EXIST,
-                         "file exist");
     fprintf (stderr, "Error: %s %s\n", out_filename, error->message);
     return 1;
   }
