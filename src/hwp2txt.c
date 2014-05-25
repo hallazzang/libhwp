@@ -165,8 +165,6 @@ int main (int argc, char *argv[])
     goto FAIL;
   }
 
-  g_option_context_free (context);
-
   if (!in_filenames)
   {
     char *help_msg = g_option_context_get_help (context, FALSE, NULL);
@@ -186,6 +184,8 @@ int main (int argc, char *argv[])
     g_free (help_msg);
     goto FAIL;
   }
+
+  g_option_context_free (context);
 
   if (g_file_test (out_filename, G_FILE_TEST_EXISTS))
   {
