@@ -78,3 +78,16 @@ Description: HWP utilities (based on libhwp)
   * hwp2svg -- HWP to SVG converter
   * hwp2txt -- text extraction
   * unhwp -- hwp v5.0 extraction tool
+
+Package: libhwp-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Multi-Arch: same
+Depends: ${misc:Depends},
+         libhwp3 (= ${binary:Version})
+Description: handling and rendering HWP documents -- debugging symbols
+ The libhwp is a parser and renderer library for hwp documents.
+ .
+ This package contains the debugging symbols for all the libhwp libraries
+ and the utilities.
