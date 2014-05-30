@@ -1,3 +1,10 @@
+libhwp (0.1.1) UNRELEASED; urgency=medium
+
+  * Fixed segmentation fault: libhwp-utils
+  * Added man pages
+
+ -- Hodong Kim <hodong@cogno.org>  Fri, 30 May 2014 23:43:13 +0900
+
 libhwp (0.1) UNRELEASED; urgency=medium
 
   * fix double free
