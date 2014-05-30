@@ -78,18 +78,13 @@ libhwp_la_LDFLAGS =                      \
 
 libhwp_la_LIBADD = $(HWP_DEP_LIBS)
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libhwp.pc
-
 EXTRA_DIST =                  \
-	libhwp.pc.in           \
 	hwp-enum-types.c.template \
 	hwp-enum-types.h.template \
 	hwp-version.h.in          \
 	$(NULL)
 
 CLEANFILES =             \
-	libhwp.pc     \
 	hwp-enum-types.c \
 	hwp-enum-types.h \
 	hwp-version.h    \
@@ -105,25 +100,7 @@ hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix Hwp --template \
 	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
-bin_PROGRAMS = hwp2pdf hwp2svg hwp2txt unhwp
-
-hwp2pdf_SOURCES = hwp2pdf.c
-hwp2pdf_CFLAGS  = $(HWP_DEP_CFLAGS)
-hwp2pdf_LDADD   = libhwp.la $(HWP_DEP_LIBS)
-
-hwp2svg_SOURCES = hwp2svg.c
-hwp2svg_CFLAGS  = $(HWP_DEP_CFLAGS)
-hwp2svg_LDADD   = libhwp.la $(HWP_DEP_LIBS)
-
-hwp2txt_SOURCES = hwp2txt.c
-hwp2txt_CFLAGS  = $(HWP_DEP_CFLAGS)
-hwp2txt_LDADD   = libhwp.la $(HWP_DEP_LIBS)
-
-unhwp_SOURCES   = unhwp.c
-unhwp_CFLAGS    = $(HWP_DEP_CFLAGS)
-unhwp_LDADD     = libhwp.la $(HWP_DEP_LIBS)
-
-CLEANFILES += $(bin_PROGRAMS) $(gir_DATA) $(typelib_DATA)
+if HAVE_INTROSPECTION
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
@@ -131,7 +108,6 @@ INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) --warn-all \
                               --identifier-prefix=Hwp --symbol-prefix=hwp
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
-if HAVE_INTROSPECTION
 introspection_sources = $(filter-out $(NOINST_H_FILES), $(libhwp_la_SOURCES))
 
 Hwp-0.1.gir: libhwp.la
@@ -147,5 +123,7 @@ gir_DATA = $(INTROSPECTION_GIRS)
 
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
 
 endif

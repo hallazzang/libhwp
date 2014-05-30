@@ -112,8 +112,9 @@ AC_OUTPUT([
     docs/libhwp-docs.xml
     docs/Makefile
     docs/version.xml
+    libhwp.pc
     po/Makefile.in
-    src/libhwp.pc
     src/Makefile
     src/hwp-version.h
+    utils/Makefile
 ])

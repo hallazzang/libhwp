@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src docs po
+SUBDIRS = src utils docs po
 
 libhwpdocdir = ${prefix}/share/doc/libhwp
 libhwpdoc_DATA =  \
@@ -12,14 +12,18 @@ libhwpdoc_DATA =  \
 	NEWS      \
 	THANKS
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libhwp.pc
 
-EXTRA_DIST = $(libhwpdoc_DATA)
+EXTRA_DIST = $(libhwpdoc_DATA) \
+	libhwp.pc.in
 
 # Remove doc directory on uninstall
 uninstall-local:
 	-rm -r $(libhwpdocdir)
 
 MAINTAINERCLEANFILES =         \
+	libhwp.pc              \
 	$(srcdir)/ChangeLog    \
 	$(srcdir)/INSTALL      \
 	$(srcdir)/aclocal.m4   \
