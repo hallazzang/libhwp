@@ -37,6 +37,7 @@ mkinstalldirs
 Makefile.in*
 POTFILES
 stamp-it
+po/*.gmo
 
 # output
 .deps/
@@ -46,10 +47,10 @@ stamp-it
 *.pc
 *.o
 hwp-version.h
-src/hwp2pdf
-src/hwp2svg
-src/hwp2txt
-src/unhwp
+utils/hwp2pdf
+utils/hwp2svg
+utils/hwp2txt
+utils/unhwp
 src/hwp-enum-types.h
 src/hwp-enum-types.c
 src/*.gir
