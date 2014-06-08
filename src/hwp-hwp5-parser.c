@@ -79,16 +79,33 @@ gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
     return FALSE;
   }
 
-  parser->data_count += count;
+  parser->data_pos += count;
   return TRUE;
+}
+
+const guint8 *parser_read_bytes (HwpHWP5Parser *parser,
+                                 guint16        count,
+                                 GError       **error)
+{
+#ifdef HWP_ENABLE_DEBUG
+  g_assert (parser->data_pos <= parser->data_len - count);
+#endif
+  g_return_val_if_fail (parser->data_pos <= parser->data_len - count, FALSE);
+
+  const guint8 *ret = gsf_input_read (parser->stream, count, NULL);
+
+  if (ret != NULL)
+    parser->data_pos += count;
+
+  return ret;
 }
 
 gboolean parser_read_uint8 (HwpHWP5Parser *parser, guint8 *i, GError **error)
 {
 #ifdef HWP_ENABLE_DEBUG
-  g_assert (parser->data_count <= parser->data_len - 1);
+  g_assert (parser->data_pos <= parser->data_len - 1);
 #endif
-  g_return_val_if_fail (parser->data_count <= parser->data_len - 1, FALSE);
+  g_return_val_if_fail (parser->data_pos <= parser->data_len - 1, FALSE);
 
   const guint8 *ret = gsf_input_read (parser->stream, 1, i);
 
@@ -98,16 +115,16 @@ gboolean parser_read_uint8 (HwpHWP5Parser *parser, guint8 *i, GError **error)
     return FALSE;
   }
 
-  parser->data_count += 1;
+  parser->data_pos += 1;
   return TRUE;
 }
 
 gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
 {
 #ifdef HWP_ENABLE_DEBUG
-  g_assert (parser->data_count <= parser->data_len - 2);
+  g_assert (parser->data_pos <= parser->data_len - 2);
 #endif
-  g_return_val_if_fail (parser->data_count <= parser->data_len - 2, FALSE);
+  g_return_val_if_fail (parser->data_pos <= parser->data_len - 2, FALSE);
 
   const guint8 *ret = gsf_input_read (parser->stream, 2, NULL);
 
@@ -119,13 +136,13 @@ gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
 
   *i = GSF_LE_GET_GUINT16(ret);
 
-  parser->data_count += 2;
+  parser->data_pos += 2;
   return TRUE;
 }
 
 gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
 {
-  g_return_val_if_fail (parser->data_count <= parser->data_len - 4, FALSE);
+  g_return_val_if_fail (parser->data_pos <= parser->data_len - 4, FALSE);
 
   const guint8 *ret = gsf_input_read (parser->stream, 4, NULL);
 
@@ -136,7 +153,7 @@ gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
   }
 
   *i = GSF_LE_GET_GUINT32(ret);
-  parser->data_count += 4;
+  parser->data_pos += 4;
   return TRUE;
 }
 
@@ -165,8 +182,8 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
     return TRUE;
   }
 
-  if (parser->data_len - parser->data_count > 0)
-    parser_skip (parser, parser->data_len - parser->data_count);
+  if (parser->data_len - parser->data_pos > 0)
+    parser_skip (parser, parser->data_len - parser->data_pos);
 
   const guint8 *ret;
   /* 4바이트 읽기 */
@@ -196,17 +213,22 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 
 #ifdef HWP_ENABLE_DEBUG
   printf ("%d", parser->level);
-  for (int i = 0; i < parser->level; i++)
-    printf ("    ");
 
   const gchar *name = hwp_get_tag_name (parser->tag_id);
   if (name)
+  {
+    for (int i = 0; i < parser->level; i++)
+      printf ("    ");
+
     printf ("%s\n", name);
+  }
   else
-    printf ("unknown tag id: %d\n", parser->tag_id);
+  {
+    printf ("\nunknown tag id: %d\n", parser->tag_id);
+  }
 #endif
 
-  parser->data_count = 0;
+  parser->data_pos = 0;
 
   return TRUE;
 
@@ -242,45 +264,6 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
 {
   HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
 
-  guint8 id_mappings_len;
-
-  if (hwp_hwp5_parser_check_version (parser, 5, 0, 0, 7))
-    id_mappings_len = 16;
-  else
-    id_mappings_len = 14;
-
-/*typedef enum {*/
-/*    ID_BINARY_DATA      = 0,*/
-/*    ID_KOREAN_FONTS     = 1,*/
-/*    ID_ENGLISH_FONTS    = 2,*/
-/*    ID_HANJA_FONTS      = 3,*/
-/*    ID_JAPANESE_FONTS   = 4,*/
-/*    ID_OTHERS_FONTS     = 5,*/
-/*    ID_SYMBOL_FONTS     = 6,*/
-/*    ID_USER_FONTS       = 7,*/
-/*    ID_BORDER_FILLS     = 8,*/
-/*    ID_CHAR_SHAPES      = 9,*/
-/*    ID_TAB_DEFS         = 10,*/
-/*    ID_PARA_NUMBERINGS  = 11,*/
-/*    ID_BULLETS          = 12,*/
-/*    ID_PARA_SHAPES      = 13,*/
-/*    ID_STYLES           = 14,*/
-    /*
-     * 메모 모양(MemoShape)는 한/글2007부터 추가되었다.
-     * 한/글2007 이전 문서는 data_len <= 60,
-     * v5.0.0.6 : ID_MAPPINGS data_len: 60
-     * v5.0.1.7 : ID_MAPPINGS data_len: 64
-     * v5.0.2.4 : ID_MAPPINGS data_len: 64
-     */
-/*    ID_MEMO_SHAPES      = 15,*/
-    /* 한/글2010 에서 추가된 것으로 추정됨 */
-    /* v5.0.3.4 : ID_MAPPINGS data_len: 72 */
-/*    ID_KNOWN_16         = 16,*/
-/*    ID_KNOWN_17         = 17,*/
-/*} IDMappingsID;*/
-
-  guint32 *id_mappings = g_malloc0_n (id_mappings_len, sizeof(guint32));
-
   parser->stream = file->doc_info_stream;
 
   while (hwp_hwp5_parser_pull (parser, error))
@@ -289,12 +272,123 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
     case HWP_TAG_DOCUMENT_PROPERTIES:
       break;
     case HWP_TAG_ID_MAPPINGS:
-      for (guint8 i = 0; i < id_mappings_len; i++)
-        parser_read_uint32 (parser, &id_mappings[i], error);
+      {
+        guint8 id_mappings_len;
+        id_mappings_len = parser->data_len / sizeof(guint32);
 
-      g_free (id_mappings);
+        guint32 *id_mappings = g_malloc0_n (id_mappings_len, sizeof(guint32));
+
+        for (guint8 i = 0; i < id_mappings_len; i++)
+          parser_read_uint32 (parser, &id_mappings[i], error);
+
+        g_free (id_mappings);
+      }
       break;
     case HWP_TAG_BIN_DATA:
+      {
+        HwpBinData *bin_data = hwp_bin_data_new ();
+        guint16 flag, len;
+        parser_read_uint16 (parser, &flag, error);
+
+        /* type */
+        switch (flag & 3)
+        {
+          case 0:
+            {
+              /* gchar *type = "link"; */
+              parser_read_uint16 (parser, &len, error);
+              const guint8 *buf = NULL;
+              buf = parser_read_bytes (parser, len * 2, error);
+              gchar *abs_path = g_convert ((const gchar *) buf,
+                                           len * 2,
+                                           "UTF-8", "UTF-16LE", NULL, NULL,
+                                           error);
+              g_free (abs_path);
+
+              parser_read_uint16 (parser, &len, error);
+              buf = parser_read_bytes (parser, len * 2, error);
+              gchar *rel_path = g_convert ((const gchar *) buf, len * 2,
+                                           "UTF-8", "UTF-16LE", NULL, NULL,
+                                           error);
+              g_free (rel_path);
+            }
+            break;
+          case 1:
+            {
+              /* gchar *type = "embedding"; */
+              parser_read_uint16 (parser, &bin_data->id, error);
+              parser_read_uint16 (parser, &len, error);
+              const guint8 *buf = NULL;
+              buf = parser_read_bytes (parser, len * 2, error);
+              bin_data->format = g_convert ((const gchar *) buf, len * 2,
+                                            "UTF-8", "UTF-16LE", NULL, NULL,
+                                            error);
+            }
+            break;
+          case 2:
+            {
+              /* gchar *type = "storage"; */
+              parser_read_uint16 (parser, &bin_data->id, error);
+              parser_read_uint16 (parser, &len, error);
+              const guint8 *buf = NULL;
+              buf = parser_read_bytes (parser, len * 2, error);
+              bin_data->format = g_convert ((const gchar *) buf, len * 2,
+                                            "UTF-8", "UTF-16LE", NULL, NULL,
+                                            error);
+            }
+            break;
+          default:
+            g_warning ("%s:%d: unknown type: %d", __FILE__, __LINE__, flag & 3);
+            break;
+        }
+
+        /* compress_policy */
+        switch (flag & 0x30)
+        {
+          case 0:
+            /* gchar *compress_policy = "default"; */
+            break;
+          case 0x10:
+            /* gchar *compress_policy = "force_compress"; */
+            break;
+          case 0x20:
+            /* gchar *compress_policy = "force_plain"; */
+            break;
+          default:
+            g_warning ("%s:%d: unknown compress_policy: %d",
+              __FILE__, __LINE__, flag & 0x30);
+            break;
+        }
+
+        /* status */
+        switch (flag & 0xc8)
+        {
+          case 0:
+            /* gchar *status = "not yet accessed"; */
+            break;
+          case 0x40:
+            /* gchar *status = "access success and file found"; */
+            break;
+          case 0x80:
+            /* gchar *status = "access fail and error"; */
+            break;
+          case 0xc0:
+            /* gchar *status = "access fail and ignore"; */
+            break;
+          default:
+            g_warning ("%s:%d: unknown status: %d",
+              __FILE__, __LINE__, flag & 0xc8);
+            break;
+        }
+
+        if (iface->bin_data)
+          iface->bin_data (parser->listener,
+                           bin_data,
+                           parser->user_data,
+                           error);
+        else
+          hwp_bin_data_free (bin_data);
+      }
       break;
     case HWP_TAG_FACE_NAME:
       {
@@ -358,8 +452,43 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
       }
       break;
     case HWP_TAG_TAB_DEF:
+      {
+        guint32 prop, pos;
+        guint16 count;
+        guint8  type, leader;
+        parser_read_uint32 (parser, &prop, error);
+        parser_read_uint16 (parser, &count, error);
+        parser_skip (parser, 2); /* dummy */
+
+        for (guint16 i = 0; i < count; i++)
+        {
+          parser_read_uint32 (parser, &pos, error);
+          parser_read_uint8  (parser, &type, error);
+          parser_read_uint8  (parser, &leader, error);
+          parser_skip (parser, 2); /* dummy */
+        }
+      }
       break;
     case HWP_TAG_NUMBERING:
+      {
+        guint16 len, start_num;
+        for (guint8 i = 0; i < 7; i++)
+        {
+          parser_skip(parser, 12);
+          parser_read_uint16 (parser, &len, error);
+          const guint8 *buf = NULL;
+          buf = parser_read_bytes (parser, len * 2, error);
+          if (buf)
+          {
+            gchar *numbering = g_convert ((const gchar *) buf, len * 2,
+                                          "UTF-8", "UTF-16LE", NULL, NULL,
+                                          error);
+            g_free (numbering);
+          }
+        }
+
+        parser_read_uint16 (parser, &start_num, error);
+      }
       break;
     case HWP_TAG_BULLET:
       break;
@@ -569,7 +698,7 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
     }
   }
 
-  if (parser->data_count != parser->data_len) {
+  if (parser->data_pos != parser->data_len) {
     g_warning ("%s:%d: TABLE data size mismatch at %s\n",
       __FILE__, __LINE__,
       hwp_hwp5_file_get_hwp_version_string(HWP_FILE (file)));
@@ -629,7 +758,7 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
           table_cell->border_fill_id);
 #endif
 
-  if (parser->data_count != parser->data_len) {
+  if (parser->data_pos != parser->data_len) {
     g_warning ("%s:%d: table cell size mismatch, ver %d.%d.%d.%d\n", __FILE__, __LINE__,
       parser->major_version,
       parser->minor_version,
@@ -919,8 +1048,31 @@ static void hwp_hwp5_parser_parse_ctrl_header (HwpHWP5Parser *parser,
     break;
   case CTRL_ID_TABLE:
     {
+      HwpCommonProperty *prop = hwp_common_property_new ();
+
+      prop->ctrl_id = parser->ctrl_id;
+      parser_read_uint32 (parser, &prop->prop, error);
+      parser_read_uint32 (parser, &prop->y_offset, error);
+      parser_read_uint32 (parser, &prop->x_offset, error);
+      parser_read_uint32 (parser, &prop->width, error);
+      parser_read_uint32 (parser, &prop->height, error);
+      parser_read_uint32 (parser, &prop->z_order, error);
+      parser_read_uint16 (parser, &prop->margin1, error);
+      parser_read_uint16 (parser, &prop->margin2, error);
+      parser_read_uint16 (parser, &prop->margin3, error);
+      parser_read_uint16 (parser, &prop->margin4, error);
+      parser_read_uint32 (parser, &prop->instance_id, error);
+      parser_read_uint32 (parser, &prop->len, error);
+
+      if (parser->data_pos < parser->data_len)
+        g_warning ("%s:%d: remained %d bytes\n",
+          __FILE__, __LINE__, parser->data_len - parser->data_pos);
+
+      hwp_common_property_free (prop);
+
       HwpTable *table = NULL;
       table = hwp_hwp5_parser_build_table (parser, file, error);
+
       if (table)
         hwp_paragraph_set_table (paragraph, table);
     }
@@ -974,6 +1126,18 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
   gchar        *raw_text  = NULL;
 
   parser_read_uint16 (parser, &paragraph->n_chars, error);
+  parser_skip (parser, 2);
+  parser_read_uint32 (parser, &paragraph->control_mask, error);
+
+  parser_read_uint16 (parser, &paragraph->para_shape_id, error);
+  parser_skip (parser, 2);
+  parser_read_uint8 (parser, &paragraph->para_style_id, error);
+
+  parser_read_uint8  (parser, &paragraph->column_type, error);
+  parser_read_uint16 (parser, &paragraph->n_char_shapes, error);
+  parser_read_uint16 (parser, &paragraph->n_range_tags, error);
+  parser_read_uint16 (parser, &paragraph->n_aligns, error);
+  parser_read_uint16 (parser, &paragraph->para_instance_id, error);
 
   while (hwp_hwp5_parser_pull (parser, error))
   {
@@ -990,7 +1154,7 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
       case HWP_TAG_PARA_TEXT:
         raw_text = g_malloc (parser->data_len);
         gsf_input_read (parser->stream, parser->data_len, (guint8 *) raw_text);
-        parser->data_count += parser->data_len;
+        parser->data_pos += parser->data_len;
 #ifdef HWP_ENABLE_DEBUG
         printf ("paragraph->n_chars:%d\n", paragraph->n_chars);
         printf ("parser->data_len:%d\n", parser->data_len);
