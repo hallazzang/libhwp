@@ -57,6 +57,7 @@ struct _HwpDocument
 
   GPtrArray       *char_shapes;
   GPtrArray       *face_names;
+  GPtrArray       *bin_data;
 
   GPtrArray       *paragraphs;
   gchar           *prv_text;

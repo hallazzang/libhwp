@@ -237,11 +237,10 @@ static void make_stream (HwpHWP5File *file, GError **error)
   }
 
   input = gsf_infile_child_by_name (ole, "BodyText");
-  gint n_section = gsf_infile_num_children (GSF_INFILE (input));
 
-  if (input && n_section > 0)
+  if (input)
   {
-    for (gint i = 0; i < n_section; i++)
+    for (gint i = 0; i < gsf_infile_num_children (GSF_INFILE (input)); i++)
     {
       GsfInput *section =
                   gsf_infile_child_by_name (GSF_INFILE (input),
@@ -292,6 +291,48 @@ static void make_stream (HwpHWP5File *file, GError **error)
   else
   {
     goto FAIL;
+  }
+
+  input = gsf_infile_child_by_name (ole, "BinData");
+
+  if (input)
+  {
+    gint n_data = gsf_infile_num_children (GSF_INFILE (input));
+
+    for (gint i = 0; i < n_data; i++)
+    {
+      GsfInput *bin_data =
+                  gsf_infile_child_by_index (GSF_INFILE (input), i);
+
+      if (gsf_infile_num_children (GSF_INFILE (bin_data)) != -1)
+      {
+        if (GSF_IS_INPUT (bin_data))
+          g_object_unref (bin_data);
+
+        g_set_error_literal (error,
+                             HWP_FILE_ERROR,
+                             HWP_FILE_ERROR_INVALID,
+                             "invalid hwp file");
+        return;
+      }
+
+      if (file->is_compress)
+      {
+        GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
+                                      "raw",    TRUE,
+                                      "source", bin_data,
+                                      "uncompressed_size", -1,
+                                      NULL);
+        g_ptr_array_add (file->bin_data_streams, tmp);
+      }
+      else
+      {
+        g_ptr_array_add (file->bin_data_streams, bin_data);
+      }
+    }
+
+    g_object_unref (input);
+    input = NULL;
   }
 
   input = gsf_infile_child_by_name (ole, "PrvText");
@@ -372,13 +413,27 @@ static void hwp_hwp5_file_finalize (GObject *object)
 {
   HwpHWP5File *file = HWP_HWP5_FILE(object);
 
-  g_object_unref (file->priv->olefile);
-  g_object_unref (file->prv_text_stream);
-  g_object_unref (file->prv_image_stream);
-  g_object_unref (file->file_header_stream);
-  g_object_unref (file->doc_info_stream);
+  if (file->priv->olefile)
+    g_object_unref (file->priv->olefile);
+
+  if (file->prv_text_stream)
+    g_object_unref (file->prv_text_stream);
+
+  if (file->prv_image_stream)
+    g_object_unref (file->prv_image_stream);
+
+  if (file->file_header_stream)
+    g_object_unref (file->file_header_stream);
+
+  if (file->doc_info_stream)
+    g_object_unref (file->doc_info_stream);
+
   g_ptr_array_unref (file->section_streams);
-  g_object_unref (file->summary_info_stream);
+  g_ptr_array_unref (file->bin_data_streams);
+
+  if (file->summary_info_stream)
+    g_object_unref (file->summary_info_stream);
+
   g_free (file->signature);
 
   G_OBJECT_CLASS (hwp_hwp5_file_parent_class)->finalize (object);
@@ -398,6 +453,9 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
   file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
+  file->bin_data_streams =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_bin_data_free);
+
   file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file,
                                             HWP_TYPE_HWP5_FILE,
                                             HwpHWP5FilePrivate);

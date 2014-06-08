@@ -56,6 +56,7 @@ typedef struct _HwpListenerInterface HwpListenerInterface;
  * @document_version: Callback to invoke for document version
  * @face_name: Callback to invoke for #HwpFaceName
  * @char_shape: Callback to invoke for #HwpCharShape
+ * @bin_data: Callback to invoke for #HwpBinData
  * @paragraph: Callback to invoke when #HwpParagraph instance has been built
  * @prv_text: Callback to invoke for prv text
  * @summary_info: Callback to invoke for #HwpSummaryInfo
@@ -79,6 +80,10 @@ struct _HwpListenerInterface
                              GError        **error);
   void (* char_shape)       (HwpListener    *listener,
                              HwpCharShape   *char_shape,
+                             gpointer        user_data,
+                             GError        **error);
+  void (* bin_data)         (HwpListener    *listener,
+                             HwpBinData     *bin_data,
                              gpointer        user_data,
                              GError        **error);
   /* paragraph */

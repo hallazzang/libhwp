@@ -57,6 +57,7 @@ struct _HwpHWP5File
   HwpHWP5FilePrivate *priv;
 
   GPtrArray          *section_streams;
+  GPtrArray          *bin_data_streams;
   GsfInput           *prv_text_stream;
   GsfInput           *prv_image_stream;
   GsfInput           *file_header_stream;

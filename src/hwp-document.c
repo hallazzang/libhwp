@@ -440,6 +440,7 @@ static void hwp_document_finalize (GObject *object)
 
   g_ptr_array_free (document->char_shapes, TRUE);
   g_ptr_array_free (document->face_names, TRUE);
+  g_ptr_array_free (document->bin_data, TRUE);
   g_ptr_array_free (document->paragraphs, TRUE);
   g_free (document->prv_text);
   g_object_unref (document->info);
@@ -463,6 +464,9 @@ static void hwp_document_init (HwpDocument *document)
 
   document->face_names =
     g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_face_name_free);
+
+  document->bin_data =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_bin_data_free);
 
   document->paragraphs = g_ptr_array_new_with_free_func (g_object_unref);
 }
@@ -546,6 +550,14 @@ void hwp_document_add_face_name (HwpDocument *document, HwpFaceName *face_name)
   g_ptr_array_add (document->face_names, face_name);
 }
 
+void hwp_document_add_bin_data (HwpDocument *document, HwpBinData *bin_data)
+{
+  g_return_if_fail (HWP_IS_DOCUMENT (document));
+  g_return_if_fail (bin_data != NULL);
+
+  g_ptr_array_add (document->bin_data, bin_data);
+}
+
 /* callback */
 static void hwp_document_listen_paragraph (HwpListener  *listener,
                                            HwpParagraph *paragraph,
@@ -584,11 +596,21 @@ static void hwp_document_listen_face_name (HwpListener  *listener,
   hwp_document_add_face_name (document, face_name);
 }
 
+static void hwp_document_listen_bin_data (HwpListener  *listener,
+                                          HwpBinData   *bin_data,
+                                          gpointer      user_data,
+                                          GError      **error)
+{
+  HwpDocument *document = HWP_DOCUMENT (listener);
+  hwp_document_add_bin_data (document, bin_data);
+}
+
 static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
   iface->char_shape       = hwp_document_listen_char_shape;
   iface->face_name        = hwp_document_listen_face_name;
+  iface->bin_data         = hwp_document_listen_bin_data;
   iface->paragraph        = hwp_document_listen_paragraph;
   iface->summary_info     = hwp_document_listen_summary_info;
 }
