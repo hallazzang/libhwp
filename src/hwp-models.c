@@ -466,3 +466,47 @@ void hwp_char_shape_free (HwpCharShape *char_shape)
 {
   g_slice_free (HwpCharShape, char_shape);
 }
+
+HWP_DEFINE_BOXED_TYPE (HwpBinData,
+                       hwp_bin_data,
+                       hwp_bin_data_copy,
+                       hwp_bin_data_free)
+
+HwpBinData *hwp_bin_data_new ()
+{
+  return g_slice_new0 (HwpBinData);
+}
+
+HwpBinData *hwp_bin_data_copy (HwpBinData *bin_data)
+{
+  g_return_val_if_fail (bin_data != NULL, NULL);
+
+  return g_slice_dup (HwpBinData, bin_data);
+}
+
+void hwp_bin_data_free (HwpBinData *bin_data)
+{
+  g_slice_free (HwpBinData, bin_data);
+}
+
+HWP_DEFINE_BOXED_TYPE (HwpCommonProperty,
+                       hwp_common_property,
+                       hwp_common_property_copy,
+                       hwp_common_property_free)
+
+HwpCommonProperty *hwp_common_property_new ()
+{
+  return g_slice_new0 (HwpCommonProperty);
+}
+
+HwpCommonProperty *hwp_common_property_copy (HwpCommonProperty *property)
+{
+  g_return_val_if_fail (property != NULL, NULL);
+
+  return g_slice_dup (HwpCommonProperty, property);
+}
+
+void hwp_common_property_free (HwpCommonProperty *property)
+{
+  g_slice_free (HwpCommonProperty, property);
+}

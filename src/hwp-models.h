@@ -109,10 +109,21 @@ typedef struct _HwpParagraphClass HwpParagraphClass;
 struct _HwpParagraph
 {
   GObject    parent_instance;
+
+  guint16    n_chars;
+  guint32    control_mask;
+  guint16    para_shape_id;
+  guint8     para_style_id;
+  guint8     column_type;
+  guint16    n_char_shapes;
+  guint16    n_range_tags;
+  guint16    n_aligns;
+  guint16    para_instance_id;
+
   char      *text;
   HwpTable  *table;
   HwpSecd   *secd;
-  guint16    n_chars;
+
   guint32   *m_pos;
   guint32   *m_id;
   guint16    m_len;
@@ -252,7 +263,6 @@ HwpSecd *hwp_secd_new      (void);
 HwpSecd *hwp_secd_copy     (HwpSecd *secd);
 void     hwp_secd_free     (HwpSecd *secd);
 
-
 typedef struct _HwpCharShape HwpCharShape;
 struct _HwpCharShape
 {
@@ -276,7 +286,6 @@ HwpCharShape *hwp_char_shape_new      (void);
 HwpCharShape *hwp_char_shape_copy     (HwpCharShape *char_shape);
 void          hwp_char_shape_free     (HwpCharShape *char_shape);
 
-
 typedef struct _HwpFaceName HwpFaceName;
 struct _HwpFaceName
 {
@@ -289,6 +298,41 @@ GType        hwp_face_name_get_type (void) G_GNUC_CONST;
 HwpFaceName *hwp_face_name_new      (void);
 HwpFaceName *hwp_face_name_copy     (HwpFaceName *face_name);
 void         hwp_face_name_free     (HwpFaceName *face_name);
+
+typedef struct _HwpBinData HwpBinData;
+struct _HwpBinData
+{
+  guint16 id;
+  gchar  *format;
+};
+
+GType       hwp_bin_data_get_type (void) G_GNUC_CONST;
+HwpBinData *hwp_bin_data_new      (void);
+HwpBinData *hwp_bin_data_copy     (HwpBinData *bin_data);
+void        hwp_bin_data_free     (HwpBinData *bin_data);
+
+typedef struct _HwpCommonProperty HwpCommonProperty;
+struct _HwpCommonProperty
+{
+  guint32 ctrl_id;
+  guint32 prop;
+  guint32 y_offset;
+  guint32 x_offset;
+  guint32 width;
+  guint32 height;
+  guint32 z_order;
+  guint16 margin1;
+  guint16 margin2;
+  guint16 margin3;
+  guint16 margin4;
+  guint32 instance_id;
+  guint32 len;
+};
+
+GType              hwp_common_property_get_type (void) G_GNUC_CONST;
+HwpCommonProperty *hwp_common_property_new      (void);
+HwpCommonProperty *hwp_common_property_copy     (HwpCommonProperty *prop);
+void               hwp_common_property_free     (HwpCommonProperty *prop);
 
 G_END_DECLS
 
