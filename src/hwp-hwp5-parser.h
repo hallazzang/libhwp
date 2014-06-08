@@ -61,7 +61,7 @@ struct _HwpHWP5Parser
   guint16      level;
   guint16      data_len;
   /* for sanity checking */
-  guint16      data_count;
+  guint16      data_pos;
   /* for parsing */
   guint8       state;
   guint32      ctrl_id;
