@@ -164,6 +164,8 @@ static void hwp_page_finalize (GObject *object)
   if (page->poppler_page)
     g_object_unref (page->poppler_page);
 
+  g_ptr_array_free (page->layouts, TRUE);
+
   G_OBJECT_CLASS (hwp_page_parent_class)->finalize (object);
 }
 
@@ -175,6 +177,7 @@ static void hwp_page_class_init (HwpPageClass *klass)
 
 static void hwp_page_init (HwpPage *page)
 {
+  page->layouts = g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_layout_free);
 }
 
 /**
@@ -432,4 +435,59 @@ void hwp_page_free_text_attributes (GList *list)
 
   g_list_foreach (list, (GFunc) hwp_text_attributes_free, NULL);
   g_list_free (list);
+}
+
+/**
+ * hwp_page_add_layout:
+ * @page: #HwpPage
+ * @layout: #HwpLayout
+ *
+ * Since: 0.1.2
+ *
+ */
+void hwp_page_add_layout (HwpPage *page, HwpLayout *layout)
+{
+  g_ptr_array_add (page->layouts, layout);
+}
+
+/* HwpLayout type */
+
+HWP_DEFINE_BOXED_TYPE (HwpLayout, hwp_layout, hwp_layout_copy, hwp_layout_free)
+
+/**
+ * hwp_layout_new:
+ *
+ * Creates a new #HwpLayout
+ *
+ * Returns: a new #HwpLayout, use hwp_layout_free() to free it
+ */
+HwpLayout *hwp_layout_new (void)
+{
+  return g_slice_new0 (HwpLayout);
+}
+
+/**
+ * hwp_layout_copy:
+ * @layout: a #HwpLayout to copy
+ *
+ * Creates a copy of @layout
+ *
+ * Returns: a new allocated copy of @layout
+ */
+HwpLayout *hwp_layout_copy (HwpLayout *layout)
+{
+  g_return_val_if_fail (layout != NULL, NULL);
+
+  return g_slice_dup (HwpLayout, layout);
+}
+
+/**
+ * hwp_layout_free:
+ * @layout: a #HwpLayout
+ *
+ * Frees the given #HwpLayout
+ */
+void hwp_layout_free (HwpLayout *layout)
+{
+  g_slice_free (HwpLayout, layout);
 }

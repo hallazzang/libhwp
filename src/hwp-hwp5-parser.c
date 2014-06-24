@@ -432,7 +432,8 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
           parser_read_uint8 (parser, &char_shape->char_offset[i], error);
         }
 
-        guint32 height; parser_read_uint32 (parser, &height, error);
+        guint32 height;
+        parser_read_uint32 (parser, &height, error);
         char_shape->height_in_points = height / 7200.0 * 72;
         parser_read_uint32 (parser, &char_shape->prop, error);
         parser_read_uint8  (parser, &char_shape->space_between_shadows1, error);
@@ -673,6 +674,10 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
 
   parser_read_uint32 (parser, &table->flags, error);
   parser_read_uint16 (parser, &table->n_rows, error);
+
+  for (guint i = 0; i < table->n_rows; i++)
+    g_ptr_array_add (table->rows, g_ptr_array_new_with_free_func ((GDestroyNotify) g_object_unref));
+
   parser_read_uint16 (parser, &table->n_cols, error);
   parser_read_uint16 (parser, &table->cell_spacing, error);
   parser_read_uint16 (parser, &table->left_margin, error);
@@ -796,7 +801,7 @@ static HwpTable *hwp_hwp5_parser_build_table (HwpHWP5Parser *parser,
       break;
     case HWP_TAG_LIST_HEADER: /* cell */
       cell = hwp_hwp5_parser_get_table_cell (parser, error);
-      hwp_table_add_cell (table, cell);
+      hwp_table_add_cell (table, cell, cell->row_addr);
       break;
     case HWP_TAG_PARA_HEADER:
       paragraph = hwp_hwp5_parser_build_paragraph (parser, file, error);

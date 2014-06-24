@@ -30,6 +30,7 @@
 
 #include "hwp-enums.h"
 #include <poppler.h>
+#include <pango/pango.h>
 
 G_BEGIN_DECLS
 
@@ -46,12 +47,14 @@ typedef struct _HwpPageClass       HwpPageClass;
 typedef struct _HwpRectangle       HwpRectangle;
 typedef struct _HwpColor           HwpColor;
 typedef struct _HwpTextAttributes  HwpTextAttributes;
+typedef struct _HwpLayout          HwpLayout;
 
 struct _HwpPage
 {
   GObject parent_instance;
 
   PopplerPage *poppler_page;
+  GPtrArray   *layouts;
 };
 
 struct _HwpPageClass
@@ -62,7 +65,9 @@ struct _HwpPageClass
 GType     hwp_page_get_type             (void) G_GNUC_CONST;
 
 HwpPage  *hwp_page_new                  (void);
-void      hwp_page_free_text_attributes (GList *list);
+void      hwp_page_add_layout           (HwpPage           *page,
+                                         HwpLayout         *layout);
+void      hwp_page_free_text_attributes (GList             *list);
 GList    *hwp_page_find_text            (HwpPage           *page,
                                          const char        *text);
 cairo_region_t *
@@ -191,6 +196,28 @@ GType              hwp_text_attributes_get_type (void) G_GNUC_CONST;
 HwpTextAttributes *hwp_text_attributes_new      (void);
 HwpTextAttributes *hwp_text_attributes_copy     (HwpTextAttributes *text_attrs);
 void               hwp_text_attributes_free     (HwpTextAttributes *text_attrs);
+
+/* HwpLayout */
+#define HWP_TYPE_LAYOUT  (hwp_layout_get_type ())
+/**
+ * HwpLayout:
+ * @line: a #PangoLayoutLine
+ * @x: #gdouble
+ * @y: #gdouble
+ *
+ * Since: 0.1.2
+ */
+struct _HwpLayout
+{
+  PangoLayoutLine *line;
+  gdouble          x;
+  gdouble          y;
+};
+
+GType      hwp_layout_get_type (void) G_GNUC_CONST;
+HwpLayout *hwp_layout_new      (void);
+HwpLayout *hwp_layout_copy     (HwpLayout *layout);
+void       hwp_layout_free     (HwpLayout *layout);
 
 G_END_DECLS
 

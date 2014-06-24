@@ -250,7 +250,7 @@ void hexdump(guint8 *data, guint16 data_len)
 
 static void hwp_table_init (HwpTable *table)
 {
-  table->cells = g_ptr_array_new_with_free_func (g_object_unref);
+  table->rows = g_ptr_array_new_with_free_func ((GDestroyNotify) g_ptr_array_unref);
 }
 
 static void hwp_table_finalize (GObject *object)
@@ -263,7 +263,7 @@ static void hwp_table_finalize (GObject *object)
   if (table->zones)
     g_free (table->zones);
 
-  g_ptr_array_unref (table->cells);
+  g_ptr_array_unref (table->rows);
 
   G_OBJECT_CLASS (hwp_table_parent_class)->finalize (object);
 }
@@ -285,21 +285,33 @@ static void hwp_table_class_init (HwpTableClass *klass)
 HwpTableCell *hwp_table_get_last_cell (HwpTable *table)
 {
   g_return_val_if_fail (HWP_IS_TABLE (table), NULL);
-  return g_ptr_array_index (table->cells, table->cells->len - 1);
+
+  GPtrArray *row = g_ptr_array_index (table->rows, table->rows->len - 1);
+  return g_ptr_array_index (row, row->len - 1);
 }
 
 /**
  * hwp_table_add_cell:
  * @table: a #HwpTable
  * @cell: a #HwpTableCell
+ * @index: row index
  *
- * Since: 0.0.1
+ * Since: 0.1.2
  */
-void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell)
+void hwp_table_add_cell (HwpTable *table, HwpTableCell *cell, guint index)
 {
   g_return_if_fail (HWP_IS_TABLE (table));
   g_return_if_fail (HWP_IS_TABLE_CELL (cell));
-  g_ptr_array_add (table->cells, cell);
+
+  if (index < table->rows->len)
+  {
+    GPtrArray *row = g_ptr_array_index (table->rows, index);
+    g_ptr_array_add (row, cell);
+  }
+  else
+  {
+    g_warning ("hwp_table_add_cell: out of index");
+  }
 }
 
 /* HwpTableCell ************************************************************/

@@ -52,119 +52,251 @@ static cairo_status_t hwp_document_write_pdf_to_mem (void *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
+static void hwp_document_add_page (HwpDocument *document, HwpPage *page)
+{
+  g_ptr_array_add (document->pages, page);
+}
+
+static void hwp_document_set_attrs_to_pango_layout (HwpDocument  *document,
+                                                    HwpParagraph *paragraph,
+                                                    PangoLayout  *layout)
+{
+  PangoAttrList *attrs = pango_attr_list_new ();
+
+  for (guint j = 0; j < paragraph->m_len; j++)
+  {
+    HwpCharShape *char_shape = g_ptr_array_index (document->char_shapes,
+                                                  paragraph->m_id[j]);
+    gdouble font_size_in_points = char_shape->height_in_points;
+
+    HwpFaceName *hwp_face_name = g_ptr_array_index (document->face_names,
+                                                    char_shape->face_id[0]); /* 한국어의 경우 0 */
+    gchar *face_name = hwp_face_name->font_name;
+
+    HwpTextAttributes *text_attrs = g_ptr_array_index (paragraph->text_attrs, j);
+    PangoAttribute *family = pango_attr_family_new (face_name);
+    family->start_index = text_attrs->start_index;
+    family->end_index   = text_attrs->end_index;
+
+    PangoAttribute *size;
+    size = pango_attr_size_new (font_size_in_points * PANGO_SCALE);
+    size->start_index = text_attrs->start_index;
+    size->end_index = text_attrs->end_index;
+
+    pango_attr_list_insert (attrs, family);
+    pango_attr_list_insert (attrs, size);
+  } /* for (guint j = 0; j < paragraph->m_len; j++) */
+
+  guint8 major_version;
+  hwp_document_get_hwp_version (document, &major_version, NULL, NULL, NULL);
+
+  /* hwp5의 경우 attrs 적용합니다. */
+  if (major_version == 5)
+    pango_layout_set_attributes (layout, attrs);
+
+  pango_attr_list_unref (attrs);
+}
+
+static void
+hwp_document_paginate (HwpDocument *document, gdouble width, gdouble height)
+{
+  PangoFontMap *fontmap = pango_cairo_font_map_get_default ();
+  PangoContext *context = pango_font_map_create_context (fontmap);
+
+  gdouble x = 0.0;
+  gdouble y = 0.0;
+
+  for (guint i = 0; i < document->paragraphs->len; i++)
+  {
+    HwpParagraph *paragraph = hwp_document_get_paragraph (document, i);
+
+    if (paragraph->text)
+    {
+      PangoLayout *layout = pango_layout_new (context);
+      g_ptr_array_add (document->layouts, layout);
+      pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
+      pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+      pango_layout_set_width (layout, width * PANGO_SCALE);
+      pango_layout_set_text (layout, paragraph->text, -1);
+
+      hwp_document_set_attrs_to_pango_layout (document, paragraph, layout);
+
+      PangoLayoutIter *iter = pango_layout_get_iter (layout);
+
+      do {
+        PangoRectangle ink_rect0;
+        PangoRectangle logical_rect0;
+        PangoLayoutLine *line = pango_layout_iter_get_line_readonly (iter);
+        pango_layout_iter_get_line_extents (iter, &ink_rect0, &logical_rect0);
+        y = y + logical_rect0.height / PANGO_SCALE;
+
+        guint page_index = (guint) floor (y / height);
+
+        if ((int) page_index > (int) (document->pages->len - 1))
+          hwp_document_add_page (document, hwp_page_new ());
+
+        HwpLayout *hwp_layout = hwp_layout_new ();
+        hwp_layout->line = line;
+        hwp_layout->x = x;
+        hwp_layout->y = y - page_index * height;
+
+        /* 페이지 넘어가는 경우 y값 보정 */
+        if (hwp_layout->y < logical_rect0.height / PANGO_SCALE)
+        {
+          y = page_index * height + logical_rect0.height / PANGO_SCALE;
+          hwp_layout->y = logical_rect0.height / PANGO_SCALE;
+        }
+
+        HwpPage *page = g_ptr_array_index (document->pages, page_index);
+        hwp_page_add_layout (page, hwp_layout);
+      } while (pango_layout_iter_next_line (iter));
+      pango_layout_iter_free (iter);
+    } /* if (paragraph->text) */
+
+    if (paragraph->table)
+    {
+      GPtrArray    *row  = NULL;
+      HwpTableCell *cell = NULL;
+      gdouble       max  = 0.0;
+
+      /* each row */
+      for (guint i = 0; i < paragraph->table->rows->len; i++)
+      {
+        row = g_ptr_array_index (paragraph->table->rows, i);
+        double backup_x = 0.0, backup_y = 0.0;
+
+        /* cell in each row */
+        for (guint j = 0; j < row->len; j++)
+        {
+          cell = g_ptr_array_index (row, j);
+          HwpParagraph *paragraph = NULL;
+
+          backup_x = x;
+          backup_y = y;
+          gdouble sum = 0.0;
+
+          for (guint k = 0; k < cell->paragraphs->len; k++)
+          {
+            paragraph = g_ptr_array_index (cell->paragraphs, k);
+
+            PangoLayout *layout = pango_layout_new (context);
+            /* document->layouts: array for g_object_unref (layout) */
+            g_ptr_array_add (document->layouts, layout);
+            pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
+            pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+            pango_layout_set_width (layout, cell->width * 0.01 * PANGO_SCALE);
+            pango_layout_set_text (layout, paragraph->text, -1);
+
+            hwp_document_set_attrs_to_pango_layout (document, paragraph, layout);
+
+            PangoLayoutIter *iter = pango_layout_get_iter (layout);
+            PangoRectangle ink_rect;
+            PangoRectangle logical_rect;
+
+            do {
+              PangoLayoutLine *line = pango_layout_iter_get_line_readonly (iter);
+              pango_layout_iter_get_line_extents (iter, &ink_rect, &logical_rect);
+
+              guint page_index = (guint) floor (y / height);
+
+              if ((int) page_index > (int) (document->pages->len - 1))
+                hwp_document_add_page (document, hwp_page_new ());
+
+              y = y + logical_rect.height / PANGO_SCALE;
+              HwpLayout *hwp_layout = hwp_layout_new ();
+              hwp_layout->line = line;
+              hwp_layout->x = x;
+              hwp_layout->y = y - page_index * height;
+              /* TODO: 페이지 넘어가는 경우 y값 보정 */
+              HwpPage *page = g_ptr_array_index (document->pages, page_index);
+              hwp_page_add_layout (page, hwp_layout);
+            } while (pango_layout_iter_next_line (iter));
+
+            pango_layout_iter_free (iter);
+            pango_layout_get_extents (layout, &ink_rect, &logical_rect);
+            sum = sum + logical_rect.height;
+          } /* for (guint k = 0; k < cell->paragraphs->len; k++) */
+
+          if (max < sum)
+            max = sum;
+
+          sum = 0.0;
+          x = backup_x + cell->width * 0.01;
+          y = backup_y;
+        }
+
+        x = 0.0;
+        y = backup_y + max / PANGO_SCALE + 10;
+        max = 0.0;
+      } /* for (guint i = 0; i < paragraph->table->rows->len; i++) */
+    } /* if (paragraph->table) */
+  } /* for (guint i = 0; i < document->paragraphs->len; i++) */
+
+  g_object_unref (context);
+}
+
+static void hwp_document_render (HwpDocument *document, cairo_t *cr)
+{
+  for (guint j = 0; j < document->pages->len; j++)
+  {
+    HwpPage *page0 = g_ptr_array_index (document->pages, j);
+    for (guint i = 0; i < page0->layouts->len; i++)
+    {
+      HwpLayout *hwp_layout = g_ptr_array_index (page0->layouts, i);
+      cairo_move_to (cr, hwp_layout->x, hwp_layout->y);
+      pango_cairo_show_layout_line (cr, hwp_layout->line);
+    }
+    cairo_show_page (cr);
+  }
+}
+
 static void hwp_document_create_poppler_document (HwpDocument *document)
 {
   g_return_if_fail (document->paragraphs->len > 0);
 
   HwpParagraph *paragraph0 = hwp_document_get_paragraph (document, 0);
-  HwpParagraph *paragraph = NULL;
-  guint8 major_version;
-  hwp_document_get_hwp_version (document, &major_version, NULL, NULL, NULL);
+  HwpSecd *secd;
+  if (paragraph0->secd)
+    secd = paragraph0->secd;
   /* 아직 secd 작업하지 못한 hwp3, hwp ml 문서를 위해 */
-  if (paragraph0->secd == NULL)
-    paragraph0->secd = hwp_secd_new ();
+  else
+    secd = hwp_secd_new ();
 
-  HwpSecd *secd = paragraph0->secd;
+  gdouble width  = secd->page_width_in_points -
+                     secd->page_left_margin_in_points -
+                     secd->page_right_margin_in_points;
+  gdouble height = secd->page_height_in_points -
+                     secd->page_top_margin_in_points -
+                     secd->page_bottom_margin_in_points -
+                     secd->page_header_margin_in_points -
+                     secd->page_footer_margin_in_points;
 
-  gdouble x0 = secd->page_left_margin_in_points;
-  gdouble y0 = secd->page_top_margin_in_points;
+  hwp_document_paginate (document, width, height);
 
   cairo_surface_t *surface;
   surface = cairo_pdf_surface_create_for_stream (hwp_document_write_pdf_to_mem,
                                                  document,
                                                  secd->page_width_in_points,
                                                  secd->page_height_in_points);
-
   cairo_t *cr = cairo_create (surface);
-  PangoLayout *layout = pango_cairo_create_layout (cr);
+  cairo_translate (cr, secd->page_left_margin_in_points,
+                       secd->page_top_margin_in_points);
 
-  pango_layout_set_width (layout,
-                          (secd->page_width_in_points -
-                           secd->page_left_margin_in_points -
-                           secd->page_right_margin_in_points) * PANGO_SCALE);
+  hwp_document_render (document, cr);
 
-  pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-  pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
-
-  cairo_move_to (cr, x0, y0);
-
-  for (guint i = 0; i < document->paragraphs->len; i++)
-  {
-    paragraph = hwp_document_get_paragraph (document, i);
-    PangoAttrList *attrs = pango_attr_list_new ();
-
-    for (guint j = 0; j < paragraph->m_len; j++)
-    {
-      HwpCharShape *char_shape = g_ptr_array_index (document->char_shapes,
-                                                    paragraph->m_id[j]);
-      gdouble font_size_in_points = char_shape->height_in_points;
-
-      HwpFaceName *hwp_face_name = g_ptr_array_index (document->face_names,
-                                                      char_shape->face_id[0]); /* 한국어의 경우 0 */
-      gchar *face_name = hwp_face_name->font_name;
-
-      HwpTextAttributes *text_attrs = g_ptr_array_index (paragraph->text_attrs, j);
-      PangoAttribute *family = pango_attr_family_new (face_name);
-      family->start_index = text_attrs->start_index;
-      family->end_index   = text_attrs->end_index;
-
-      PangoAttribute *size;
-      size = pango_attr_size_new (font_size_in_points * PANGO_SCALE);
-      size->start_index = text_attrs->start_index;
-      size->end_index = text_attrs->end_index;
-
-      pango_attr_list_insert (attrs, family);
-      pango_attr_list_insert (attrs, size);
-    } /* for (guint j = 0; j < paragraph->m_len; j++) */
-
-    if (paragraph->text)
-      pango_layout_set_text (layout, paragraph->text, -1);
-    else
-      continue;
-
-    /* hwp5의 경우 attrs 적용합니다. */
-    if (major_version == 5)
-      pango_layout_set_attributes (layout, attrs);
-
-    pango_attr_list_unref (attrs);
-
-    pango_cairo_update_layout (cr, layout);
-    PangoLayoutIter *iter = pango_layout_get_iter (layout);
-
-    do {
-      PangoRectangle ink_rect;
-      PangoRectangle logical_rect;
-      double x = 0.0, y = 0.0;
-
-      PangoLayoutLine *line = pango_layout_iter_get_line_readonly (iter);
-      pango_layout_iter_get_line_extents (iter, &ink_rect, &logical_rect);
-      cairo_get_current_point (cr, &x, &y);
-
-      if (y + logical_rect.height / PANGO_SCALE >=
-          secd->page_height_in_points -
-          secd->page_bottom_margin_in_points -
-          secd->page_footer_margin_in_points)
-      {
-        cairo_show_page (cr);
-        cairo_move_to (cr, x0, y0);
-      }
-
-      cairo_rel_move_to (cr, 0, logical_rect.height / PANGO_SCALE);
-      pango_cairo_show_layout_line (cr, line);
-    } while (pango_layout_iter_next_line (iter));
-
-    pango_layout_iter_free (iter);
-  } /* for (guint j = 0; j < paragraph->m_len; j++) */
-
-  g_object_unref (layout);
   cairo_destroy (cr);
   cairo_surface_finish (surface);
   cairo_surface_destroy (surface);
 
   document->poppler_document =
     poppler_document_new_from_data ((char *) document->pdf_data->data,
-                                    document->pdf_data->len,
-                                    NULL, NULL);
+                                    document->pdf_data->len, NULL, NULL);
+
+  for (guint i = 0; i < document->pages->len; i++)
+  {
+    HwpPage *page = g_ptr_array_index (document->pages, i);
+    page->poppler_page = poppler_document_get_page (document->poppler_document, i);
+  }
 }
 
 /**
@@ -215,7 +347,7 @@ guint hwp_document_get_n_pages (HwpDocument *document)
   if (!document->poppler_document)
     hwp_document_create_poppler_document (document);
 
-  return poppler_document_get_n_pages (document->poppler_document);
+  return document->pages->len;
 }
 
 /**
@@ -238,10 +370,7 @@ HwpPage *hwp_document_get_page (HwpDocument *document, gint n_page)
   if (!document->poppler_document)
     hwp_document_create_poppler_document (document);
 
-  HwpPage *page = hwp_page_new ();
-  page->poppler_page = poppler_document_get_page (document->poppler_document,
-                                                  n_page);
-  return page;
+  return g_object_ref (g_ptr_array_index (document->pages, n_page));
 }
 
 /**
@@ -442,6 +571,8 @@ static void hwp_document_finalize (GObject *object)
   g_ptr_array_free (document->face_names, TRUE);
   g_ptr_array_free (document->bin_data, TRUE);
   g_ptr_array_free (document->paragraphs, TRUE);
+  g_ptr_array_free (document->pages, TRUE);
+  g_ptr_array_free (document->layouts, TRUE);
   g_free (document->prv_text);
   g_object_unref (document->info);
   g_byte_array_free (document->pdf_data, TRUE);
@@ -469,6 +600,8 @@ static void hwp_document_init (HwpDocument *document)
     g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_bin_data_free);
 
   document->paragraphs = g_ptr_array_new_with_free_func (g_object_unref);
+  document->pages      = g_ptr_array_new_with_free_func (g_object_unref);
+  document->layouts    = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /* callback */
@@ -515,8 +648,12 @@ void hwp_document_add_paragraph (HwpDocument *document, HwpParagraph *paragraph)
  */
 HwpParagraph *hwp_document_get_paragraph (HwpDocument *document, guint index)
 {
-  g_return_if_fail (HWP_IS_DOCUMENT  (document));
-  return g_ptr_array_index (document->paragraphs, index);
+  g_return_val_if_fail (HWP_IS_DOCUMENT (document), NULL);
+
+  if (index < document->paragraphs->len)
+    return g_ptr_array_index (document->paragraphs, index);
+  else
+    return NULL;
 }
 
 /**

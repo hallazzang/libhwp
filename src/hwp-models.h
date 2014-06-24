@@ -181,14 +181,15 @@ struct _HwpTable
   guint16    valid_zone_info_size;
   guint16   *zones;
 
-  GPtrArray *cells;
+  GPtrArray *rows;
 };
 
 GType         hwp_table_get_type         (void) G_GNUC_CONST;
 HwpTable     *hwp_table_new              (void);
 HwpTableCell *hwp_table_get_last_cell    (HwpTable     *table);
 void          hwp_table_add_cell         (HwpTable     *table,
-                                          HwpTableCell *cell);
+                                          HwpTableCell *cell,
+                                          guint         index);
 
 /* HwpTableCell ************************************************************/
 

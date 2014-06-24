@@ -69,6 +69,9 @@ struct _HwpDocument
 
   HwpSummaryInfo  *info;
 
+  GPtrArray       *pages;
+  /* array for g_object_unref (layout) */
+  GPtrArray       *layouts;
   GByteArray      *pdf_data;
   PopplerDocument *poppler_document;
 };
