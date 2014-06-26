@@ -1,3 +1,9 @@
+libhwp (0.1.2) UNRELEASED; urgency=medium
+
+  * Added experimental rendering of table
+
+ -- Hodong Kim <hodong@cogno.org>  Thu, 26 Jun 2014 21:14:39 +0900
+
 libhwp (0.1.1) UNRELEASED; urgency=medium
 
   * Fixed segmentation fault: libhwp-utils

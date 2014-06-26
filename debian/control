@@ -17,7 +17,7 @@ Homepage: https://bitbucket.org/hodong/libhwp
 Vcs-Git: git@bitbucket.org:hodong/libhwp.git
 Vcs-Browser: https://bitbucket.org/hodong/libhwp
 
-Package: libhwp3
+Package: libhwp4
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Pre-Depends: ${misc:Pre-Depends}
@@ -35,7 +35,7 @@ Package: libhwp-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends},
-         libhwp3 (= ${binary:Version}),
+         libhwp4 (= ${binary:Version}),
          libgsf-1-dev,
          libcairo2-dev,
          libpango1.0-dev,
@@ -85,7 +85,7 @@ Section: debug
 Priority: extra
 Multi-Arch: same
 Depends: ${misc:Depends},
-         libhwp3 (= ${binary:Version})
+         libhwp4 (= ${binary:Version})
 Description: handling and rendering HWP documents -- debugging symbols
  The libhwp is a parser and renderer library for hwp documents.
  .
