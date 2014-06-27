@@ -229,7 +229,6 @@ struct _HwpTableCell
   guint32 unknown2;
 
   /* private use */
-  gdouble _y;
   GPtrArray *paragraphs;
 };
 
