@@ -1,3 +1,10 @@
+libhwp (0.1.3) UNRELEASED; urgency=medium
+
+  * Fixed free func
+  * Fixed memory leak
+
+ -- Hodong Kim <hodong@cogno.org>  Sat, 28 Jun 2014 14:24:54 +0900
+
 libhwp (0.1.2) UNRELEASED; urgency=medium
 
   * Added experimental rendering of table
