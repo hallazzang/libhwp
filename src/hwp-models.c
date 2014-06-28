@@ -454,6 +454,7 @@ HwpFaceName *hwp_face_name_copy (HwpFaceName *face_name)
 
 void hwp_face_name_free (HwpFaceName *face_name)
 {
+  g_free (face_name->font_name);
   g_slice_free (HwpFaceName, face_name);
 }
 
@@ -498,6 +499,7 @@ HwpBinData *hwp_bin_data_copy (HwpBinData *bin_data)
 
 void hwp_bin_data_free (HwpBinData *bin_data)
 {
+  g_free (bin_data->format);
   g_slice_free (HwpBinData, bin_data);
 }
 
