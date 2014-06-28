@@ -305,13 +305,13 @@ static void make_stream (HwpHWP5File *file, GError **error)
 
     for (gint i = 0; i < n_data; i++)
     {
-      GsfInput *bin_data =
+      GsfInput *bin_data_input =
                   gsf_infile_child_by_index (GSF_INFILE (input), i);
 
-      if (gsf_infile_num_children (GSF_INFILE (bin_data)) != -1)
+      if (gsf_infile_num_children (GSF_INFILE (bin_data_input)) != -1)
       {
-        if (GSF_IS_INPUT (bin_data))
-          g_object_unref (bin_data);
+        if (GSF_IS_INPUT (bin_data_input))
+          g_object_unref (bin_data_input);
 
         g_set_error_literal (error,
                              HWP_FILE_ERROR,
@@ -324,14 +324,14 @@ static void make_stream (HwpHWP5File *file, GError **error)
       {
         GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
                                       "raw",    TRUE,
-                                      "source", bin_data,
+                                      "source", bin_data_input,
                                       "uncompressed_size", -1,
                                       NULL);
         g_ptr_array_add (file->bin_data_streams, tmp);
       }
       else
       {
-        g_ptr_array_add (file->bin_data_streams, bin_data);
+        g_ptr_array_add (file->bin_data_streams, bin_data_input);
       }
     }
 
@@ -456,9 +456,8 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
 
 static void hwp_hwp5_file_init (HwpHWP5File *file)
 {
-  file->section_streams = g_ptr_array_new_with_free_func (g_object_unref);
-  file->bin_data_streams =
-    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_bin_data_free);
+  file->section_streams  = g_ptr_array_new_with_free_func (g_object_unref);
+  file->bin_data_streams = g_ptr_array_new_with_free_func (g_object_unref);
 
   file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file,
                                             HWP_TYPE_HWP5_FILE,
