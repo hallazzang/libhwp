@@ -26,6 +26,7 @@
  */
 
 #include <gsf/gsf-doc-meta-data.h>
+#include <gsf/gsf-infile.h>
 #include <gsf/gsf-input-gzip.h>
 #include <gsf/gsf-input-memory.h>
 #include <gsf/gsf-input-stdio.h>
