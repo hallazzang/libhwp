@@ -50,26 +50,26 @@ struct _HwpHWP5ParserClass
 
 struct _HwpHWP5Parser
 {
-  GObject      parent_instance;
+  GObject       parent_instance;
 
-  HwpListener *listener;
-  gpointer     user_data;
-  GsfInput    *stream;
+  HwpListener  *listener;
+  gpointer      user_data;
+  GInputStream *stream;
   /* from record header */
-  guint32      header;
-  guint16      tag_id;
-  guint16      level;
-  guint16      data_len;
+  guint32       header;
+  guint16       tag_id;
+  guint16       level;
+  guint32       data_len;
   /* for sanity checking */
-  guint16      data_pos;
+  guint32       data_pos;
   /* for parsing */
-  guint8       state;
-  guint32      ctrl_id;
+  guint8        state;
+  guint32       ctrl_id;
   /* for version check */
-  guint8       major_version;
-  guint8       minor_version;
-  guint8       micro_version;
-  guint8       extra_version;
+  guint8        major_version;
+  guint8        minor_version;
+  guint8        micro_version;
+  guint8        extra_version;
 };
 
 GType          hwp_hwp5_parser_get_type      (void) G_GNUC_CONST;

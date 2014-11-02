@@ -69,13 +69,20 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
   } \
 }
 
-gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
+gboolean parser_skip (HwpHWP5Parser *parser, guint32 count)
 {
-  const guint8 *buf = gsf_input_read (parser->stream, count, NULL);
+  gboolean is_success = FALSE;
+  gsize bytes_read = 0;
 
-  if (buf == NULL)
+  guint8 *buf = g_malloc (count);
+  is_success = g_input_stream_read_all (parser->stream, buf, count,
+                                        &bytes_read, NULL, NULL);
+  g_free (buf);
+
+  if ((is_success == FALSE) || (bytes_read != count))
   {
-    g_warning ("%s:%d:skip size mismatch\n", __FILE__, __LINE__);
+    g_warning ("%s:%d: count:%d, bytes_read:%d skip size mismatch\n",
+      __FILE__, __LINE__, count, bytes_read);
     return FALSE;
   }
 
@@ -83,34 +90,43 @@ gboolean parser_skip (HwpHWP5Parser *parser, guint16 count)
   return TRUE;
 }
 
-const guint8 *parser_read_bytes (HwpHWP5Parser *parser,
-                                 guint16        count,
-                                 GError       **error)
+gboolean parser_read_bytes (HwpHWP5Parser *parser,
+                            void          *buffer,
+                            guint32        count,
+                            GError       **error)
 {
 #ifdef HWP_ENABLE_DEBUG
-  g_assert (parser->data_pos <= parser->data_len - count);
+  g_assert (parser->data_pos + count <= parser->data_len);
 #endif
-  g_return_val_if_fail (parser->data_pos <= parser->data_len - count, FALSE);
+  g_return_val_if_fail (parser->data_pos + count <= parser->data_len, FALSE);
 
-  const guint8 *ret = gsf_input_read (parser->stream, count, NULL);
+  gboolean is_success = FALSE;
+  gsize bytes_read = 0;
 
-  if (ret != NULL)
-    parser->data_pos += count;
+  is_success = g_input_stream_read_all (parser->stream, buffer, count,
+                                        &bytes_read, NULL, NULL);
 
-  return ret;
+  if ((is_success == FALSE) || (bytes_read != count))
+  {
+    g_warning ("%s:%d: size mismatch\n", __FILE__, __LINE__);
+    return FALSE;
+  }
+
+  parser->data_pos += count;
+  return TRUE;
 }
 
 gboolean parser_read_uint8 (HwpHWP5Parser *parser, guint8 *i, GError **error)
 {
 #ifdef HWP_ENABLE_DEBUG
-  g_assert (parser->data_pos <= parser->data_len - 1);
+  g_assert (parser->data_pos + 1 <= parser->data_len);
 #endif
-  g_return_val_if_fail (parser->data_pos <= parser->data_len - 1, FALSE);
+  g_return_val_if_fail (parser->data_pos + 1 <= parser->data_len, FALSE);
 
-  const guint8 *ret = gsf_input_read (parser->stream, 1, i);
-
-  if (ret == NULL)
-  {
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, i, 1,
+                           &bytes_read, NULL, error);
+  if (*error || (bytes_read != 1)) {
     *i = 0;
     return FALSE;
   }
@@ -122,37 +138,35 @@ gboolean parser_read_uint8 (HwpHWP5Parser *parser, guint8 *i, GError **error)
 gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
 {
 #ifdef HWP_ENABLE_DEBUG
-  g_assert (parser->data_pos <= parser->data_len - 2);
+  g_assert (parser->data_pos + 2 <= parser->data_len);
 #endif
-  g_return_val_if_fail (parser->data_pos <= parser->data_len - 2, FALSE);
+  g_return_val_if_fail (parser->data_pos + 2 <= parser->data_len, FALSE);
 
-  const guint8 *ret = gsf_input_read (parser->stream, 2, NULL);
-
-  if (ret == NULL)
-  {
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, i, 2,
+                           &bytes_read, NULL, error);
+  if (*error || (bytes_read != 2)) {
     *i = 0;
     return FALSE;
   }
 
-  *i = GSF_LE_GET_GUINT16(ret);
-
+  *i = GUINT16_FROM_LE(*i);
   parser->data_pos += 2;
   return TRUE;
 }
 
 gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
 {
-  g_return_val_if_fail (parser->data_pos <= parser->data_len - 4, FALSE);
+  g_return_val_if_fail (parser->data_pos + 4 <= parser->data_len, FALSE);
 
-  const guint8 *ret = gsf_input_read (parser->stream, 4, NULL);
-
-  if (ret == NULL)
-  {
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, i, 4,
+                           &bytes_read, NULL, error);
+  if (*error || (bytes_read != 4)) {
     *i = 0;
     return FALSE;
   }
-
-  *i = GSF_LE_GET_GUINT32(ret);
+  *i = GUINT32_FROM_LE(*i);
   parser->data_pos += 4;
   return TRUE;
 }
@@ -182,33 +196,54 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
     return TRUE;
   }
 
-  if (parser->data_len - parser->data_pos > 0)
+  if (parser->data_len > parser->data_pos)
+  {
     parser_skip (parser, parser->data_len - parser->data_pos);
+  }
 
-  const guint8 *ret;
   /* 4바이트 읽기 */
-  ret = gsf_input_read (parser->stream, 4, NULL);
-
-  if (ret == NULL)
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, &parser->header, 4,
+                           &bytes_read, NULL, error);
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
     return FALSE;
+  }
 
-  parser->header = GSF_LE_GET_GUINT32(ret);
+  /* if invalid or end-of-stream */
+  if (bytes_read != 4) {
+    /* if not end-of-stream */
+    if (bytes_read != 0)
+      g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
+                           _("File corrupted or invalid file"));
 
+    return FALSE;
+  }
+
+  parser->header = GUINT32_FROM_LE(parser->header);
   /* 4바이트 헤더 디코딩하기 */
   parser->tag_id   = (guint16) ( parser->header        & 0x3ff);
   parser->level    = (guint16) ((parser->header >> 10) & 0x3ff);
-  parser->data_len = (guint16) ((parser->header >> 20) & 0xfff);
+  parser->data_len = (guint32) ((parser->header >> 20) & 0xfff);
   /* 비정상 */
   if (parser->data_len == 0)
     goto FAIL;
   /* data_len == 0xfff 이면 다음 4바이트는 data_len 이다 */
   if (parser->data_len == 0xfff)
   {
-    ret = gsf_input_read (parser->stream, 4, NULL);
-    if (ret == NULL)
-      goto FAIL;
-
-    parser->data_len = GSF_LE_GET_GUINT32(ret);
+    g_input_stream_read_all (parser->stream, &parser->data_len, 4,
+                             &bytes_read, NULL, error);
+    if (*error) {
+      g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+      return FALSE;
+    }
+    /* 비정상 */
+    if (bytes_read != 4) {
+      g_set_error_literal (error, HWP_ERROR, HWP_ERROR_INVALID,
+                           _("File corrupted"));
+      return FALSE;
+    }
+    parser->data_len = GUINT32_FROM_LE(parser->data_len);
   }
 
 #ifdef HWP_ENABLE_DEBUG
@@ -297,19 +332,22 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
             {
               /* gchar *type = "link"; */
               parser_read_uint16 (parser, &len, error);
-              const guint8 *buf = NULL;
-              buf = parser_read_bytes (parser, len * 2, error);
+              guint8 *buf = malloc (len * 2);
+              parser_read_bytes (parser, buf, len * 2, error);
               gchar *abs_path = g_convert ((const gchar *) buf,
                                            len * 2,
                                            "UTF-8", "UTF-16LE", NULL, NULL,
                                            error);
+              g_free (buf);
               g_free (abs_path);
 
               parser_read_uint16 (parser, &len, error);
-              buf = parser_read_bytes (parser, len * 2, error);
+              buf = malloc (len * 2);
+              parser_read_bytes (parser, buf, len * 2, error);
               gchar *rel_path = g_convert ((const gchar *) buf, len * 2,
                                            "UTF-8", "UTF-16LE", NULL, NULL,
                                            error);
+              g_free (buf);
               g_free (rel_path);
             }
             break;
@@ -318,11 +356,12 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
               /* gchar *type = "embedding"; */
               parser_read_uint16 (parser, &bin_data->id, error);
               parser_read_uint16 (parser, &len, error);
-              const guint8 *buf = NULL;
-              buf = parser_read_bytes (parser, len * 2, error);
+              guint8 *buf = malloc (len * 2);
+              parser_read_bytes (parser, buf, len * 2, error);
               bin_data->format = g_convert ((const gchar *) buf, len * 2,
                                             "UTF-8", "UTF-16LE", NULL, NULL,
                                             error);
+              g_free (buf);
             }
             break;
           case 2:
@@ -330,11 +369,12 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
               /* gchar *type = "storage"; */
               parser_read_uint16 (parser, &bin_data->id, error);
               parser_read_uint16 (parser, &len, error);
-              const guint8 *buf = NULL;
-              buf = parser_read_bytes (parser, len * 2, error);
+              guint8 *buf = malloc (len * 2);
+              parser_read_bytes (parser, buf, len * 2, error);
               bin_data->format = g_convert ((const gchar *) buf, len * 2,
                                             "UTF-8", "UTF-16LE", NULL, NULL,
                                             error);
+              g_free (buf);
             }
             break;
           default:
@@ -477,13 +517,15 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         {
           parser_skip(parser, 12);
           parser_read_uint16 (parser, &len, error);
-          const guint8 *buf = NULL;
-          buf = parser_read_bytes (parser, len * 2, error);
+          guint8 *buf = malloc (len * 2);
+          parser_read_bytes (parser, buf, len * 2, error);
+
           if (buf)
           {
             gchar *numbering = g_convert ((const gchar *) buf, len * 2,
                                           "UTF-8", "UTF-16LE", NULL, NULL,
                                           error);
+            g_free (buf);
             g_free (numbering);
           }
         }
@@ -595,7 +637,7 @@ static void hwp_hwp5_parser_parse_header (HwpHWP5Parser *parser,
     case HWP_TAG_LIST_HEADER:
       break;
     case HWP_TAG_PARA_HEADER:
-        hwp_hwp5_parser_build_paragraph (parser, file, error);
+      hwp_hwp5_parser_build_paragraph (parser, file, error);
       break;
     default:
       WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
@@ -1157,8 +1199,11 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
     switch (parser->tag_id)
     {
       case HWP_TAG_PARA_TEXT:
+        if (raw_text)
+          g_free (raw_text);
+
         raw_text = g_malloc (parser->data_len);
-        gsf_input_read (parser->stream, parser->data_len, (guint8 *) raw_text);
+        parser_read_bytes (parser, raw_text, parser->data_len, error);
         parser->data_pos += parser->data_len;
 #ifdef HWP_ENABLE_DEBUG
         printf ("paragraph->n_chars:%d\n", paragraph->n_chars);
@@ -1311,6 +1356,7 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
   } /* while */
 
   g_free (raw_text);
+  raw_text = NULL;
   return paragraph;
 }
 
@@ -1346,9 +1392,8 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
       case HWP_TAG_DISTRIBUTE_DOC_DATA:
         {
           /* get sha1sum */
-          const guint8 *tmp = gsf_input_read (parser->stream, 256, NULL);
           gchar *data = g_malloc (256);
-          memcpy (data, tmp, 256);
+          parser_read_bytes (parser, data, 256, error);
           guint32 seed = GSF_LE_GET_GUINT32 (data);
           msvc_srand (seed);
           gint n = 0, key = 0, offset;
@@ -1545,7 +1590,10 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
   return;
 
   FAIL:
-  g_warning("%s:%d\n", __FILE__, __LINE__);
+  if (*error)
+    g_warning("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+  else
+    g_warning("%s:%d\n", __FILE__, __LINE__);
 }
 
 /**
@@ -1616,16 +1664,46 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
   hwp_hwp5_parser_parse_file_header    (parser, file, error);
+
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+    return;
+  }
+
   hwp_hwp5_parser_parse_doc_info       (parser, file, error);
+
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+    return;
+  }
+
   hwp_hwp5_parser_parse_sections       (parser, file, error);
+
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+    return;
+  }
+
   hwp_hwp5_parser_parse_summary_info   (parser, file, error);
 /*  _hwp_hwp5_parser_parse_bin_data       (parser, file, error); */
+
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+    return;
+  }
+
   hwp_hwp5_parser_parse_prv_text       (parser, file, error);
+
+  if (*error) {
+    g_warning ("%s:%d:%s\n", __FILE__, __LINE__, (*error)->message);
+    return;
+  }
 /*  _hwp_hwp5_parser_parse_prv_image      (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_doc_options    (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_scripts        (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_xml_template   (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_doc_history    (parser, file, error); */
+  
 }
 
 static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)

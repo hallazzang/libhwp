@@ -34,6 +34,7 @@
 #include <gsf/gsf-timestamp.h>
 #include <gsf/gsf-utils.h>
 
+#include "gsf-input-stream.h"
 #include "hwp-hwp5-file.h"
 #include "hwp-hwp5-parser.h"
 #include "hwp-models.h"
@@ -220,16 +221,24 @@ static void make_stream (HwpHWP5File *file, GError **error)
   {
     if (file->is_compress)
     {
-      file->doc_info_stream = g_object_new (GSF_INPUT_GZIP_TYPE,
-                                            "raw",    TRUE,
-                                            "source", input,
-                                            "uncompressed_size", -1,
-                                            NULL);
+      GInputStream    *gis;
+      GZlibDecompressor *zd;
+      GInputStream      *cis;
+
+      gis = (GInputStream *) gsf_input_stream_new (input);
+      zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+      cis = g_converter_input_stream_new (gis, (GConverter *)   zd);
+      g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
+      file->doc_info_stream = cis;
+
+      g_object_unref (zd);
+      g_object_unref (gis);
+
       input = NULL;
     }
     else
     {
-      file->doc_info_stream = input;
+      file->doc_info_stream = (GInputStream *) gsf_input_stream_new (input);
     }
   }
   else
@@ -267,16 +276,22 @@ static void make_stream (HwpHWP5File *file, GError **error)
       /* if (file->is_compress && !file->is_distribute) */
       if (file->is_compress)
       {
-        GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
-                                      "raw",    TRUE,
-                                      "source", section,
-                                      "uncompressed_size", -1,
-                                      NULL);
-        g_ptr_array_add (file->section_streams, tmp);
+        GInputStream      *gis;
+        GZlibDecompressor *zd;
+        GInputStream      *cis;
+
+        gis = (GInputStream *) gsf_input_stream_new (section);
+        zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+        cis = g_converter_input_stream_new (gis, (GConverter *) zd);
+        g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
+        g_ptr_array_add (file->section_streams, cis);
+        g_object_unref (zd);
+        g_object_unref (gis);
       }
       else
       {
-        g_ptr_array_add (file->section_streams, section);
+        GInputStream *stream = (GInputStream *) gsf_input_stream_new (section);
+        g_ptr_array_add (file->section_streams, stream);
       }
     } /* for */
     g_object_unref (input);
@@ -323,16 +338,22 @@ static void make_stream (HwpHWP5File *file, GError **error)
 
       if (file->is_compress)
       {
-        GsfInput *tmp = g_object_new (GSF_INPUT_GZIP_TYPE,
-                                      "raw",    TRUE,
-                                      "source", bin_data_input,
-                                      "uncompressed_size", -1,
-                                      NULL);
-        g_ptr_array_add (file->bin_data_streams, tmp);
+        GInputStream      *gis;
+        GZlibDecompressor *zd;
+        GInputStream      *cis;
+
+        gis = (GInputStream *) gsf_input_stream_new (bin_data_input);
+        zd  = g_zlib_decompressor_new (G_ZLIB_COMPRESSOR_FORMAT_RAW);
+        cis = g_converter_input_stream_new (gis, (GConverter *) zd);
+        g_filter_input_stream_set_close_base_stream (G_FILTER_INPUT_STREAM (cis), TRUE);
+        g_ptr_array_add (file->bin_data_streams, cis);
+        g_object_unref (zd);
+        g_object_unref (gis);
       }
       else
       {
-        g_ptr_array_add (file->bin_data_streams, bin_data_input);
+        GInputStream *stream = (GInputStream *) gsf_input_stream_new (bin_data_input);
+        g_ptr_array_add (file->bin_data_streams, stream);
       }
     }
 

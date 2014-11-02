@@ -23,7 +23,7 @@ CFILE_GLOB = $(top_srcdir)/src/*.c
 
 # Header files to ignore when scanning. Use base file name, no paths
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES =
+IGNORE_HFILES = gsf-input-stream.h
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
 # Only needed if you are using gtkdoc-scangobj to dynamically query widget

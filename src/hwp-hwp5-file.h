@@ -61,7 +61,7 @@ struct _HwpHWP5File
   GsfInput           *prv_text_stream;
   GsfInput           *prv_image_stream;
   GsfInput           *file_header_stream;
-  GsfInput           *doc_info_stream;
+  GInputStream       *doc_info_stream;
   GsfInput           *summary_info_stream;
 
   gchar              *signature;
