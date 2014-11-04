@@ -1360,19 +1360,6 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
   return paragraph;
 }
 
-static guint32 random_seed = 1;
-
-static void msvc_srand (guint32 seed)
-{
-  random_seed = seed;
-}
-
-static int msvc_rand ()
-{
-  random_seed = (random_seed * 214013 + 2531011) & 0xffffffff;
-  return ((random_seed >> 16) & 0x7fff);
-}
-
 static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
                                            HwpHWP5File   *file,
                                            GError       **error)
@@ -1388,37 +1375,6 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
     {
       case HWP_TAG_PARA_HEADER:
         paragraph = hwp_hwp5_parser_build_paragraph (parser, file, error);
-        break;
-      case HWP_TAG_DISTRIBUTE_DOC_DATA:
-        {
-          /* get sha1sum */
-          gchar *data = g_malloc (256);
-          parser_read_bytes (parser, data, 256, error);
-          guint32 seed = GSF_LE_GET_GUINT32 (data);
-          msvc_srand (seed);
-          gint n = 0, key = 0, offset;
-
-          for (guint i = 0; i < 256; i++)
-          {
-            if (n == 0)
-            {
-              key = msvc_rand() & 0xff;
-              n = (msvc_rand() & 0xf) + 1;
-            }
-
-            if (i >= 4)
-              data[i] ^= key;
-
-            n--;
-          }
-
-          offset = 4 + (data[0] & 0xf);
-          gchar *sha1sum = g_convert (data + offset, 80,
-                             "UTF-8", "UTF-16LE", NULL, NULL, error);
-          g_free (data);
-          printf ("sha1sum:%s\n", sha1sum);
-          g_free (sha1sum);
-        }
         break;
       default:
         WARNING_TAG_NOT_IMPLEMENTED (parser->tag_id);
@@ -1448,6 +1404,8 @@ static void hwp_hwp5_parser_parse_sections (HwpHWP5Parser *parser,
   {
     parser->stream = g_ptr_array_index (file->section_streams, i);
     hwp_hwp5_parser_parse_section (parser, file, error);
+    if (*error)
+      break;
   }
 }
 

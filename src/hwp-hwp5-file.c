@@ -25,14 +25,12 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <gsf/gsf-doc-meta-data.h>
-#include <gsf/gsf-infile.h>
-#include <gsf/gsf-input-gzip.h>
-#include <gsf/gsf-input-memory.h>
-#include <gsf/gsf-input-stdio.h>
-#include <gsf/gsf-meta-names.h>
-#include <gsf/gsf-timestamp.h>
+#include <gsf/gsf-input.h>
 #include <gsf/gsf-utils.h>
+#include <gsf/gsf-infile.h>
+#include <gsf/gsf-input-stdio.h>
+#include <gsf/gsf-input-memory.h>
+#include <openssl/evp.h>
 
 #include "gsf-input-stream.h"
 #include "hwp-hwp5-file.h"
@@ -184,8 +182,19 @@ static void parse_file_header (HwpHWP5File *file)
   file->is_sign_spare          = prop & (1 <<  9);
   file->is_certificate_drm     = prop & (1 << 10);
   file->is_ccl                 = prop & (1 << 11);
+}
 
-  g_free ((guint8 *) buf);
+static guint32 random_seed = 1;
+
+static void msvc_srand (guint32 seed)
+{
+  random_seed = seed;
+}
+
+static int msvc_rand ()
+{
+  random_seed = (random_seed * 214013 + 2531011) & 0xffffffff;
+  return ((random_seed >> 16) & 0x7fff);
 }
 
 static void make_stream (HwpHWP5File *file, GError **error)
@@ -246,11 +255,10 @@ static void make_stream (HwpHWP5File *file, GError **error)
     goto FAIL;
   }
 
-/* TODO */
-/*  if (!file->is_distribute) */
+  if (!file->is_distribute)
     input = gsf_infile_child_by_name (ole, "BodyText");
-/*   else
-    input = gsf_infile_child_by_name (ole, "ViewText"); */
+  else
+    input = gsf_infile_child_by_name (ole, "ViewText");
 
   if (input)
   {
@@ -272,8 +280,70 @@ static void make_stream (HwpHWP5File *file, GError **error)
         return;
       }
 
-      /* TODO */
-      /* if (file->is_compress && !file->is_distribute) */
+      if (file->is_distribute)
+      {
+        g_set_error_literal (error,
+                             HWP_FILE_ERROR,
+                             HWP_FILE_ERROR_INVALID,
+                             "The encrypted hwp document for distribution is not supported");
+
+        return; /* FIXME */
+
+        /* FIXME: decrypt */
+        /* get sha1sum */
+        guint8 *data = g_malloc0 (256);
+        gsf_input_read (section, 4, NULL);
+        gsf_input_read (section, 256, data);
+        guint32 seed = GSF_LE_GET_GUINT32 (data);
+        msvc_srand (seed);
+        gint n = 0, val = 0, offset;
+
+        for (guint i = 0; i < 256; i++)
+        {
+          if (n == 0)
+          {
+            val = msvc_rand() & 0xff;
+            n = (msvc_rand() & 0xf) + 1;
+          }
+
+          data[i] ^= val;
+
+          n--;
+        }
+
+        offset = 4 + (seed & 0xf);
+        gchar *sha1sum = g_convert ((const gchar *) data + offset, 80,
+                           "UTF-8", "UTF-16LE", NULL, NULL, error);
+        g_free (data);
+        gchar *key = g_strndup (sha1sum, 16);
+#ifdef HWP_ENABLE_DEBUG
+        printf ("sha1sum: %s\n", sha1sum);
+        printf ("key: %s\n", key);
+#endif
+        g_free (sha1sum);
+
+        EVP_CIPHER_CTX *ctx;
+        ctx = EVP_CIPHER_CTX_new ();
+        EVP_CIPHER_CTX_init (ctx);
+        EVP_DecryptInit_ex (ctx, EVP_aes_128_ecb(), NULL, (unsigned char *) key, NULL);
+        g_free (key);
+        EVP_CIPHER_CTX_set_padding(ctx, 0); /* no padding */
+
+        gsf_off_t encrypted_data_len = gsf_input_remaining (section);
+        guint8 const *encrypted_data = gsf_input_read (section, encrypted_data_len, NULL);
+        guint8 *decrypted_data = g_malloc (encrypted_data_len);
+        int decrypted_data_len;
+        int len;
+        EVP_DecryptUpdate (ctx, decrypted_data, &len, encrypted_data, encrypted_data_len);
+        decrypted_data_len = len;
+        EVP_DecryptFinal_ex (ctx, decrypted_data + len, &len);
+        decrypted_data_len += len;
+        EVP_CIPHER_CTX_free (ctx);
+        g_free (decrypted_data);
+        g_object_unref (section);
+        section = gsf_input_memory_new (decrypted_data, decrypted_data_len, TRUE);
+      }
+
       if (file->is_compress)
       {
         GInputStream      *gis;

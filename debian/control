@@ -11,6 +11,7 @@ Build-Depends: debhelper (>= 9),
                libxml2-dev,
                libgirepository1.0-dev,
                libglib2.0-dev,
+               libssl-dev,
                pkg-config
 Standards-Version: 3.9.3
 Homepage: https://bitbucket.org/hodong/libhwp
@@ -42,7 +43,8 @@ Depends: ${misc:Depends},
          libpoppler-glib-dev,
          libxml2-dev,
          libgirepository1.0-dev,
-         libglib2.0-dev
+         libglib2.0-dev,
+         libssl-dev
 Description: handling and rendering HWP documents (development files)
  The libhwp is a parser and renderer library for hwp documents.
  .

@@ -43,7 +43,7 @@ INSTALL
 sudo apt-get update
 sudo apt-get install build-essential git devscripts dh-autoreconf intltool   \
   libgsf-1-dev libcairo2-dev libpango1.0-dev libpoppler-glib-dev libxml2-dev \
-  libgirepository1.0-dev gtk-doc-tools
+  libgirepository1.0-dev gtk-doc-tools libssl-dev
 
 git clone https://bitbucket.org/hodong/libhwp.git
 cd libhwp
