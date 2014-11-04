@@ -1,3 +1,10 @@
+libhwp (0.1.4) UNRELEASED; urgency=low
+
+  * Fixed segmentation fault
+  * Fixed compilation error
+
+ -- Hodong Kim <hodong@cogno.org>  Tue, 04 Nov 2014 23:56:56 +0900
+
 libhwp (0.1.3) UNRELEASED; urgency=medium
 
   * Fixed free func
