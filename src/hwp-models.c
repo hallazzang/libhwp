@@ -480,6 +480,28 @@ void hwp_char_shape_free (HwpCharShape *char_shape)
   g_slice_free (HwpCharShape, char_shape);
 }
 
+HWP_DEFINE_BOXED_TYPE (HwpParaShape,
+                       hwp_para_shape,
+                       hwp_para_shape_copy,
+                       hwp_para_shape_free)
+
+HwpParaShape *hwp_para_shape_new ()
+{
+  return g_slice_new0 (HwpParaShape);
+}
+
+HwpParaShape *hwp_para_shape_copy (HwpParaShape *para_shape)
+{
+  g_return_val_if_fail (para_shape != NULL, NULL);
+
+  return g_slice_dup (HwpParaShape, para_shape);
+}
+
+void hwp_para_shape_free (HwpParaShape *para_shape)
+{
+  g_slice_free (HwpParaShape, para_shape);
+}
+
 HWP_DEFINE_BOXED_TYPE (HwpBinData,
                        hwp_bin_data,
                        hwp_bin_data_copy,

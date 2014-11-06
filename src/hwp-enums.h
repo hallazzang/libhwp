@@ -110,7 +110,7 @@ typedef enum
     HWP_TAG_RESERVED_29               =  29,
     HWP_TAG_COMPATIBLE_DOCUMENT       =  30,
     HWP_TAG_LAYOUT_COMPATIBILITY      =  31,
-    HWP_TAG_DOC_INFO_32               =  32,
+    HWP_TAG_TRACKCHANGE               =  32,
 
     HWP_TAG_PARA_HEADER               =  66,
     HWP_TAG_PARA_TEXT                 =  67,
@@ -142,6 +142,8 @@ typedef enum
     HWP_TAG_MEMO_LIST                 =  93,
     HWP_TAG_FORBIDDEN_CHAR            =  94,
     HWP_TAG_CHART_DATA                =  95,
+    HWP_TAG_TRACK_CHANGE              =  96,
+    HWP_TAG_TRACK_CHANGE_AUTHOR       =  97,
 
     HWP_TAG_SHAPE_COMPONENT_UNKNOWN   = 115
 } HwpTag;

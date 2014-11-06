@@ -75,17 +75,17 @@ HwpDocument *hwp_hwp5_file_get_document (HwpFile *file, GError **error)
  * @micro: the micro version to check for
  * @extra: the extra version to check for
  *
- * Checks the version of the HWP document
+ * Checks the version of the HWP document file
  *
  * <example>
- * <title>Checking the version of the HWP document</title>
+ * <title>Checking the version of the HWP document file</title>
  * <programlisting>
- *   if (hwp_hwp5_file_check_version (doc, 5, 0, 0, 7))
- *     g_print ("HWP document version is 5.0.0.7 or above");
+ *   if (hwp_hwp5_file_check_version (file, 5, 0, 0, 7))
+ *     g_print ("HWP document file version is 5.0.0.7 or above");
  * </programlisting>
  * </example>
  *
- * Returns: %TRUE if the version of the HWP document
+ * Returns: %TRUE if the version of the HWP document file
  * is the same as or newer than the passed-in version.
  *
  * Since: 0.0.1

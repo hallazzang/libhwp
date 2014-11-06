@@ -115,7 +115,7 @@ struct _HwpParagraph
 {
   GObject    parent_instance;
 
-  guint16    n_chars;
+  guint32    n_chars;
   guint32    control_mask;
   guint16    para_shape_id;
   guint8     para_style_id;
@@ -123,7 +123,8 @@ struct _HwpParagraph
   guint16    n_char_shapes;
   guint16    n_range_tags;
   guint16    n_aligns;
-  guint16    para_instance_id;
+  guint32    para_instance_id;
+  guint16    track; /* 변경 추적 병합 문단 여부 (5.0.3.2 버전 이상) */
 
   char      *text;
   HwpTable  *table;
@@ -316,6 +317,10 @@ void     hwp_secd_free     (HwpSecd *secd);
  * @underline_color: underline color
  * @shade_color: shade color
  * @shadow_color: shadow color
+ * @border_fill_id: border fill id, if the version of hwp document file is the
+ *                  same as or newer than 5.0.2.1
+ * @strike_through_color: strike-through color, if the version of hwp document
+ *                        file is the same as or newer than 5.0.3.0
  *
  * The structure for the <structname>HwpCharShape</structname> type.
  */
@@ -335,12 +340,63 @@ struct _HwpCharShape
   HwpColor underline_color;        /* 밑줄 색 */
   HwpColor shade_color;            /* 음영 색 */
   HwpColor shadow_color;           /* 그림자 색 */
+  guint16  border_fill_id;         /* 글자 테두리/배경 5.0.2.1 이상 */
+  HwpColor strike_through_color;   /* 취소선 색        5.0.3.0 이상 */
 };
 
 GType         hwp_char_shape_get_type (void) G_GNUC_CONST;
 HwpCharShape *hwp_char_shape_new      (void);
 HwpCharShape *hwp_char_shape_copy     (HwpCharShape *char_shape);
 void          hwp_char_shape_free     (HwpCharShape *char_shape);
+
+/**
+ * HwpParaShape:
+ * @prop1: property1
+ * @left_margin: left margin
+ * @right_margin: right margin
+ * @indent_margin: indent margin
+ * @prev_margin: prev margin
+ * @next_margin: next margin
+ * @line_spacing1: if version < 5.0.2.5
+ * @tabdef_id: tabdef id
+ * @numbering_id: numbering id
+ * @border_fill_id: border fill id
+ * @border_offset_left: border offset left
+ * @border_offset_right: border offset right
+ * @border_offset_top: border offset top
+ * @border_offset_bottom: border offset bottom
+ * @prop2: property2 if version >= 5.0.1.7
+ * @prop3: property3 if version >= 5.0.2.5
+ * @line_spacing2:  if version >= 5.0.2.5
+ *
+ * The structure for the <structname>HwpParaShape</structname> type.
+ */
+typedef struct _HwpParaShape HwpParaShape;
+struct _HwpParaShape
+{
+  guint32 prop1;
+  gint32  left_margin;
+  gint32  right_margin;
+  gint32  indent_margin;
+  gint32  prev_margin;
+  gint32  next_margin;
+  gint32  line_spacing1; /* version < 5.0.2.5 */
+  guint16 tabdef_id;
+  guint16 numbering_id;
+  guint16 border_fill_id;
+  gint16  border_offset_left;
+  gint16  border_offset_right;
+  gint16  border_offset_top;
+  gint16  border_offset_bottom;
+  guint32 prop2;  /* version >= 5.0.1.7 */
+  guint32 prop3;  /* version >= 5.0.2.5 */
+  guint32 line_spacing2;  /* version >= 5.0.2.5 */
+};
+
+GType         hwp_para_shape_get_type (void) G_GNUC_CONST;
+HwpParaShape *hwp_para_shape_new      (void);
+HwpParaShape *hwp_para_shape_copy     (HwpParaShape *para_shape);
+void          hwp_para_shape_free     (HwpParaShape *para_shape);
 
 /**
  * HwpFaceName:

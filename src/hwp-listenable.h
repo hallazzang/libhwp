@@ -59,6 +59,7 @@ typedef struct _HwpListenableInterface HwpListenableInterface;
  * @document_version: Callback to invoke for document version
  * @face_name: Callback to invoke for #HwpFaceName
  * @char_shape: Callback to invoke for #HwpCharShape
+ * @para_shape: Callback to invoke for #HwpParaShape
  * @bin_data: Callback to invoke for #HwpBinData
  * @paragraph: Callback to invoke when #HwpParagraph instance has been built
  * @prv_text: Callback to invoke for prv text
@@ -83,6 +84,10 @@ struct _HwpListenableInterface
                              GError        **error);
   void (* char_shape)       (HwpListenable  *listenable,
                              HwpCharShape   *char_shape,
+                             gpointer        user_data,
+                             GError        **error);
+  void (* para_shape)       (HwpListenable  *listenable,
+                             HwpParaShape   *para_shape,
                              gpointer        user_data,
                              GError        **error);
   void (* bin_data)         (HwpListenable  *listenable,

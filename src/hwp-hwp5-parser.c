@@ -155,6 +155,26 @@ gboolean parser_read_uint16 (HwpHWP5Parser *parser, guint16 *i, GError **error)
   return TRUE;
 }
 
+gboolean parser_read_int16 (HwpHWP5Parser *parser, gint16 *i, GError **error)
+{
+#ifdef HWP_ENABLE_DEBUG
+  g_assert (parser->data_pos + 2 <= parser->data_len);
+#endif
+  g_return_val_if_fail (parser->data_pos + 2 <= parser->data_len, FALSE);
+
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, i, 2,
+                           &bytes_read, NULL, error);
+  if (*error || (bytes_read != 2)) {
+    *i = 0;
+    return FALSE;
+  }
+
+  *i = GINT16_FROM_LE(*i);
+  parser->data_pos += 2;
+  return TRUE;
+}
+
 gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
 {
   g_return_val_if_fail (parser->data_pos + 4 <= parser->data_len, FALSE);
@@ -167,6 +187,22 @@ gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
     return FALSE;
   }
   *i = GUINT32_FROM_LE(*i);
+  parser->data_pos += 4;
+  return TRUE;
+}
+
+gboolean parser_read_int32 (HwpHWP5Parser *parser, gint32 *i, GError **error)
+{
+  g_return_val_if_fail (parser->data_pos + 4 <= parser->data_len, FALSE);
+
+  gsize bytes_read = 0;
+  g_input_stream_read_all (parser->stream, i, 4,
+                           &bytes_read, NULL, error);
+  if (*error || (bytes_read != 4)) {
+    *i = 0;
+    return FALSE;
+  }
+  *i = GINT32_FROM_LE(*i);
   parser->data_pos += 4;
   return TRUE;
 }
@@ -480,7 +516,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
       {
         HwpCharShape *char_shape = hwp_char_shape_new ();
 
-        for (guint i = 0; i < 7; i++)
+        for (guint8 i = 0; i < 7; i++)
         {
           parser_read_uint16(parser, &char_shape->face_id[i], error);
           parser_read_uint8 (parser, &char_shape->ratio[i], error);
@@ -500,6 +536,11 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         parser_read_color  (parser, &char_shape->shade_color,     error);
         parser_read_color  (parser, &char_shape->shadow_color,    error);
 
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 2, 1))
+          parser_read_uint16 (parser, &char_shape->border_fill_id, error);
+
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 3, 0))
+          parser_read_color (parser, &char_shape->strike_through_color, error);
 
         if (iface->char_shape)
           iface->char_shape (parser->listenable,
@@ -549,11 +590,57 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         }
 
         parser_read_uint16 (parser, &start_num, error);
+
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 2, 5))
+        {
+          for (guint8 i = 0; i < 7; i++)
+          {
+            parser_skip(parser, 4);
+          }
+        }
       }
       break;
     case HWP_TAG_BULLET:
       break;
     case HWP_TAG_PARA_SHAPE:
+      {
+        HwpParaShape *para_shape = hwp_para_shape_new ();
+
+        parser_read_uint32 (parser, &para_shape->prop1, error);
+        parser_read_int32  (parser, &para_shape->left_margin, error);
+        parser_read_int32  (parser, &para_shape->right_margin, error);
+        parser_read_int32  (parser, &para_shape->indent_margin, error);
+        parser_read_int32  (parser, &para_shape->prev_margin, error);
+        parser_read_int32  (parser, &para_shape->next_margin, error);
+
+        if (!hwp_hwp5_parser_check_version (parser, 5, 0, 2, 5))
+          parser_read_int32  (parser, &para_shape->line_spacing1, error);
+
+        parser_read_uint16 (parser, &para_shape->tabdef_id, error);
+        parser_read_uint16 (parser, &para_shape->numbering_id, error);
+        parser_read_uint16 (parser, &para_shape->border_fill_id, error);
+        parser_read_int16  (parser, &para_shape->border_offset_left, error);
+        parser_read_int16  (parser, &para_shape->border_offset_right, error);
+        parser_read_int16  (parser, &para_shape->border_offset_top, error);
+        parser_read_int16  (parser, &para_shape->border_offset_bottom, error);
+
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 1, 7))
+          parser_read_uint32 (parser, &para_shape->prop2, error);
+
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 2, 5))
+          parser_read_uint32 (parser, &para_shape->prop3, error);
+
+        if (hwp_hwp5_parser_check_version (parser, 5, 0, 2, 5))
+          parser_read_uint32 (parser, &para_shape->line_spacing2, error);
+
+        if (iface->para_shape)
+          iface->para_shape (parser->listenable,
+                             para_shape,
+                             parser->user_data,
+                             error);
+        else
+          hwp_para_shape_free (para_shape);
+      }
       break;
     case HWP_TAG_STYLE:
       break;
@@ -747,26 +834,30 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
 
   table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
-  for (guint i = 0; i < table->n_rows; i++) {
+  for (guint i = 0; i < table->n_rows; i++)
+  {
     parser_read_uint16 (parser, &(table->row_sizes[i]), error);
   }
 
   parser_read_uint16 (parser, &table->border_fill_id, error);
 
-  if (hwp_hwp5_file_check_version (file, 5, 0, 0, 7)) {
+  if (hwp_hwp5_file_check_version (file, 5, 0, 1, 0))
+  {
     parser_read_uint16 (parser, &table->valid_zone_info_size, error);
 
-    table->zones = g_malloc0_n (table->valid_zone_info_size, 2);
+    table->zones = g_malloc0_n (table->valid_zone_info_size, 10);
 
-    for (guint i = 0; i < table->valid_zone_info_size; i++) {
-      parser_read_uint16 (parser, &(table->zones[i]), error);
+    for (guint i = 0; i < table->valid_zone_info_size; i++)
+    {
+      parser_read_bytes (parser, &(table->zones[i]), 10, error);
     }
   }
 
-  if (parser->data_pos != parser->data_len) {
+  if (parser->data_pos != parser->data_len)
+  {
     g_warning ("%s:%d: TABLE data size mismatch at %s\n",
       __FILE__, __LINE__,
-      hwp_hwp5_file_get_hwp_version_string(HWP_FILE (file)));
+      hwp_hwp5_file_get_hwp_version_string (HWP_FILE (file)));
   }
 
   return table;
@@ -1190,19 +1281,21 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
   HwpParagraph *paragraph = hwp_paragraph_new ();
   gchar        *raw_text  = NULL;
 
-  parser_read_uint16 (parser, &paragraph->n_chars, error);
-  parser_skip (parser, 2);
+  parser_read_uint32 (parser, &paragraph->n_chars, error);
+  if (paragraph->n_chars & 0x80000000)
+    paragraph->n_chars &= 0x7fffffff;
+
   parser_read_uint32 (parser, &paragraph->control_mask, error);
-
   parser_read_uint16 (parser, &paragraph->para_shape_id, error);
-  parser_skip (parser, 2);
-  parser_read_uint8 (parser, &paragraph->para_style_id, error);
-
+  parser_read_uint8  (parser, &paragraph->para_style_id, error);
   parser_read_uint8  (parser, &paragraph->column_type, error);
   parser_read_uint16 (parser, &paragraph->n_char_shapes, error);
   parser_read_uint16 (parser, &paragraph->n_range_tags, error);
   parser_read_uint16 (parser, &paragraph->n_aligns, error);
-  parser_read_uint16 (parser, &paragraph->para_instance_id, error);
+  parser_read_uint32 (parser, &paragraph->para_instance_id, error);
+
+  if (hwp_hwp5_parser_check_version (parser, 5, 0, 3, 2))
+    parser_read_uint16 (parser, &paragraph->track, error);
 
   while (hwp_hwp5_parser_pull (parser, error))
   {
@@ -1583,10 +1676,23 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
 /**
  * hwp_hwp5_parser_check_version:
  * @parser: a #HwpHWP5Parser
- * @major: a #guint8
- * @minor: a #guint8
- * @micro: a #guint8
- * @extra: a #guint8
+ * @major: the major version to check for
+ * @minor: the minor version to check for
+ * @micro: the micro version to check for
+ * @extra: the extra version to check for
+ *
+ * Checks the version of the HWP document file
+ *
+ * <example>
+ * <title>Checking the version of the HWP document file</title>
+ * <programlisting>
+ *   if (hwp_hwp5_parser_check_version (parser, 5, 0, 0, 7))
+ *     g_print ("HWP document file version is 5.0.0.7 or above");
+ * </programlisting>
+ * </example>
+ *
+ * Returns: %TRUE if the version of the hwp document file is the same as
+ * or newer than the passed-in version
  *
  * Since: 0.0.1
  */
