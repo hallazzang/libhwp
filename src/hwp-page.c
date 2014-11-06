@@ -230,6 +230,55 @@ GList *hwp_page_find_text (HwpPage *page, const char *text)
   return poppler_page_find_text (page->poppler_page, text);
 }
 
+/* HwpPoint type */
+
+HWP_DEFINE_BOXED_TYPE (HwpPoint, hwp_point,
+                       hwp_point_copy,
+                       hwp_point_free)
+
+/**
+ * hwp_point_new:
+ * @x:
+ * @y:
+ *
+ * Creates a new #HwpPoint
+ *
+ * Returns: a new #HwpPoint, use hwp_point_free() to free it
+ */
+HwpPoint *hwp_point_new (gdouble x, gdouble y)
+{
+  HwpPoint *point = g_slice_new0 (HwpPoint);
+  point->x = x;
+  point->y = y;
+  return point;
+}
+
+/**
+ * hwp_point_copy:
+ * @point: a #HwpPoint to copy
+ *
+ * Creates a copy of @point
+ *
+ * Returns: a new allocated copy of @point
+ */
+HwpPoint *hwp_point_copy (HwpPoint *point)
+{
+  g_return_val_if_fail (point != NULL, NULL);
+
+  return g_slice_dup (HwpPoint, point);
+}
+
+/**
+ * hwp_point_free:
+ * @point: a #HwpPoint
+ *
+ * Frees the given #HwpPoint
+ */
+void hwp_point_free (HwpPoint *point)
+{
+  g_slice_free (HwpPoint, point);
+}
+
 /* HwpRectangle type */
 
 HWP_DEFINE_BOXED_TYPE (HwpRectangle, hwp_rectangle,
@@ -489,5 +538,20 @@ HwpLayout *hwp_layout_copy (HwpLayout *layout)
  */
 void hwp_layout_free (HwpLayout *layout)
 {
+  if (layout->data)
+  {
+    switch (layout->type)
+    {
+      case 'p': /* pango layout line */
+        pango_layout_line_unref (layout->data);
+        break;
+      case 'l': /* point */
+        hwp_point_free (layout->data);
+        break;
+      default:
+        break;
+    }
+  }
+
   g_slice_free (HwpLayout, layout);
 }

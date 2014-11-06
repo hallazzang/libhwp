@@ -44,6 +44,7 @@ G_BEGIN_DECLS
 typedef struct _HwpPage            HwpPage;
 typedef struct _HwpPageClass       HwpPageClass;
 
+typedef struct _HwpPoint           HwpPoint;
 typedef struct _HwpRectangle       HwpRectangle;
 typedef struct _HwpColor           HwpColor;
 typedef struct _HwpTextAttributes  HwpTextAttributes;
@@ -116,6 +117,24 @@ GType type_name##_get_type (void)                                         \
   }                                                                       \
   return g_define_type_id__volatile;                                      \
 }
+
+/* A point on a page */
+#define HWP_TYPE_POINT             (hwp_point_get_type ())
+/**
+ * HwpPoint:
+ * @x: x coordinate
+ * @y: y coordinate
+ */
+struct _HwpPoint
+{
+  gdouble x;
+  gdouble y;
+};
+
+GType     hwp_point_get_type (void) G_GNUC_CONST;
+HwpPoint *hwp_point_new      (gdouble x, gdouble y);
+HwpPoint *hwp_point_copy     (HwpPoint  *point);
+void      hwp_point_free     (HwpPoint  *point);
 
 /* A rectangle on a page */
 #define HWP_TYPE_RECTANGLE             (hwp_rectangle_get_type ())
@@ -201,15 +220,17 @@ void               hwp_text_attributes_free     (HwpTextAttributes *text_attrs);
 #define HWP_TYPE_LAYOUT  (hwp_layout_get_type ())
 /**
  * HwpLayout:
- * @line: a #PangoLayoutLine
+ * @data: a #gpointer
+ * @type: #gchar
  * @x: #gdouble
  * @y: #gdouble
  *
- * Since: 0.1.2
+ * Since: 0.1.3
  */
 struct _HwpLayout
 {
-  PangoLayoutLine *line;
+  gpointer         data;
+  gchar            type;
   gdouble          x;
   gdouble          y;
 };

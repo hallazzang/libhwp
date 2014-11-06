@@ -105,7 +105,6 @@ typedef struct _HwpSecd      HwpSecd;
 typedef struct _HwpParagraph      HwpParagraph;
 typedef struct _HwpParagraphClass HwpParagraphClass;
 
-
 struct _HwpParagraph
 {
   GObject    parent_instance;
@@ -266,19 +265,19 @@ void     hwp_secd_free     (HwpSecd *secd);
 typedef struct _HwpCharShape HwpCharShape;
 struct _HwpCharShape
 {
-  guint16 face_id[7];
-  guint8  ratio[7];               /* 장평 */
-  guint8  char_spacing[7];        /* 자간 */
-  guint8  rel_size[7];            /* 상대 크기 */
-  guint8  char_offset[7];         /* 글자 위치 */
-  gdouble height_in_points;       /* guint32 / 7200.0 * 72 */
-  guint32 prop;                   /* 속성 */
-  guint8  space_between_shadows1; /* 그림자 간격 */
-  guint8  space_between_shadows2; /* 그림자 간격 */
-  guint32 text_color;             /* 글자 색 */
-  guint32 underline_color;        /* 밑줄 색 */
-  guint32 shade_color;            /* 음영 색 */
-  guint32 shadow_color;           /* 그림자 색 */
+  guint16  face_id[7];
+  guint8   ratio[7];               /* 장평 */
+  guint8   char_spacing[7];        /* 자간 */
+  guint8   rel_size[7];            /* 상대 크기 */
+  guint8   char_offset[7];         /* 글자 위치 */
+  gdouble  height_in_points;       /* guint32 / 7200.0 * 72 */
+  guint32  prop;                   /* 속성 */
+  guint8   space_between_shadows1; /* 그림자 간격 */
+  guint8   space_between_shadows2; /* 그림자 간격 */
+  HwpColor text_color;             /* 글자 색 */
+  HwpColor underline_color;        /* 밑줄 색 */
+  HwpColor shade_color;            /* 음영 색 */
+  HwpColor shadow_color;           /* 그림자 색 */
 };
 
 GType         hwp_char_shape_get_type (void) G_GNUC_CONST;

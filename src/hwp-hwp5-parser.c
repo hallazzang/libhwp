@@ -171,6 +171,21 @@ gboolean parser_read_uint32 (HwpHWP5Parser *parser, guint32 *i, GError **error)
   return TRUE;
 }
 
+gboolean
+parser_read_color (HwpHWP5Parser *parser, HwpColor *color, GError **error)
+{
+  guint32 colorref;
+  parser_read_uint32 (parser, &colorref, error);
+  color->red   = (colorref & 0x000000ff >>  0) * 0xff;
+  color->green = (colorref & 0x0000ff00 >>  8) * 0xff;
+  color->blue  = (colorref & 0x00ff0000 >> 16) * 0xff;
+
+  if (*error)
+    return FALSE;
+
+  return TRUE;
+}
+
 /**
  * hwp_hwp5_parser_pull:
  * @parser: #HwpHWP5Parser
@@ -478,10 +493,11 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         parser_read_uint32 (parser, &char_shape->prop, error);
         parser_read_uint8  (parser, &char_shape->space_between_shadows1, error);
         parser_read_uint8  (parser, &char_shape->space_between_shadows2, error);
-        parser_read_uint32 (parser, &char_shape->text_color, error);
-        parser_read_uint32 (parser, &char_shape->underline_color, error);
-        parser_read_uint32 (parser, &char_shape->shade_color, error);
-        parser_read_uint32 (parser, &char_shape->shadow_color, error);
+        parser_read_color  (parser, &char_shape->text_color,      error);
+        parser_read_color  (parser, &char_shape->underline_color, error);
+        parser_read_color  (parser, &char_shape->shade_color,     error);
+        parser_read_color  (parser, &char_shape->shadow_color,    error);
+
 
         if (iface->char_shape)
           iface->char_shape (parser->listener,
