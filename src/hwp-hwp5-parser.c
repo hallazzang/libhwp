@@ -290,19 +290,20 @@ gboolean hwp_hwp5_parser_pull (HwpHWP5Parser *parser, GError **error)
 
 /**
  * hwp_hwp5_parser_new:
- * @listener: a #HwpListener
+ * @listenable: a #HwpListenable
  * @user_data: a #gpointer
  *
  * Returns:
  *
  * Since: 0.0.1
  */
-HwpHWP5Parser *hwp_hwp5_parser_new (HwpListener *listener, gpointer user_data)
+HwpHWP5Parser *hwp_hwp5_parser_new (HwpListenable *listenable,
+                                    gpointer       user_data)
 {
-  g_return_val_if_fail (HWP_IS_LISTENER (listener), NULL);
+  g_return_val_if_fail (HWP_IS_LISTENABLE (listenable), NULL);
 
   HwpHWP5Parser *parser = g_object_new (HWP_TYPE_HWP5_PARSER, NULL);
-  parser->listener      = listener;
+  parser->listenable    = listenable;
   parser->user_data     = user_data;
 
   return parser;
@@ -312,7 +313,8 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
                                             HwpHWP5File   *file,
                                             GError       **error)
 {
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   parser->stream = file->doc_info_stream;
 
@@ -437,7 +439,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         }
 
         if (iface->bin_data)
-          iface->bin_data (parser->listener,
+          iface->bin_data (parser->listenable,
                            bin_data,
                            parser->user_data,
                            error);
@@ -464,7 +466,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         hwp_face_name->font_name = g_string_free (gstr, FALSE);
 
         if (iface->face_name)
-          iface->face_name (parser->listener,
+          iface->face_name (parser->listenable,
                             hwp_face_name,
                             parser->user_data,
                             error);
@@ -500,7 +502,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
 
 
         if (iface->char_shape)
-          iface->char_shape (parser->listener,
+          iface->char_shape (parser->listenable,
                              char_shape,
                              parser->user_data,
                              error);
@@ -1382,7 +1384,8 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
   HwpParagraph *paragraph = NULL;
 
   while (hwp_hwp5_parser_pull (parser, error))
@@ -1401,7 +1404,10 @@ static void hwp_hwp5_parser_parse_section (HwpHWP5Parser *parser,
     {
       /* call callback function */
       if (iface->paragraph)
-        iface->paragraph (parser->listener, paragraph, parser->user_data, error);
+        iface->paragraph (parser->listenable,
+                          paragraph,
+                          parser->user_data,
+                          error);
       else
         g_object_unref (paragraph);
 
@@ -1472,7 +1478,8 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
   if (!iface->summary_info)
     return;
 
@@ -1526,8 +1533,10 @@ static void hwp_hwp5_parser_parse_summary_info (HwpHWP5Parser *parser,
 
   HwpSummaryInfo *info = hwp_summary_info_new ();
   gsf_doc_meta_data_foreach (meta, metadata_hash_func, info);
-  iface->summary_info (parser->listener, info, parser->user_data, error);
-
+  iface->summary_info (parser->listenable,
+                       info,
+                       parser->user_data,
+                       error);
   g_free (buf);
   g_object_unref (meta);
   g_object_unref (summary);
@@ -1551,10 +1560,11 @@ static void hwp_hwp5_parser_parse_prv_text (HwpHWP5Parser *parser,
   if (*error)
     goto FAIL;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   if (iface->prv_text)
-    iface->prv_text (HWP_LISTENER (parser->listener),
+    iface->prv_text (HWP_LISTENABLE (parser->listenable),
                      prv_text,
                      parser->user_data,
                      error);
@@ -1606,10 +1616,11 @@ static void hwp_hwp5_parser_parse_file_header (HwpHWP5Parser *parser,
 {
   g_return_if_fail (HWP_IS_HWP5_PARSER (parser) && HWP_IS_HWP5_FILE (file));
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   if (iface->document_version)
-    iface->document_version (parser->listener,
+    iface->document_version (parser->listenable,
                              file->major_version,
                              file->minor_version,
                              file->micro_version,

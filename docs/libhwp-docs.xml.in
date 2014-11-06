@@ -25,7 +25,7 @@
     <xi:include href="xml/hwp-hwp5-parser.xml"/>
     <xi:include href="xml/hwp-hwpml-file.xml"/>
     <xi:include href="xml/hwp-hwpml-parser.xml"/>
-    <xi:include href="xml/hwp-listener.xml"/>
+    <xi:include href="xml/hwp-listenable.xml"/>
     <xi:include href="xml/hwp-models.xml"/>
     <xi:include href="xml/hwp-page.xml"/>
     <xi:include href="xml/hwp-parser.xml"/>

@@ -158,9 +158,10 @@ static void _hwp_hwp3_parser_parse_doc_info (HwpHWP3Parser *parser,
   file->micro_version = 0;
   file->extra_version = 0;
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
   if (iface->document_version)
-    iface->document_version (parser->listener,
+    iface->document_version (parser->listenable,
                              file->major_version,
                              file->minor_version,
                              file->micro_version,
@@ -181,7 +182,8 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
   GString *string[9];
   guint16  c;
   guint8   count = 0;
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   for (guint i = 0; i < 9; i++)
   {
@@ -256,8 +258,10 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
     g_match_info_free (match_info);
     g_regex_unref (regex);
 
-    iface->summary_info (parser->listener, info, parser->user_data, error);
-
+    iface->summary_info (parser->listenable,
+                         info,
+                         parser->user_data,
+                         error);
   }
   /* TODO */
   /* 4 ~ 8 */
@@ -362,7 +366,8 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   HwpParagraph *paragraph = hwp_paragraph_new ();
   GString      *string    = g_string_new (NULL);
 
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   /* 글자들 */
   guint16 n_chars_read = 0;
@@ -473,7 +478,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   paragraph->text = g_string_free (string, FALSE);
 
   if (iface->paragraph)
-    iface->paragraph (parser->listener,
+    iface->paragraph (parser->listenable,
                       paragraph,
                       parser->user_data,
                       error);
@@ -550,18 +555,18 @@ void hwp_hwp3_parser_parse (HwpHWP3Parser *parser,
 
 /**
  * hwp_hwp3_parser_new:
- * @listener: a #HwpListener
+ * @listenable: a #HwpListenable
  * @user_data: a #gpointer
  *
  * Since: 0.0.1
  */
-HwpHWP3Parser *hwp_hwp3_parser_new (HwpListener *listener,
-                                    gpointer     user_data)
+HwpHWP3Parser *hwp_hwp3_parser_new (HwpListenable *listenable,
+                                    gpointer       user_data)
 {
-  g_return_val_if_fail (HWP_IS_LISTENER (listener), NULL);
+  g_return_val_if_fail (HWP_IS_LISTENABLE (listenable), NULL);
 
   HwpHWP3Parser *parser = g_object_new (HWP_TYPE_HWP3_PARSER, NULL);
-  parser->listener      = listener;
+  parser->listenable    = listenable;
   parser->user_data     = user_data;
 
   return parser;

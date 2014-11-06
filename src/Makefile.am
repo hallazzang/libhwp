@@ -16,7 +16,7 @@ INST_H_FILES =          \
 	hwp-hwp5-parser.h   \
 	hwp-hwpml-file.h    \
 	hwp-hwpml-parser.h  \
-	hwp-listener.h      \
+	hwp-listenable.h    \
 	hwp-models.h        \
 	hwp-page.h          \
 	hwp-parser.h        \
@@ -50,7 +50,7 @@ libhwp_la_SOURCES =     \
 	hwp-hwp5-parser.c   \
 	hwp-hwpml-file.c    \
 	hwp-hwpml-parser.c  \
-	hwp-listener.c      \
+	hwp-listenable.c    \
 	hwp-models.c        \
 	hwp-page.c          \
 	hwp-parser.c        \

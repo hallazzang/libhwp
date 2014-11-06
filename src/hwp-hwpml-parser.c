@@ -54,7 +54,8 @@ void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
   HwpParseState parse_state = HWP_PARSE_STATE_NORMAL;
   guint tag_p_count = 0;
   HwpParagraph *paragraph = NULL;
-  HwpListenerInterface *iface = HWP_LISTENER_GET_IFACE (parser->listener);
+  HwpListenableInterface *iface;
+  iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
 
   gchar *tag_docsummary = g_utf8_casefold ("DOCSUMMARY", strlen("DOCSUMMARY"));
   gchar *tag_p          = g_utf8_casefold ("P",          strlen("P"));
@@ -106,7 +107,7 @@ void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
           parse_state = HWP_PARSE_STATE_NORMAL;
 
           if (iface->summary_info)
-            iface->summary_info (parser->listener,
+            iface->summary_info (parser->listenable,
                                  g_object_ref (parser->priv->info),
                                  parser->user_data,
                                  error);
@@ -115,7 +116,7 @@ void hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
         {
           if (iface->paragraph)
           {
-            iface->paragraph (parser->listener,
+            iface->paragraph (parser->listenable,
                               paragraph,
                               parser->user_data,
                               error);
@@ -179,20 +180,20 @@ static void hwp_hwpml_parser_init (HwpHWPMLParser *parser)
 
 /**
  * hwp_hwpml_parser_new:
- * @listener: a #HwpListener
+ * @listenable: a #HwpListenable
  * @user_data: a #gpointer
  *
  * Returns:
  *
  * Since: 0.0.1
  */
-HwpHWPMLParser *hwp_hwpml_parser_new (HwpListener *listener,
-                                      gpointer     user_data)
+HwpHWPMLParser *hwp_hwpml_parser_new (HwpListenable *listenable,
+                                      gpointer       user_data)
 {
-  g_return_val_if_fail (HWP_IS_LISTENER (listener), NULL);
+  g_return_val_if_fail (HWP_IS_LISTENABLE (listenable), NULL);
 
   HwpHWPMLParser *parser = g_object_new (HWP_TYPE_HWPML_PARSER, NULL);
-  parser->listener       = listener;
+  parser->listenable     = listenable;
   parser->user_data      = user_data;
 
   return parser;

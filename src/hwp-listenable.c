@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-listener.c
+ * hwp-listenable.c
  *
  * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  * 
@@ -18,10 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hwp-listener.h"
+#include "hwp-listenable.h"
 
-G_DEFINE_INTERFACE (HwpListener, hwp_listener, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (HwpListenable, hwp_listenable, G_TYPE_OBJECT)
 
-static void hwp_listener_default_init (HwpListenerInterface *klass)
+static void hwp_listenable_default_init (HwpListenableInterface *iface)
 {
 }

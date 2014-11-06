@@ -31,16 +31,18 @@
 #include "hwp-document.h"
 #include "hwp-file.h"
 #include "hwp-models.h"
-#include "hwp-listener.h"
+#include "hwp-listenable.h"
 #include <math.h>
 #include <pango/pango.h>
 #include <cairo-pdf.h>
 #include <pango/pangocairo.h>
 
-static void hwp_document_listener_iface_init (HwpListenerInterface *iface);
+static void
+hwp_document_listenable_iface_init (HwpListenableInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (HwpDocument, hwp_document, G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER, hwp_document_listener_iface_init))
+  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENABLE,
+                         hwp_document_listenable_iface_init))
 
 static cairo_status_t hwp_document_write_pdf_to_mem (void *closure,
                                                      const unsigned char *data,
@@ -647,15 +649,15 @@ static void hwp_document_init (HwpDocument *document)
 }
 
 /* callback */
-static void hwp_document_listen_version (HwpListener *listener,
-                                         guint8       major_version,
-                                         guint8       minor_version,
-                                         guint8       micro_version,
-                                         guint8       extra_version,
-                                         gpointer     user_data,
-                                         GError     **error)
+static void hwp_document_listen_version (HwpListenable *listenable,
+                                         guint8         major_version,
+                                         guint8         minor_version,
+                                         guint8         micro_version,
+                                         guint8         extra_version,
+                                         gpointer       user_data,
+                                         GError       **error)
 {
-  HwpDocument *document   = (HwpDocument *) listener;
+  HwpDocument *document   = (HwpDocument *) listenable;
   document->major_version = major_version;
   document->minor_version = minor_version;
   document->micro_version = micro_version;
@@ -738,53 +740,55 @@ void hwp_document_add_bin_data (HwpDocument *document, HwpBinData *bin_data)
 }
 
 /* callback */
-static void hwp_document_listen_paragraph (HwpListener  *listener,
-                                           HwpParagraph *paragraph,
-                                           gpointer      user_data,
-                                           GError      **error)
+static void hwp_document_listen_paragraph (HwpListenable *listenable,
+                                           HwpParagraph  *paragraph,
+                                           gpointer       user_data,
+                                           GError       **error)
 {
-  HwpDocument *document = HWP_DOCUMENT (listener);
+  HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_paragraph (document, paragraph);
 }
 
-static void hwp_document_listen_summary_info (HwpListener    *listener,
-                                              HwpSummaryInfo *info,
-                                              gpointer        user_data,
-                                              GError        **error)
+static void
+hwp_document_listen_summary_info (HwpListenable  *listenable,
+                                  HwpSummaryInfo *info,
+                                  gpointer        user_data,
+                                  GError        **error)
 {
-  HwpDocument *document = HWP_DOCUMENT (listener);
+  HwpDocument *document = HWP_DOCUMENT (listenable);
 
   document->info = info;
 }
 
-static void hwp_document_listen_char_shape (HwpListener  *listener,
-                                            HwpCharShape *char_shape,
-                                            gpointer      user_data,
-                                            GError      **error)
+static void hwp_document_listen_char_shape (HwpListenable *listenable,
+                                            HwpCharShape  *char_shape,
+                                            gpointer       user_data,
+                                            GError       **error)
 {
-  HwpDocument *document = HWP_DOCUMENT (listener);
+  HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_char_shape (document, char_shape);
 }
 
-static void hwp_document_listen_face_name (HwpListener  *listener,
-                                           HwpFaceName  *face_name,
-                                           gpointer      user_data,
-                                           GError      **error)
+static void hwp_document_listen_face_name (HwpListenable *listenable,
+                                           HwpFaceName   *face_name,
+                                           gpointer       user_data,
+                                           GError       **error)
 {
-  HwpDocument *document = HWP_DOCUMENT (listener);
+  HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_face_name (document, face_name);
 }
 
-static void hwp_document_listen_bin_data (HwpListener  *listener,
-                                          HwpBinData   *bin_data,
-                                          gpointer      user_data,
-                                          GError      **error)
+static void hwp_document_listen_bin_data (HwpListenable *listenable,
+                                          HwpBinData    *bin_data,
+                                          gpointer       user_data,
+                                          GError       **error)
 {
-  HwpDocument *document = HWP_DOCUMENT (listener);
+  HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_bin_data (document, bin_data);
 }
 
-static void hwp_document_listener_iface_init (HwpListenerInterface *iface)
+static void
+hwp_document_listenable_iface_init (HwpListenableInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
   iface->char_shape       = hwp_document_listen_char_shape;

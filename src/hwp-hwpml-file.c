@@ -96,7 +96,7 @@ HwpDocument *hwp_hwpml_file_get_document (HwpFile *file, GError **error)
 
   HwpDocument *document = hwp_document_new ();
   HwpHWPMLParser *parser;
-  parser = hwp_hwpml_parser_new (HWP_LISTENER (document), document);
+  parser = hwp_hwpml_parser_new (HWP_LISTENABLE (document), document);
   hwp_hwpml_parser_parse (parser, HWP_HWPML_FILE (file), error);
 
   g_object_unref (parser);

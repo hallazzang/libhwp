@@ -44,20 +44,21 @@ static void hwp_parser_class_init (HwpParserClass *klass)
 
 /**
  * hwp_parser_new:
- * @listener: a #HwpListener
+ * @listenable: a #HwpListenable
  * @user_data: a #gpointer
  *
  * Returns: a new #HwpParser
  *
  * Since: 0.1
  */
-HwpParser *hwp_parser_new (HwpListener *listener, gpointer user_data)
+HwpParser *hwp_parser_new (HwpListenable *listenable,
+                           gpointer       user_data)
 {
-  g_return_val_if_fail (HWP_IS_LISTENER (listener), NULL);
+  g_return_val_if_fail (HWP_IS_LISTENABLE (listenable), NULL);
 
-  HwpParser *parser = g_object_new (HWP_TYPE_PARSER, NULL);
-  parser->listener  = listener;
-  parser->user_data = user_data;
+  HwpParser *parser  = g_object_new (HWP_TYPE_PARSER, NULL);
+  parser->listenable = listenable;
+  parser->user_data  = user_data;
 
   return parser;
 }
@@ -76,19 +77,22 @@ void hwp_parser_parse (HwpParser *parser, HwpFile *file, GError **error)
 
   if (HWP_IS_HWP5_FILE (file))
   {
-    HwpHWP5Parser *parser5 = hwp_hwp5_parser_new (parser->listener, NULL);
+    HwpHWP5Parser *parser5;
+    parser5 = hwp_hwp5_parser_new (parser->listenable, NULL);
     hwp_hwp5_parser_parse (parser5, HWP_HWP5_FILE (file), error);
     g_object_unref (parser5);
   }
   else if (HWP_IS_HWPML_FILE (file))
   {
-    HwpHWPMLParser *parser_ml = hwp_hwpml_parser_new (parser->listener, NULL);
+    HwpHWPMLParser *parser_ml;
+    parser_ml = hwp_hwpml_parser_new (parser->listenable, NULL);
     hwp_hwpml_parser_parse (parser_ml, HWP_HWPML_FILE (file), error);
     g_object_unref (parser_ml);
   }
   else if (HWP_IS_HWP3_FILE (file))
   {
-    HwpHWP3Parser *parser3 = hwp_hwp3_parser_new (parser->listener, NULL);
+    HwpHWP3Parser *parser3;
+    parser3 = hwp_hwp3_parser_new (parser->listenable, NULL);
     hwp_hwp3_parser_parse (parser3, HWP_HWP3_FILE (file), error);
     g_object_unref (parser3);
   }

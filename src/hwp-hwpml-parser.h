@@ -26,7 +26,7 @@
 #define __HWP_HWPML_PARSER_H__
 
 #include <glib-object.h>
-#include "hwp-listener.h"
+#include "hwp-listenable.h"
 #include "hwp-hwpml-file.h"
 
 G_BEGIN_DECLS
@@ -47,7 +47,7 @@ struct _HwpHWPMLParser
   GObject                parent_instance;
   HwpHWPMLParserPrivate *priv;
 
-  HwpListener           *listener;
+  HwpListenable         *listenable;
   gpointer               user_data;
 };
 
@@ -69,7 +69,7 @@ struct _HwpHWPMLParserPrivate
 
 GType hwp_hwpml_parser_get_type (void);
 
-HwpHWPMLParser *hwp_hwpml_parser_new   (HwpListener    *listener,
+HwpHWPMLParser *hwp_hwpml_parser_new   (HwpListenable  *listenable,
                                         gpointer        user_data);
 void            hwp_hwpml_parser_parse (HwpHWPMLParser *parser,
                                         HwpHWPMLFile   *file,

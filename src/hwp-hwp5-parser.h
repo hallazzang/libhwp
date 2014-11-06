@@ -29,7 +29,7 @@
 #include <gio/gio.h>
 
 #include "hwp-hwp5-file.h"
-#include "hwp-listener.h"
+#include "hwp-listenable.h"
 
 G_BEGIN_DECLS
 
@@ -45,33 +45,34 @@ typedef struct _HwpHWP5ParserClass   HwpHWP5ParserClass;
 
 struct _HwpHWP5Parser
 {
-  GObject       parent_instance;
+  GObject        parent_instance;
 
-  HwpListener  *listener;
-  gpointer      user_data;
-  GInputStream *stream;
+  HwpListenable *listenable;
+  gpointer       user_data;
+  GInputStream  *stream;
   /* from record header */
-  guint32       header;
-  guint16       tag_id;
-  guint16       level;
-  guint32       data_len;
+  guint32        header;
+  guint16        tag_id;
+  guint16        level;
+  guint32        data_len;
   /* for sanity checking */
-  guint32       data_pos;
+  guint32        data_pos;
   /* for parsing */
-  guint8        state;
-  guint32       ctrl_id;
+  guint8         state;
+  guint32        ctrl_id;
   /* for version check */
-  guint8        major_version;
-  guint8        minor_version;
-  guint8        micro_version;
-  guint8        extra_version;
+  guint8         major_version;
+  guint8         minor_version;
+  guint8         micro_version;
+  guint8         extra_version;
 };
 
 /**
  * HwpHWP5ParserClass:
  * @parent_class: the parent class
  *
- * The class structure for the <structname>HwpHWP5Parser</structname> type.
+ * The class structure for the <structname>HwpHWP5Parser</structname>
+ * type.
  */
 struct _HwpHWP5ParserClass
 {
@@ -84,7 +85,7 @@ gboolean       hwp_hwp5_parser_check_version (HwpHWP5Parser *parser,
                                               guint8         minor,
                                               guint8         micro,
                                               guint8         extra);
-HwpHWP5Parser *hwp_hwp5_parser_new           (HwpListener   *listener,
+HwpHWP5Parser *hwp_hwp5_parser_new           (HwpListenable *listenable,
                                               gpointer       user_data);
 void           hwp_hwp5_parser_parse         (HwpHWP5Parser *parser,
                                               HwpHWP5File   *file,

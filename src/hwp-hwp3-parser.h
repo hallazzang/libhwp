@@ -27,7 +27,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
-#include "hwp-listener.h"
+#include "hwp-listenable.h"
 #include "hwp-hwp3-file.h"
 
 G_BEGIN_DECLS
@@ -45,12 +45,12 @@ typedef struct _HwpHWP3ParserPrivate HwpHWP3ParserPrivate;
 
 struct _HwpHWP3Parser
 {
-  GObject       parent_instance;
+  GObject        parent_instance;
 
-  HwpListener  *listener;
-  GInputStream *stream;
-  gsize         bytes_read;
-  gpointer      user_data;
+  HwpListenable *listenable;
+  GInputStream  *stream;
+  gsize          bytes_read;
+  gpointer       user_data;
 };
 
 /**
@@ -65,7 +65,7 @@ struct _HwpHWP3ParserClass
 };
 
 GType          hwp_hwp3_parser_get_type    (void) G_GNUC_CONST;
-HwpHWP3Parser *hwp_hwp3_parser_new         (HwpListener   *listener,
+HwpHWP3Parser *hwp_hwp3_parser_new         (HwpListenable *listenable,
                                             gpointer       user_data);
 void           hwp_hwp3_parser_parse       (HwpHWP3Parser *parser,
                                             HwpHWP3File   *file,

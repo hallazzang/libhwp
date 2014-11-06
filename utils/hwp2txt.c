@@ -47,10 +47,10 @@ struct _HwpToTxt
 
 GType hwp_to_txt_get_type (void) G_GNUC_CONST;
 
-static void hwp_to_txt_iface_init (HwpListenerInterface *iface);
+static void hwp_to_txt_iface_init (HwpListenableInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (HwpToTxt, hwp_to_txt, G_TYPE_OBJECT,
-  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENER, hwp_to_txt_iface_init))
+  G_IMPLEMENT_INTERFACE (HWP_TYPE_LISTENABLE, hwp_to_txt_iface_init))
 
 static void hwp_to_txt_init (HwpToTxt *hwp_to_txt)
 {
@@ -97,18 +97,18 @@ void hwp_to_txt_convert (HwpToTxt  *hwp2txt,
       return;
   }
 
-  HwpParser *parser = hwp_parser_new (HWP_LISTENER (hwp2txt), NULL);
+  HwpParser *parser = hwp_parser_new (HWP_LISTENABLE (hwp2txt), NULL);
   hwp_parser_parse (parser, hwpfile, error);
   g_object_unref (parser);
   g_object_unref (hwpfile);
 }
 
-void listen_paragraph (HwpListener   *listener,
+void listen_paragraph (HwpListenable *listenable,
                        HwpParagraph  *paragraph,
                        gpointer       user_data,
                        GError       **error)
 {
-  HwpToTxt *hwp2txt = HWP_TO_TXT (listener);
+  HwpToTxt *hwp2txt = HWP_TO_TXT (listenable);
 
   const gchar *text = hwp_paragraph_get_text (paragraph);
   if (text == NULL)
@@ -127,7 +127,7 @@ void listen_paragraph (HwpListener   *listener,
   }
 }
 
-static void hwp_to_txt_iface_init (HwpListenerInterface *iface)
+static void hwp_to_txt_iface_init (HwpListenableInterface *iface)
 {
   iface->paragraph = listen_paragraph;
 }

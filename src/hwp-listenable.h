@@ -1,6 +1,6 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
- * hwp-listener.h
+ * hwp-listenable.h
  *
  * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
  *
@@ -29,8 +29,8 @@
 #error "Only <hwp/hwp.h> can be included directly."
 #endif
 
-#ifndef __HWP_LISTENER_H__
-#define __HWP_LISTENER_H__
+#ifndef __HWP_LISTENABLE_H__
+#define __HWP_LISTENABLE_H__
 
 #include <glib-object.h>
 
@@ -40,21 +40,21 @@
 
 G_BEGIN_DECLS
 
-#define HWP_TYPE_LISTENER            (hwp_listener_get_type ())
-#define HWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENER, HwpListener))
-#define HWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), HWP_TYPE_LISTENER))
-#define HWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENER, HwpListenerInterface))
+#define HWP_TYPE_LISTENABLE            (hwp_listenable_get_type ())
+#define HWP_LISTENABLE(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENABLE, HwpListenable))
+#define HWP_IS_LISTENABLE(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), HWP_TYPE_LISTENABLE))
+#define HWP_LISTENABLE_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENABLE, HwpListenableInterface))
 
 /**
- * HwpListener:
+ * HwpListenable:
  *
- * A handle to an object implementing the #HwpListenerInterface interface.
+ * A handle to an object implementing the #HwpListenableInterface interface.
  */
-typedef struct _HwpListener          HwpListener; /* dummy typedef */
-typedef struct _HwpListenerInterface HwpListenerInterface;
+typedef struct _HwpListenable          HwpListenable; /* dummy typedef */
+typedef struct _HwpListenableInterface HwpListenableInterface;
 
 /**
- * HwpListenerInterface:
+ * HwpListenableInterface:
  * @base_iface: base interface
  * @document_version: Callback to invoke for document version
  * @face_name: Callback to invoke for #HwpFaceName
@@ -64,12 +64,12 @@ typedef struct _HwpListenerInterface HwpListenerInterface;
  * @prv_text: Callback to invoke for prv text
  * @summary_info: Callback to invoke for #HwpSummaryInfo
  */
-struct _HwpListenerInterface
+struct _HwpListenableInterface
 {
   GTypeInterface             base_iface;
 
   /* file header */
-  void (* document_version) (HwpListener    *listener,
+  void (* document_version) (HwpListenable  *listenable,
                              guint8          major_version,
                              guint8          minor_version,
                              guint8          micro_version,
@@ -77,36 +77,36 @@ struct _HwpListenerInterface
                              gpointer        user_data,
                              GError        **error);
   /* doc info */
-  void (* face_name)        (HwpListener    *listener,
+  void (* face_name)        (HwpListenable  *listenable,
                              HwpFaceName    *face_name,
                              gpointer        user_data,
                              GError        **error);
-  void (* char_shape)       (HwpListener    *listener,
+  void (* char_shape)       (HwpListenable  *listenable,
                              HwpCharShape   *char_shape,
                              gpointer        user_data,
                              GError        **error);
-  void (* bin_data)         (HwpListener    *listener,
+  void (* bin_data)         (HwpListenable  *listenable,
                              HwpBinData     *bin_data,
                              gpointer        user_data,
                              GError        **error);
   /* paragraph */
-  void (* paragraph)        (HwpListener    *listener,
+  void (* paragraph)        (HwpListenable  *listenable,
                              HwpParagraph   *paragraph,
                              gpointer        user_data,
                              GError        **error);
   /* preview text */
-  void (* prv_text)         (HwpListener    *listener,
+  void (* prv_text)         (HwpListenable  *listenable,
                              gchar          *prv_text,
                              gpointer        user_data,
                              GError        **error);
-  void (* summary_info)     (HwpListener    *listener,
+  void (* summary_info)     (HwpListenable  *listenable,
                              HwpSummaryInfo *info,
                              gpointer        user_data,
                              GError        **error);
 };
 
-GType hwp_listener_get_type  (void) G_GNUC_CONST;
+GType hwp_listenable_get_type  (void) G_GNUC_CONST;
 
 G_END_DECLS
 
-#endif /* __HWP_LISTENER_H__ */
+#endif /* __HWP_LISTENABLE_H__ */
