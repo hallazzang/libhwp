@@ -38,6 +38,7 @@ Makefile.in*
 POTFILES
 stamp-it
 po/*.gmo
+po/libhwp.pot
 
 # output
 .deps/
