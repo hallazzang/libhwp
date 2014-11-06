@@ -48,6 +48,15 @@ struct _HwpFile
   GObject parent_instance;
 };
 
+/**
+ * HwpFileClass:
+ * @parent_class: the parent class
+ * @get_document: Gets a #HwpDocument
+ * @get_hwp_version_string: a new allocated string containing the HWP version of document file, or %NULL
+ * @get_hwp_version: the major, minor, micro and extra HWP version numbers
+ *
+ * The class structure for the <structname>HwpFile</structname> type.
+ */
 struct _HwpFileClass
 {
   GObjectClass      parent_class;

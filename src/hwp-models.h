@@ -49,11 +49,6 @@ G_BEGIN_DECLS
 typedef struct _HwpSummaryInfo       HwpSummaryInfo;
 typedef struct _HwpSummaryInfoClass  HwpSummaryInfoClass;
 
-struct _HwpSummaryInfoClass
-{
-  GObjectClass parent_class;
-};
-
 struct _HwpSummaryInfo
 {
   GObject parent_instance;
@@ -81,6 +76,17 @@ struct _HwpSummaryInfo
   char  *last_saved_by;
   /* version of hanword */
   char  *hanword_version;
+};
+
+/**
+ * HwpSummaryInfoClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpSummaryInfo</structname> type.
+ */
+struct _HwpSummaryInfoClass
+{
+  GObjectClass parent_class;
 };
 
 GType hwp_summary_info_get_type (void) G_GNUC_CONST;
@@ -129,6 +135,12 @@ struct _HwpParagraph
   GPtrArray *text_attrs;
 };
 
+/**
+ * HwpParagraphClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpParagraph</structname> type.
+ */
 struct _HwpParagraphClass
 {
   GObjectClass parent_class;
@@ -157,11 +169,6 @@ void          hwp_paragraph_set_secd   (HwpParagraph *paragraph,
 typedef struct _HwpTable      HwpTable;
 typedef struct _HwpTableClass HwpTableClass;
 
-struct _HwpTableClass
-{
-  GObjectClass parent_class;
-};
-
 struct _HwpTable
 {
   GObject    parent_instance;
@@ -181,6 +188,17 @@ struct _HwpTable
   guint16   *zones;
 
   GPtrArray *rows;
+};
+
+/**
+ * HwpTableClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpTable</structname> type.
+ */
+struct _HwpTableClass
+{
+  GObjectClass parent_class;
 };
 
 GType         hwp_table_get_type         (void) G_GNUC_CONST;
@@ -231,6 +249,12 @@ struct _HwpTableCell
   GPtrArray *paragraphs;
 };
 
+/**
+ * HwpTableCellClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpTableCell</structname> type.
+ */
 struct _HwpTableCellClass
 {
   GObjectClass parent_class;
@@ -242,6 +266,21 @@ HwpParagraph *hwp_table_cell_get_last_paragraph (HwpTableCell *cell);
 void          hwp_table_cell_add_paragraph      (HwpTableCell *cell,
                                                  HwpParagraph *paragraph);
 
+/**
+ * HwpSecd:
+ * @page_width_in_points: page width in points
+ * @page_height_in_points: page height in points
+ * @page_left_margin_in_points: page left margin in points
+ * @page_right_margin_in_points: page right margin in points
+ * @page_top_margin_in_points:page top margin in points
+ * @page_bottom_margin_in_points: page bottom margin in points
+ * @page_header_margin_in_points: page header margin in points
+ * @page_footer_margin_in_points: page footer margin in points
+ * @page_gutter_margin_in_points: page gutter margin in points
+ * @page_prop: page property
+ *
+ * The structure for the <structname>HwpSecd</structname> type.
+ */
 typedef struct _HwpSecd HwpSecd;
 struct _HwpSecd
 {
@@ -262,6 +301,24 @@ HwpSecd *hwp_secd_new      (void);
 HwpSecd *hwp_secd_copy     (HwpSecd *secd);
 void     hwp_secd_free     (HwpSecd *secd);
 
+/**
+ * HwpCharShape:
+ * @face_id: face id
+ * @ratio: ratio
+ * @char_spacing: character spacing
+ * @rel_size: relative size
+ * @char_offset: character offset
+ * @height_in_points: height in points
+ * @prop: property
+ * @space_between_shadows1: space between shadows1
+ * @space_between_shadows2: space between shadows2
+ * @text_color: text color
+ * @underline_color: underline color
+ * @shade_color: shade color
+ * @shadow_color: shadow color
+ *
+ * The structure for the <structname>HwpCharShape</structname> type.
+ */
 typedef struct _HwpCharShape HwpCharShape;
 struct _HwpCharShape
 {
@@ -285,6 +342,14 @@ HwpCharShape *hwp_char_shape_new      (void);
 HwpCharShape *hwp_char_shape_copy     (HwpCharShape *char_shape);
 void          hwp_char_shape_free     (HwpCharShape *char_shape);
 
+/**
+ * HwpFaceName:
+ * @prop1: property
+ * @len1: length1
+ * @font_name: font name
+ *
+ * The structure for the <structname>HwpFaceName</structname> type.
+ */
 typedef struct _HwpFaceName HwpFaceName;
 struct _HwpFaceName
 {
@@ -298,6 +363,13 @@ HwpFaceName *hwp_face_name_new      (void);
 HwpFaceName *hwp_face_name_copy     (HwpFaceName *face_name);
 void         hwp_face_name_free     (HwpFaceName *face_name);
 
+/**
+ * HwpBinData:
+ * @id: id
+ * @format: format
+ *
+ * The structure for the <structname>HwpBinData</structname> type.
+ */
 typedef struct _HwpBinData HwpBinData;
 struct _HwpBinData
 {
@@ -310,6 +382,24 @@ HwpBinData *hwp_bin_data_new      (void);
 HwpBinData *hwp_bin_data_copy     (HwpBinData *bin_data);
 void        hwp_bin_data_free     (HwpBinData *bin_data);
 
+/**
+ * HwpCommonProperty:
+ * @ctrl_id: control id
+ * @prop: property
+ * @y_offset: y offset
+ * @x_offset: x offset
+ * @width: width
+ * @height: height
+ * @z_order: z order
+ * @margin1: margin1
+ * @margin2: margin2
+ * @margin3: margin3
+ * @margin4: margin4
+ * @instance_id: instance id
+ * @len: length
+ *
+ * The structure for the <structname>HwpCommonProperty</structname> type.
+ */
 typedef struct _HwpCommonProperty HwpCommonProperty;
 struct _HwpCommonProperty
 {

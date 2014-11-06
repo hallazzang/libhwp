@@ -58,6 +58,12 @@ struct _HwpPage
   GPtrArray   *layouts;
 };
 
+/**
+ * HwpPageClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpPage</structname> type.
+ */
 struct _HwpPageClass
 {
   GObjectClass parent_class;

@@ -51,6 +51,12 @@ struct _HwpHWPMLParser
   gpointer               user_data;
 };
 
+/**
+ * HwpHWPMLParserClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWPMLParser</structname> type.
+ */
 struct _HwpHWPMLParserClass
 {
   GObjectClass parent_class;

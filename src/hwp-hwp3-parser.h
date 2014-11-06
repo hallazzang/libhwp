@@ -43,11 +43,6 @@ typedef struct _HwpHWP3Parser        HwpHWP3Parser;
 typedef struct _HwpHWP3ParserClass   HwpHWP3ParserClass;
 typedef struct _HwpHWP3ParserPrivate HwpHWP3ParserPrivate;
 
-struct _HwpHWP3ParserClass
-{
-  GObjectClass parent_class;
-};
-
 struct _HwpHWP3Parser
 {
   GObject       parent_instance;
@@ -56,6 +51,17 @@ struct _HwpHWP3Parser
   GInputStream *stream;
   gsize         bytes_read;
   gpointer      user_data;
+};
+
+/**
+ * HwpHWP3ParserClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWP3ParserClass</structname> type.
+ */
+struct _HwpHWP3ParserClass
+{
+  GObjectClass parent_class;
 };
 
 GType          hwp_hwp3_parser_get_type    (void) G_GNUC_CONST;

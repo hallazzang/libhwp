@@ -76,6 +76,12 @@ struct _HwpDocument
   PopplerDocument *poppler_document;
 };
 
+/**
+ * HwpDocumentClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpDocument</structname> type.
+ */
 struct _HwpDocumentClass
 {
   GObjectClass parent_class;

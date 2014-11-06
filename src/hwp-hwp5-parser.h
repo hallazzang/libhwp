@@ -43,11 +43,6 @@ G_BEGIN_DECLS
 typedef struct _HwpHWP5Parser        HwpHWP5Parser;
 typedef struct _HwpHWP5ParserClass   HwpHWP5ParserClass;
 
-struct _HwpHWP5ParserClass
-{
-  GObjectClass parent_class;
-};
-
 struct _HwpHWP5Parser
 {
   GObject       parent_instance;
@@ -70,6 +65,17 @@ struct _HwpHWP5Parser
   guint8        minor_version;
   guint8        micro_version;
   guint8        extra_version;
+};
+
+/**
+ * HwpHWP5ParserClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWP5Parser</structname> type.
+ */
+struct _HwpHWP5ParserClass
+{
+  GObjectClass parent_class;
 };
 
 GType          hwp_hwp5_parser_get_type      (void) G_GNUC_CONST;

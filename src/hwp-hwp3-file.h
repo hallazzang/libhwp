@@ -50,11 +50,6 @@ typedef struct _HwpHWP3File        HwpHWP3File;
 typedef struct _HwpHWP3FileClass   HwpHWP3FileClass;
 typedef struct _HwpHWP3FilePrivate HwpHWP3FilePrivate;
 
-struct _HwpHWP3FileClass
-{
-  HwpFileClass parent_class;
-};
-
 struct _HwpHWP3File
 {
   HwpFile             parent_instance;
@@ -69,6 +64,17 @@ struct _HwpHWP3File
   guint8              is_compress;
   guint8              rev;
   guint16             info_block_len;
+};
+
+/**
+ * HwpHWP3FileClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWP3File</structname> type.
+ */
+struct _HwpHWP3FileClass
+{
+  HwpFileClass parent_class;
 };
 
 struct _HwpHWP3FilePrivate

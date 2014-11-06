@@ -83,6 +83,12 @@ struct _HwpHWP5File
   gboolean            is_ccl;
 };
 
+/**
+ * HwpHWP5FileClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWP5File</structname> type.
+ */
 struct _HwpHWP5FileClass
 {
   HwpFileClass parent_class;

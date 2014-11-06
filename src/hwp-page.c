@@ -238,8 +238,8 @@ HWP_DEFINE_BOXED_TYPE (HwpPoint, hwp_point,
 
 /**
  * hwp_point_new:
- * @x:
- * @y:
+ * @x: x coordinate
+ * @y: y coordinate
  *
  * Creates a new #HwpPoint
  *

@@ -43,15 +43,21 @@ typedef struct _HwpHWPMLFile        HwpHWPMLFile;
 typedef struct _HwpHWPMLFileClass   HwpHWPMLFileClass;
 typedef struct _HwpHWPMLFilePrivate HwpHWPMLFilePrivate;
 
-struct _HwpHWPMLFileClass
-{
-  HwpFileClass parent_class;
-};
-
 struct _HwpHWPMLFile
 {
   HwpFile              parent_instance;
   HwpHWPMLFilePrivate *priv;
+};
+
+/**
+ * HwpHWPMLFileClass:
+ * @parent_class: the parent class
+ *
+ * The class structure for the <structname>HwpHWPMLFile</structname> type.
+ */
+struct _HwpHWPMLFileClass
+{
+  HwpFileClass parent_class;
 };
 
 struct _HwpHWPMLFilePrivate

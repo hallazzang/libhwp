@@ -40,13 +40,16 @@
 
 G_BEGIN_DECLS
 
-/* HwpListenerInterface ********************************************************/
-
 #define HWP_TYPE_LISTENER            (hwp_listener_get_type ())
 #define HWP_LISTENER(o)              (G_TYPE_CHECK_INSTANCE_CAST ((o), HWP_TYPE_LISTENER, HwpListener))
 #define HWP_IS_LISTENER(o)           (G_TYPE_CHECK_INSTANCE_TYPE ((o), HWP_TYPE_LISTENER))
 #define HWP_LISTENER_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), HWP_TYPE_LISTENER, HwpListenerInterface))
 
+/**
+ * HwpListener:
+ *
+ * A handle to an object implementing the #HwpListenerInterface interface.
+ */
 typedef struct _HwpListener          HwpListener; /* dummy typedef */
 typedef struct _HwpListenerInterface HwpListenerInterface;
 
