@@ -144,7 +144,6 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
   g_return_val_if_fail (path != NULL, NULL);
 
   /* check signature */
-  /* FIXME for hwp v5.0 */
   guint8 signature_ole[] =
   {
     0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
@@ -159,24 +158,18 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
     0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
   };
 
+  GFile            *file   = g_file_new_for_path (path);
+  GFileInputStream *stream = g_file_read (file, NULL, error);
+  g_object_unref (file);
+
+  if (*error)
+    return NULL;
+
   gsize bytes_read = 0;
   guint8 *buffer = g_malloc0 (4096);
-
-  FILE *fp = fopen (path, "r");
-
-  if (!fp)
-  {
-    g_set_error (error,
-                 HWP_FILE_ERROR,
-                 HWP_FILE_ERROR_FAILED,
-                 _("Failed to load document “%s”"),
-                 path);
-
-    return NULL;
-  }
-
-  bytes_read = fread (buffer, 4096, 1, fp) * 4096;
-  fclose (fp);
+  g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
+                           &bytes_read, NULL, error);
+  g_object_unref (stream);
 
   HwpFile *retval = NULL;
 
@@ -193,7 +186,6 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
     /* invalid hwp file */
     g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
                         "invalid hwp file");
-    retval = NULL;
   }
 
   g_free(buffer);
