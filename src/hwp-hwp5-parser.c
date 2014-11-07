@@ -835,28 +835,22 @@ static HwpTable *hwp_hwp5_parser_get_table (HwpHWP5Parser *parser,
   table->row_sizes = g_malloc0_n (table->n_rows, 2);
 
   for (guint i = 0; i < table->n_rows; i++)
-  {
     parser_read_uint16 (parser, &(table->row_sizes[i]), error);
-  }
 
   parser_read_uint16 (parser, &table->border_fill_id, error);
 
   if (hwp_hwp5_file_check_version (file, 5, 0, 1, 0))
   {
     parser_read_uint16 (parser, &table->valid_zone_info_size, error);
-
     table->zones = g_malloc0_n (table->valid_zone_info_size, 10);
 
     for (guint i = 0; i < table->valid_zone_info_size; i++)
-    {
       parser_read_bytes (parser, &(table->zones[i]), 10, error);
-    }
   }
 
   if (parser->data_pos != parser->data_len)
   {
-    g_warning ("%s:%d: TABLE data size mismatch at %s\n",
-      __FILE__, __LINE__,
+    g_warning ("%s:%d: TABLE data size mismatch at %s\n", __FILE__, __LINE__,
       hwp_hwp5_file_get_hwp_version_string (HWP_FILE (file)));
   }
 
@@ -869,6 +863,10 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
   g_return_val_if_fail (HWP_IS_HWP5_PARSER (parser), NULL);
 
   HwpTableCell *table_cell = hwp_table_cell_new ();
+/*
+ * list-header (cell) data_len = 46, ver: 5.0.2.2
+ * list-header (cell) data_len = 47, ver: 5.0.3.4
+ */
   /* 표 60 LIST_HEADER */
   parser_read_uint16 (parser, &table_cell->n_paragraphs, error);
   parser_read_uint32 (parser, &table_cell->flags, error);
@@ -885,12 +883,12 @@ static HwpTableCell *hwp_hwp5_parser_get_table_cell (HwpHWP5Parser *parser,
   parser_read_uint16 (parser, &table_cell->left_margin, error);
   parser_read_uint16 (parser, &table_cell->right_margin, error);
   parser_read_uint16 (parser, &table_cell->top_margin, error);
+
   if (parser->data_len == 30) /* FIXME */
     goto FINALLY;
+
   parser_read_uint16 (parser, &table_cell->bottom_margin, error);
-
   parser_read_uint16 (parser, &table_cell->border_fill_id, error);
-
   /* unknown */
   parser_read_uint32 (parser, &table_cell->unknown2, error);
 
@@ -951,6 +949,10 @@ static HwpTable *hwp_hwp5_parser_build_table (HwpHWP5Parser *parser,
       table = hwp_hwp5_parser_get_table (parser, file, error);
       break;
     case HWP_TAG_LIST_HEADER: /* cell */
+#ifdef HWP_ENABLE_DEBUG
+      printf ("list-header (cell) data_len = %d, ver: %s\n",
+        parser->data_len, hwp_hwp5_file_get_hwp_version_string (HWP_FILE (file)));
+#endif
       cell = hwp_hwp5_parser_get_table_cell (parser, error);
       hwp_table_add_cell (table, cell, cell->row_addr);
       break;
