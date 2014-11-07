@@ -282,15 +282,6 @@ static void make_stream (HwpHWP5File *file, GError **error)
 
       if (file->is_distribute)
       {
-        g_set_error_literal (error,
-                             HWP_FILE_ERROR,
-                             HWP_FILE_ERROR_INVALID,
-                             "The encrypted hwp document for distribution is not supported");
-
-        return; /* FIXME */
-
-        /* FIXME: decrypt */
-        /* get sha1sum */
         guint8 *data = g_malloc0 (256);
         gsf_input_read (section, 4, NULL);
         gsf_input_read (section, 256, data);
@@ -312,35 +303,38 @@ static void make_stream (HwpHWP5File *file, GError **error)
         }
 
         offset = 4 + (seed & 0xf);
-        gchar *sha1sum = g_convert ((const gchar *) data + offset, 80,
-                           "UTF-8", "UTF-16LE", NULL, NULL, error);
+        gchar *sha1 = g_convert ((const gchar *) data + offset, 80,
+                                 "UTF-8", "UTF-16LE", NULL, NULL, error);
         g_free (data);
-        gchar *key = g_strndup (sha1sum, 16);
+        gchar *key = g_strndup (sha1, 16);
 #ifdef HWP_ENABLE_DEBUG
-        printf ("sha1sum: %s\n", sha1sum);
+        printf ("sha1: %s\n", sha1);
         printf ("key: %s\n", key);
 #endif
-        g_free (sha1sum);
+        g_free (sha1);
 
-        EVP_CIPHER_CTX *ctx;
-        ctx = EVP_CIPHER_CTX_new ();
+        EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new ();
         EVP_CIPHER_CTX_init (ctx);
-        EVP_DecryptInit_ex (ctx, EVP_aes_128_ecb(), NULL, (unsigned char *) key, NULL);
+        EVP_DecryptInit_ex (ctx, EVP_aes_128_ecb(), NULL,
+                            (unsigned char *) key, NULL);
         g_free (key);
         EVP_CIPHER_CTX_set_padding(ctx, 0); /* no padding */
 
         gsf_off_t encrypted_data_len = gsf_input_remaining (section);
         guint8 const *encrypted_data = gsf_input_read (section, encrypted_data_len, NULL);
+
         guint8 *decrypted_data = g_malloc (encrypted_data_len);
-        int decrypted_data_len;
-        int len;
+        int decrypted_data_len, len;
+
         EVP_DecryptUpdate (ctx, decrypted_data, &len, encrypted_data, encrypted_data_len);
         decrypted_data_len = len;
+
         EVP_DecryptFinal_ex (ctx, decrypted_data + len, &len);
         decrypted_data_len += len;
+
         EVP_CIPHER_CTX_free (ctx);
-        g_free (decrypted_data);
         g_object_unref (section);
+
         section = gsf_input_memory_new (decrypted_data, decrypted_data_len, TRUE);
       }
 
