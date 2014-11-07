@@ -143,7 +143,7 @@ hwp_document_paginate (HwpDocument *document, gdouble width, gdouble height)
           hwp_document_add_page (document, hwp_page_new ());
 
         HwpLayout *hwp_layout = hwp_layout_new ();
-        hwp_layout->data = line;
+        hwp_layout->data = pango_layout_line_ref (line);
         hwp_layout->type = 'p';
         hwp_layout->x = x;
         hwp_layout->y = y - page_index * height;
@@ -158,6 +158,7 @@ hwp_document_paginate (HwpDocument *document, gdouble width, gdouble height)
         HwpPage *page = g_ptr_array_index (document->pages, page_index);
         hwp_page_add_layout (page, hwp_layout);
       } while (pango_layout_iter_next_line (iter));
+
       pango_layout_iter_free (iter);
     } /* if (paragraph->text) */
 
@@ -232,7 +233,7 @@ hwp_document_paginate (HwpDocument *document, gdouble width, gdouble height)
 
               y = y + logical_rect.height / PANGO_SCALE;
               HwpLayout *hwp_layout = hwp_layout_new ();
-              hwp_layout->data = line;
+              hwp_layout->data = pango_layout_line_ref (line);
               hwp_layout->type = 'p';
               hwp_layout->x = x;
               hwp_layout->y = y - page_index * height;
