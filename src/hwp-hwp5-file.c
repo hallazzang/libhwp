@@ -230,7 +230,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
   {
     if (file->is_compress)
     {
-      GInputStream    *gis;
+      GInputStream      *gis;
       GZlibDecompressor *zd;
       GInputStream      *cis;
 
