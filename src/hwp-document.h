@@ -56,6 +56,7 @@ struct _HwpDocument
   GObject          parent_instance;
 
   GPtrArray       *char_shapes;
+  GPtrArray       *para_shapes;
   GPtrArray       *face_names;
   GPtrArray       *bin_data;
 

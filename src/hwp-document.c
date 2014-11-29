@@ -121,8 +121,87 @@ hwp_document_paginate (HwpDocument *document, gdouble width, gdouble height)
     {
       PangoLayout *layout = pango_layout_new (context);
       g_ptr_array_add (document->layouts, layout);
-      pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
-      pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+      HwpParaShape *para_shape = g_ptr_array_index (document->para_shapes,
+                                                    paragraph->para_shape_id);
+      /* 줄 간격 종류 한글 2007 이하 버전에서 사용 */
+      /* int a1 = para_shape->prop1 & ((1 << 0) +
+                                      (1 << 1)); */
+      /* 정렬 방식 */
+      int alignment = para_shape->prop1 & ((1 << 2) +
+                                           (1 << 3) +
+                                           (1 << 4));
+      /* 줄 나눔 기준 영어 단위 */
+      int wrap = para_shape->prop1 & ((1 << 5) +
+                                      (1 << 6));
+      /* 줄 나눔 기준 한글 단위 */
+      /* int a4 = para_shape->prop1 & (1 << 7); */
+      /* 편집 용지의 줄 격자 사용 여부 */
+      /* int a5 = para_shape->prop1 & (1 << 8); */
+      /* 공백 최소값 */
+      /* int a6 = para_shape->prop1 & ((1 << 9) +
+                                       (1 << 10) +
+                                       (1 << 11) +
+                                       (1 << 12) +
+                                       (1 << 13) +
+                                       (1 << 14) +
+                                       (1 << 15)); */
+      /* 외톨이줄 보호 여부 */
+      /* int a7 = para_shape->prop1 & (1 << 16); */
+      /* 다음 문단과 함께 여부 */
+      /* int a8 = para_shape->prop1 & (1 << 17); */
+      /* 문단 보호 여부 */
+      /* int a9 = para_shape->prop1 & (1 << 18); */
+      /* 문단 앞에서 항상 쪽 나눔 여부 */
+      /* int a10 = para_shape->prop1 & (1 << 19); */
+      /* 세로 정렬 */
+      /* int a11 = para_shape->prop1 & ((1 << 20) +
+                                        (1 << 21)); */
+      /* 글꼴에 어울리는 줄 높이 여부 */
+      /* int a12 = para_shape->prop1 & (1 << 22); */
+      /* 문단 머리 모양 종류 */
+      /* int a13 = para_shape->prop1 & ((1 << 23) +
+                                        (1 << 24)); */
+      /* 문단 문단 수준 */
+      /* int a14 = para_shape->prop1 & ((1 << 25) +
+                                        (1 << 26) +
+                                        (1 << 27)); */
+      /* 문단 테두리 연결 여부 */
+      /* int a15 = para_shape->prop1 & (1 << 28); */
+
+      switch (wrap)
+      {
+        case 0:
+          pango_layout_set_wrap (layout, PANGO_WRAP_WORD);
+          break;
+        case 1 << 5:
+          pango_layout_set_wrap (layout, PANGO_WRAP_WORD_CHAR);
+          break;
+        case 2 << 5:
+          pango_layout_set_wrap (layout, PANGO_WRAP_CHAR);
+          break;
+        default:
+          break;
+      }
+
+      switch (alignment)
+      {
+        /* case 0: */
+        case 1 << 2:
+          pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+          break;
+        case 2 << 2:
+          pango_layout_set_alignment (layout, PANGO_ALIGN_RIGHT);
+          break;
+        case 3 << 2:
+          pango_layout_set_alignment (layout, PANGO_ALIGN_CENTER);
+          break;
+        /* case 4 << 2: */
+        /* case 5 << 2: */
+        default:
+          pango_layout_set_alignment (layout, PANGO_ALIGN_LEFT);
+          break;
+      }
+
       pango_layout_set_width (layout, width * PANGO_SCALE);
       pango_layout_set_text (layout, paragraph->text, -1);
 
@@ -613,6 +692,7 @@ static void hwp_document_finalize (GObject *object)
   HwpDocument *document = HWP_DOCUMENT(object);
 
   g_ptr_array_free (document->char_shapes, TRUE);
+  g_ptr_array_free (document->para_shapes, TRUE);
   g_ptr_array_free (document->face_names, TRUE);
   g_ptr_array_free (document->bin_data, TRUE);
   g_ptr_array_free (document->paragraphs, TRUE);
@@ -637,6 +717,9 @@ static void hwp_document_init (HwpDocument *document)
 
   document->char_shapes =
     g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_char_shape_free);
+
+  document->para_shapes =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_para_shape_free);
 
   document->face_names =
     g_ptr_array_new_with_free_func ((GDestroyNotify) hwp_face_name_free);
@@ -718,6 +801,22 @@ hwp_document_add_char_shape (HwpDocument *document, HwpCharShape *char_shape)
 }
 
 /**
+ * hwp_document_add_para_shape:
+ * @document: A #HwpDocument
+ * @para_shape: A #HwpParaShape
+ *
+ * Since: 0.1.5
+ */
+void
+hwp_document_add_para_shape (HwpDocument *document, HwpParaShape *para_shape)
+{
+  g_return_if_fail (HWP_IS_DOCUMENT (document));
+  g_return_if_fail (para_shape != NULL);
+
+  g_ptr_array_add (document->para_shapes, para_shape);
+}
+
+/**
  * hwp_document_add_face_name:
  * @document: A #HwpDocument
  * @face_name: A #HwpFaceName
@@ -770,6 +869,15 @@ static void hwp_document_listen_char_shape (HwpListenable *listenable,
   hwp_document_add_char_shape (document, char_shape);
 }
 
+static void hwp_document_listen_para_shape (HwpListenable *listenable,
+                                            HwpParaShape  *para_shape,
+                                            gpointer       user_data,
+                                            GError       **error)
+{
+  HwpDocument *document = HWP_DOCUMENT (listenable);
+  hwp_document_add_para_shape (document, para_shape);
+}
+
 static void hwp_document_listen_face_name (HwpListenable *listenable,
                                            HwpFaceName   *face_name,
                                            gpointer       user_data,
@@ -793,6 +901,7 @@ hwp_document_listenable_iface_init (HwpListenableInterface *iface)
 {
   iface->document_version = hwp_document_listen_version;
   iface->char_shape       = hwp_document_listen_char_shape;
+  iface->para_shape       = hwp_document_listen_para_shape;
   iface->face_name        = hwp_document_listen_face_name;
   iface->bin_data         = hwp_document_listen_bin_data;
   iface->paragraph        = hwp_document_listen_paragraph;
