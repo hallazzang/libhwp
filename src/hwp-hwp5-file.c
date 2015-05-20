@@ -303,15 +303,16 @@ static void make_stream (HwpHWP5File *file, GError **error)
         }
 
         offset = 4 + (seed & 0xf);
+        gchar *key = g_malloc0 (16);
+        memcpy (key, (const gchar *) data + offset, 16);
+#ifdef HWP_ENABLE_DEBUG
         gchar *sha1 = g_convert ((const gchar *) data + offset, 80,
                                  "UTF-8", "UTF-16LE", NULL, NULL, error);
-        g_free (data);
-        gchar *key = g_strndup (sha1, 16);
-#ifdef HWP_ENABLE_DEBUG
         printf ("sha1: %s\n", sha1);
         printf ("key: %s\n", key);
-#endif
         g_free (sha1);
+#endif
+        g_free (data);
 
         EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new ();
         EVP_CIPHER_CTX_init (ctx);
