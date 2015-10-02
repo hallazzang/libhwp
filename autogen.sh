@@ -16,21 +16,20 @@ else
   gtkdocize || exit $?
 fi
 
-AUTORECONF=`which autoreconf`
-if test -z $AUTORECONF; then
-  echo "*** No autoreconf found, please install it ***"
+INTLTOOLIZE=`which intltoolize`
+if test -z $INTLTOOLIZE=; then
+  echo "intltoolize not found, please install intltool package"
   exit 1
+else
+  intltoolize --force --copy --automake || exit $?
 fi
 
-autoreconf --force --install --verbose || exit $?
-
-if (grep "^IT_PROG_INTLTOOL" $srcdir/configure.ac >/dev/null); then
-  INTLTOOLIZE=`which intltoolize`
-  if test -z $INTLTOOLIZE; then
-    echo "*** No intltoolize found, please install it ***"
-    exit 1
-  fi
-  intltoolize --copy --force --automake
+AUTORECONF=`which autoreconf`
+if test -z $AUTORECONF; then
+  echo "autoreconf not found, please install autoconf package"
+  exit 1
+else
+  autoreconf --force --install --verbose || exit $?
 fi
 
 cd "$olddir"
