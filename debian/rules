@@ -9,8 +9,8 @@ export DH_VERBOSE=1
 override_dh_autoreconf:
 	mkdir -p m4
 	gtkdocize
-	dh_autoreconf
 	intltoolize --copy --force --automake
+	dh_autoreconf
 
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-gtk-doc
