@@ -303,8 +303,7 @@ static void make_stream (HwpHWP5File *file, GError **error)
         }
 
         offset = 4 + (seed & 0xf);
-        gchar *key = g_malloc0 (16);
-        memcpy (key, (const gchar *) data + offset, 16);
+        gchar *key = g_memdup (data + offset, 16);
 #ifdef HWP_ENABLE_DEBUG
         gchar *sha1 = g_convert ((const gchar *) data + offset, 80,
                                  "UTF-8", "UTF-16LE", NULL, NULL, error);

@@ -81,8 +81,8 @@ gboolean parser_skip (HwpHWP5Parser *parser, guint32 count)
 
   if ((is_success == FALSE) || (bytes_read != count))
   {
-    g_warning ("%s:%d: count:%d, bytes_read:%d skip size mismatch\n",
-      __FILE__, __LINE__, count, bytes_read);
+    g_warning ("%s:%d: count:%d, bytes_read:%" G_GSIZE_FORMAT
+               " skip size mismatch\n", __FILE__, __LINE__, count, bytes_read);
     return FALSE;
   }
 
@@ -1796,7 +1796,6 @@ void hwp_hwp5_parser_parse (HwpHWP5Parser *parser,
 /*  _hwp_hwp5_parser_parse_scripts        (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_xml_template   (parser, file, error); */
 /*  _hwp_hwp5_parser_parse_doc_history    (parser, file, error); */
-  
 }
 
 static void hwp_hwp5_parser_init (HwpHWP5Parser *parser)
