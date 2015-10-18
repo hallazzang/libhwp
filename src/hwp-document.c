@@ -19,7 +19,7 @@
  */
 
 /*
- * This software have been developed with reference to
+ * This software has been developed with reference to
  * the HWP file format open specification by Hancom, Inc.
  * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
@@ -427,11 +427,11 @@ static void hwp_document_create_poppler_document (HwpDocument *document)
  * hwp_document_new_from_file:
  * @filename: the path of a file, in the GLib filename encoding
  * @error: location to store the error occurring, or %NULL to ignore
- * 
+ *
  * Creates a new #HwpDocument.  If %NULL is returned, then @error will be
  * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
  * domains.
- * 
+ *
  * Returns: a new #HwpDocument, or %NULL
  *
  * Since: 0.0.1
@@ -499,9 +499,9 @@ HwpPage *hwp_document_get_page (HwpDocument *document, gint n_page)
 
 /**
  * hwp_document_new:
- * 
+ *
  * Creates a new #HwpDocument.
- * 
+ *
  * Return value: a new #HwpDocument
  *
  * Since: 0.0.1

@@ -3,7 +3,7 @@
  * hwp-document.h
  *
  * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
- * 
+ *
  * This library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -19,7 +19,7 @@
  */
 
 /*
- * This software have been developed with reference to
+ * This software has been developed with reference to
  * the HWP file format open specification by Hancom, Inc.
  * http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.

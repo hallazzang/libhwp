@@ -33,7 +33,7 @@ so the license of the libhwp is GPL v2+.
 
 You SHOULD NOT REMOVE the following sentences in source files.
 
-This software have been developed with reference to
+This software has been developed with reference to
 the HWP file format open specification by Hancom, Inc.
 http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 
@@ -65,7 +65,7 @@ API documentation and function names are derived from the GLib library.
 
 You should NOT REMOVE the following sentences in your work derived from libhwp.
 
-This software have been developed with reference to
+This software has been developed with reference to
 the HWP file format open specification by Hancom, Inc.
 http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
 
