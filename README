@@ -2,7 +2,7 @@ The libhwp is a parser and renderer library for hwp documents.
 
 Project Homepage
 ----------------
-https://bitbucket.org/hodong/libhwp
+https://github.com/cogniti/libhwp
 
 
 What is HWP?
@@ -45,18 +45,12 @@ sudo apt-get install build-essential git devscripts dh-autoreconf intltool   \
   libgsf-1-dev libcairo2-dev libpango1.0-dev libpoppler-glib-dev libxml2-dev \
   libgirepository1.0-dev gtk-doc-tools libssl-dev
 
-git clone https://bitbucket.org/hodong/libhwp.git
+git clone https://github.com/cogniti/libhwp.git
 cd libhwp
 dpkg-buildpackage -b
 cd ..
 ls *.deb
 sudo dpkg -i libhwp*.deb
-
-
-Related Projects
-----------------
-https://bitbucket.org/hodong/ruby-hwp
-https://bitbucket.org/hodong/evince-hwp
 
 
 Disclosure

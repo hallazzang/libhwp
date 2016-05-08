@@ -26,8 +26,8 @@ m4_define([hwp_lt_current_minus_age],[m4_eval(hwp_lt_current - hwp_lt_age)])
 # *****************************************************************************
 
 AC_INIT([libhwp], [hwp_version],
-        [https://bitbucket.org/hodong/libhwp/issues], [libhwp],
-        [https://bitbucket.org/hodong/libhwp])
+        [https://github.com/cogniti/libhwp/issues], [libhwp],
+        [https://github.com/cogniti/libhwp])
 
 AC_CONFIG_HEADERS([config.h])
 

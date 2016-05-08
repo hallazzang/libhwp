@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: libhwp\n"
-"Report-Msgid-Bugs-To: https://bitbucket.org/hodong/libhwp/issues\n"
+"Report-Msgid-Bugs-To: https://github.com/cogniti/libhwp/issues\n"
 "POT-Creation-Date: 2014-05-17 01:53+9000\n"
 "PO-Revision-Date: 2014-05-17 01:53+0900\n"
 "Last-Translator: Hodong Kim <hodong@cogno.org>\n"

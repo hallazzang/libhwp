@@ -14,9 +14,7 @@ Build-Depends: debhelper (>= 9),
                libssl-dev,
                pkg-config
 Standards-Version: 3.9.3
-Homepage: https://bitbucket.org/hodong/libhwp
-Vcs-Git: git@bitbucket.org:hodong/libhwp.git
-Vcs-Browser: https://bitbucket.org/hodong/libhwp
+Homepage: https://github.com/cogniti/libhwp
 
 Package: libhwp4
 Architecture: any
