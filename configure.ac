@@ -30,8 +30,8 @@ AC_INIT([libhwp], [hwp_version],
         [https://github.com/cogniti/libhwp])
 
 AC_CONFIG_HEADERS([config.h])
-
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([-Wno-portability])
 AM_MAINTAINER_MODE([disable])
