@@ -30,7 +30,7 @@ IGNORE_HFILES = gsf-input-stream.h
 # signals and properties.
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
-GTKDOC_CFLAGS = $(HWP_DEP_CFLAGS)
+GTKDOC_CFLAGS = $(LIBHWP_DEPS_CFLAGS)
 GTKDOC_LIBS = $(top_builddir)/src/libhwp.la
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.

@@ -66,7 +66,7 @@ libhwp_la_CPPFLAGS =        \
 
 libhwp_la_CFLAGS =      \
 	-Wall               \
-	$(HWP_DEP_CFLAGS)   \
+	$(LIBHWP_DEPS_CFLAGS)   \
 	$(HWP_DEBUG_FLAGS)  \
 	$(AM_CFLAGS)        \
 	$(NULL)
@@ -78,7 +78,7 @@ libhwp_la_LDFLAGS =                      \
 	$(AM_LDFLAGS)                        \
 	$(NULL)
 
-libhwp_la_LIBADD = $(HWP_DEP_LIBS)
+libhwp_la_LIBADD = $(LIBHWP_DEPS_LIBS)
 
 EXTRA_DIST =                  \
 	hwp-enum-types.c.template \
@@ -114,7 +114,7 @@ introspection_sources = $(filter-out $(NOINST_H_FILES), gsf-input-stream.c $(lib
 
 Hwp-0.1.gir: libhwp.la
 Hwp_0_1_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
-Hwp_0_1_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(HWP_DEP_CFLAGS)
+Hwp_0_1_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(LIBHWP_DEPS_CFLAGS)
 Hwp_0_1_gir_LIBS = libhwp.la
 Hwp_0_1_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
 

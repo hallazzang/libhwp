@@ -53,11 +53,9 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
 
-PKG_CHECK_MODULES(HWP_DEP,
+PKG_CHECK_MODULES(LIBHWP_DEPS,
                   [libgsf-1 cairo pango pangocairo libxml-2.0 openssl
                    gobject-2.0 gobject-introspection-1.0 poppler-glib])
-AC_SUBST(HWP_DEP_CFLAGS)
-AC_SUBST(HWP_DEP_LIBS)
 
 GOBJECT_INTROSPECTION_CHECK([0.10.1])
 
