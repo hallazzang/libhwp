@@ -1,57 +1,27 @@
-## Process this file with automake to produce Makefile.in
-
 SUBDIRS = src utils docs po
 
-libhwpdocdir = ${prefix}/share/doc/libhwp
-libhwpdoc_DATA =  \
-	README    \
-	COPYING   \
-	AUTHORS   \
-	ChangeLog \
-	INSTALL   \
-	NEWS      \
-	THANKS
+ACLOCAL_AMFLAGS = -I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libhwp.pc
 
-EXTRA_DIST = $(libhwpdoc_DATA) \
-	libhwp.pc.in
+EXTRA_DIST = libhwp.pc.in
 
-# Remove doc directory on uninstall
-uninstall-local:
-	-rm -r $(libhwpdocdir)
+DISTCLEANFILES = \
+	Makefile.in \
+	po/Makefile.in.in \
+	INSTALL \
+	aclocal.m4 \
+	config.h.in \
+	config.h.in~ \
+	configure
 
-MAINTAINERCLEANFILES =         \
-	libhwp.pc              \
-	$(srcdir)/ChangeLog    \
-	$(srcdir)/INSTALL      \
-	$(srcdir)/aclocal.m4   \
-	$(srcdir)/compile      \
-	$(srcdir)/config.guess \
-	$(srcdir)/config.h.in  \
-	$(srcdir)/config.h.in~ \
-	$(srcdir)/config.sub   \
-	$(srcdir)/configure    \
-	$(srcdir)/depcomp      \
-	$(srcdir)/gtk-doc.make \
-	$(srcdir)/install-sh   \
-	$(srcdir)/ltmain.sh    \
-	$(srcdir)/missing      \
-	`find "$(srcdir)" -type f -name Makefile.in -print` \
-	-r $(srcdir)/m4
+clean-local:
+	-debian/rules clean
+
+distclean-local:
+	rm -rf autom4te.cache build-aux m4 .anjuta .anjuta_sym_db.db
 
 ChangeLog:
-	$(AM_V_GEN) if test -d "$(srcdir)/.git"; then \
-	  (GIT_DIR=$(top_srcdir)/.git ./missing --run git log --stat) | fmt --split-only > $@.tmp \
-	  && mv -f $@.tmp $@ \
-	  || ($(RM) $@.tmp; \
-	      echo Failed to generate ChangeLog, your ChangeLog may be outdated >&2; \
-	      (test -f $@ || echo git-log is required to generate this file >> $@)); \
-	else \
-	  test -f $@ || \
-	  (echo A git checkout and git-log is required to generate ChangeLog >&2 && \
-	  echo A git checkout and git-log is required to generate this file >> $@); \
-	fi
 
 .PHONY: ChangeLog

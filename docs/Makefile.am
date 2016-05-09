@@ -62,3 +62,5 @@ CLEANFILES += \
 	$(DOC_MODULE).types \
 	*.stamp \
 	-r html xml
+
+DISTCLEANFILES = Makefile.in

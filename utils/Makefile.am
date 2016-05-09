@@ -24,3 +24,5 @@ unhwp_CFLAGS    = $(HWP_DEP_CFLAGS)
 unhwp_LDADD     = $(top_srcdir)/src/libhwp.la $(HWP_DEP_LIBS)
 
 CLEANFILES = $(bin_PROGRAMS)
+
+DISTCLEANFILES = Makefile.in
