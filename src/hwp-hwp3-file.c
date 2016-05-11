@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
+ * This file is part of the libhwp project.
  * hwp-hwp3-file.c
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -29,6 +30,16 @@
 #include "hwp-hwp3-parser.h"
 
 G_DEFINE_TYPE (HwpHWP3File, hwp_hwp3_file, HWP_TYPE_FILE);
+
+static HwpHWP3File *hwp_hwp3_file_new_for_gfile (GFile   *gfile,
+                                                 GError **error)
+{
+  GFileInputStream *stream = g_file_read (gfile, NULL, error);
+  HwpHWP3File *file = g_object_new (HWP_TYPE_HWP3_FILE, NULL);
+  file->priv->stream = G_INPUT_STREAM (stream);
+
+  return file;
+}
 
 /**
  * hwp_hwp3_file_new_for_path:
@@ -46,12 +57,35 @@ G_DEFINE_TYPE (HwpHWP3File, hwp_hwp3_file, HWP_TYPE_FILE);
 HwpHWP3File *hwp_hwp3_file_new_for_path (const gchar *path,
                                          GError     **error)
 {
-  g_return_val_if_fail (path != NULL, NULL);
   GFile *gfile = g_file_new_for_path (path);
-  GFileInputStream *stream = g_file_read (gfile, NULL, error);
+  HwpHWP3File *file = hwp_hwp3_file_new_for_gfile (gfile, error);
   g_object_unref (gfile);
-  HwpHWP3File *file = g_object_new (HWP_TYPE_HWP3_FILE, NULL);
-  file->priv->stream = G_INPUT_STREAM (stream);
+
+  return file;
+}
+
+/**
+ * hwp_hwp3_file_new_for_uri:
+ * @uri: a UTF-8 string containing a URI
+ * @error: location to store the error occurring, or %NULL to ignore
+ *
+ * Creates a new #HwpHWP3File.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
+ * domains.
+ *
+ * Return value: A newly created #HwpHWP3File, or %NULL
+ *
+ * Since: 2016.05.12
+ */
+HwpHWP3File *hwp_hwp3_file_new_for_uri (const gchar  *uri,
+                                         GError     **error)
+{
+  g_return_val_if_fail (uri != NULL, NULL);
+
+  GFile *gfile = g_file_new_for_uri (uri);
+  HwpHWP3File *file = hwp_hwp3_file_new_for_gfile (gfile, error);
+  g_object_unref (gfile);
+
   return file;
 }
 

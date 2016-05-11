@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-hwp5-file.h
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -96,7 +97,7 @@ struct _HwpHWP5FileClass
 
 struct _HwpHWP5FilePrivate
 {
-  GsfInfile    *olefile;
+  GsfInfile *olefile;
 };
 
 GType        hwp_hwp5_file_get_type               (void) G_GNUC_CONST;
@@ -114,6 +115,8 @@ void         hwp_hwp5_file_get_hwp_version        (HwpFile     *file,
                                                    guint8      *extra_version);
 gchar       *hwp_hwp5_file_get_hwp_version_string (HwpFile     *file);
 HwpHWP5File *hwp_hwp5_file_new_for_path           (const gchar *path,
+                                                   GError     **error);
+HwpHWP5File *hwp_hwp5_file_new_for_uri            (const gchar *uri,
                                                    GError     **error);
 
 G_END_DECLS

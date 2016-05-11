@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-hwp5-file.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -25,11 +26,10 @@
  * 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.
  */
 
-#include <gsf/gsf-input.h>
-#include <gsf/gsf-utils.h>
-#include <gsf/gsf-infile.h>
-#include <gsf/gsf-input-stdio.h>
+#include <gsf/gsf-input-gio.h>
 #include <gsf/gsf-input-memory.h>
+#include <gsf/gsf-input-stdio.h>
+#include <gsf/gsf-utils.h>
 #include <openssl/evp.h>
 
 #include "gsf-input-stream.h"
@@ -491,7 +491,45 @@ HwpHWP5File *hwp_hwp5_file_new_for_path (const gchar *path, GError **error)
     }
   }
 
-  g_warning("%s:%d: %s\n", __FILE__, __LINE__, (*error)->message);
+  g_warning (G_STRLOC ": %s: %s", G_STRFUNC, (*error)->message);
+
+  if (input)
+    g_object_unref (input);
+
+  return NULL;
+}
+
+/**
+ * hwp_hwp5_file_new_for_uri:
+ * @uri: a UTF-8 string containing a URI
+ * @error: location to store the error occurring, or %NULL to ignore
+ *
+ * Creates a new #HwpHWP5File.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
+ * domains.
+ *
+ * Returns: A newly created #HwpHWP5File, or %NULL
+ *
+ * Since: 2016.05.12
+ */
+HwpHWP5File *hwp_hwp5_file_new_for_uri (const gchar *uri, GError **error)
+{
+  g_return_val_if_fail (uri != NULL, NULL);
+
+  GsfInput  *input;
+  GsfInfile *olefile;
+
+  if ((input = gsf_input_gio_new_for_uri (uri, error))) {
+    if ((olefile = gsf_infile_msole_new (input, error))) {
+      HwpHWP5File *file   = g_object_new (HWP_TYPE_HWP5_FILE, NULL);
+      file->priv->olefile = olefile;
+      g_object_unref (input);
+      make_stream (file, error);
+      return file;
+    }
+  }
+
+  g_warning (G_STRLOC ": %s: %s", G_STRFUNC, (*error)->message);
 
   if (input)
     g_object_unref (input);

@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-file.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -126,6 +127,20 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
     return FALSE;
 }
 
+static const guint8 signature_ole[] =
+{
+  0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
+};
+
+static const guint8 signature_v3[] =
+{
+  /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
+  0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
+  0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
+  0x65, 0x20, 0x56, 0x33, 0x2e, 0x30, 0x30, 0x20,
+  0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
+};
+
 /**
  * hwp_file_new_for_path:
  * @path: path of the file to load
@@ -142,21 +157,6 @@ static gboolean is_hwpml (gchar *haystack, gsize haystack_len)
 HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
 {
   g_return_val_if_fail (path != NULL, NULL);
-
-  /* check signature */
-  guint8 signature_ole[] =
-  {
-    0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1
-  };
-
-  guint8 signature_v3[] =
-  {
-    /* HWP Document File V3.00 \x1a\1\2\3\4\5 */
-    0x48, 0x57, 0x50, 0x20, 0x44, 0x6f, 0x63, 0x75,
-    0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x69, 0x6c,
-    0x65, 0x20, 0x56, 0x33, 0x2e, 0x30, 0x30, 0x20,
-    0x1a, 0x01, 0x02, 0x03, 0x04, 0x05
-  };
 
   GFile            *file   = g_file_new_for_path (path);
   GFileInputStream *stream = g_file_read (file, NULL, error);
@@ -189,6 +189,53 @@ HwpFile *hwp_file_new_for_path (const gchar *path, GError **error)
   }
 
   g_free(buffer);
+  return retval;
+}
+
+/**
+ * hwp_file_new_for_uri:
+ * @uri: a UTF-8 string containing a URI
+ * @error: location to store the error occurring, or %NULL to ignore
+ *
+ * Creates a new #HwpFile.  If %NULL is returned, then @error will be
+ * set. Possible errors include those in the #HWP_ERROR and #HWP_FILE_ERROR
+ * domains.
+ *
+ * Return value: A newly created #HwpFile, or %NULL
+ *
+ * Since: 2016.05.12
+ */
+HwpFile *hwp_file_new_for_uri (const gchar *uri, GError **error)
+{
+  g_return_val_if_fail (uri != NULL, NULL);
+
+  GFile            *file   = g_file_new_for_uri (uri);
+  GFileInputStream *stream = g_file_read (file, NULL, error);
+  g_object_unref (file);
+
+  if (*error)
+    return NULL;
+
+  gsize bytes_read = 0;
+  guint8 *buffer = g_malloc0 (4096);
+  g_input_stream_read_all (G_INPUT_STREAM(stream), buffer, 4096,
+                           &bytes_read, NULL, error);
+  g_object_unref (stream);
+
+  HwpFile *retval = NULL;
+
+  if (memcmp(buffer, signature_ole, sizeof(signature_ole)) == 0)
+    retval = HWP_FILE (hwp_hwp5_file_new_for_uri (uri, error));
+  else if (memcmp(buffer, signature_v3, sizeof(signature_v3)) == 0)
+    retval = HWP_FILE (hwp_hwp3_file_new_for_uri (uri, error));
+  else if (is_hwpml((gchar *) buffer, bytes_read))
+    retval = HWP_FILE (hwp_hwpml_file_new_for_uri (uri, error));
+  else
+    g_set_error (error, HWP_FILE_ERROR, HWP_FILE_ERROR_INVALID,
+                        "invalid hwp file");
+
+  g_free(buffer);
+
   return retval;
 }
 
