@@ -58,27 +58,20 @@ libhwp_la_SOURCES =     \
 	$(INST_H_FILES)     \
 	$(NULL)
 
-libhwp_la_CPPFLAGS =        \
-	-DG_LOG_DOMAIN=\"HWP\"  \
-	-DHWP_COMPILATION       \
-	$(AM_CPPFLAGS)          \
+libhwp_la_CFLAGS = \
+	-Wall -Werror \
+	-DG_LOG_DOMAIN=\"HWP\" \
+	-DHWP_COMPILATION \
+	$(LIBHWP_DEPS_CFLAGS) \
+	$(HWP_DEBUG_FLAGS) \
 	$(NULL)
 
-libhwp_la_CFLAGS =      \
-	-Wall               \
-	$(LIBHWP_DEPS_CFLAGS)   \
-	$(HWP_DEBUG_FLAGS)  \
-	$(AM_CFLAGS)        \
-	$(NULL)
-
-libhwp_la_LDFLAGS =                      \
+libhwp_la_LDFLAGS = \
 	-version-info $(HWP_LT_VERSION_INFO) \
-	-no-undefined                        \
-	-export-symbols-regex "^hwp_*"       \
-	$(AM_LDFLAGS)                        \
+	-no-undefined \
+	-export-symbols-regex "^hwp_*" \
+	$(LIBHWP_DEPS_LIBS) \
 	$(NULL)
-
-libhwp_la_LIBADD = $(LIBHWP_DEPS_LIBS)
 
 EXTRA_DIST =                  \
 	hwp-enum-types.c.template \
@@ -102,11 +95,10 @@ hwp-enum-types.c: $(hwp_headers) hwp-enum-types.c.template
 	$(AM_V_GEN) glib-mkenums --identifier-prefix Hwp --template \
 	    hwp-enum-types.c.template $(hwp_headers) > hwp-enum-types.c
 
-if HAVE_INTROSPECTION
-
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) --warn-all \
+INTROSPECTION_SCANNER_ARGS  = --add-include-path=$(srcdir) \
+                              --warn-all --warn-error \
                               --identifier-prefix=Hwp --symbol-prefix=hwp
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
@@ -114,7 +106,7 @@ introspection_sources = $(filter-out $(NOINST_H_FILES), gsf-input-stream.c $(lib
 
 Hwp-0.1.gir: libhwp.la
 Hwp_0_1_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
-Hwp_0_1_gir_CFLAGS = $(libhwp_la_CPPFLAGS) $(LIBHWP_DEPS_CFLAGS)
+Hwp_0_1_gir_CFLAGS = $(libhwp_la_CFLAGS)
 Hwp_0_1_gir_LIBS = libhwp.la
 Hwp_0_1_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
 
@@ -127,7 +119,5 @@ typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
-
-endif
 
 DISTCLEANFILES = Makefile.in
