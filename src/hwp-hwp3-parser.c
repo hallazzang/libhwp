@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-hwp3-parser.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2013-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -110,6 +111,9 @@ gboolean hwp_hwp3_parser_skip (HwpHWP3Parser *parser, guint16 count)
 {
   g_return_val_if_fail (parser != NULL, FALSE);
 
+  if (G_UNLIKELY (count == 0))
+    return TRUE;
+
   gboolean is_success = FALSE;
   guint8  *buf        = g_malloc (count);
 
@@ -195,13 +199,17 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
       hwp_hwp3_parser_read_uint16 (parser, &c);
       count += 2;
 
-      if (c != 0)
+      if (G_LIKELY (c != 0))
       {
         gchar *str = hwp_hnchar_to_utf8 (c);
         g_string_append (string[i], str);
         g_free (str);
-      } else {
-        hwp_hwp3_parser_skip (parser, 112 - count);
+      }
+      else
+      {
+        if (G_UNLIKELY (count < 112))
+          hwp_hwp3_parser_skip (parser, 112 - count);
+
         break;
       }
     }
