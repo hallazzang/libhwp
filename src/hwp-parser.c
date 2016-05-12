@@ -1,20 +1,22 @@
-/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
+/* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-parser.c
- * Copyright (C) 2014 Hodong Kim <hodong@cogno.org>
+ * This file is part of the libhwp project.
  *
- * hwp-parser.c is free software: you can redistribute it and/or modify it
+ * Copyright (C) 2014-2016 Hodong Kim <cogniti@gmail.com>
+ *
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * hwp-parser.c is distributed in the hope that it will be useful, but
+ *
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "hwp-parser.h"
@@ -78,21 +80,21 @@ void hwp_parser_parse (HwpParser *parser, HwpFile *file, GError **error)
   if (HWP_IS_HWP5_FILE (file))
   {
     HwpHWP5Parser *parser5;
-    parser5 = hwp_hwp5_parser_new (parser->listenable, NULL);
+    parser5 = hwp_hwp5_parser_new (parser->listenable, parser->user_data);
     hwp_hwp5_parser_parse (parser5, HWP_HWP5_FILE (file), error);
     g_object_unref (parser5);
   }
   else if (HWP_IS_HWPML_FILE (file))
   {
     HwpHWPMLParser *parser_ml;
-    parser_ml = hwp_hwpml_parser_new (parser->listenable, NULL);
+    parser_ml = hwp_hwpml_parser_new (parser->listenable, parser->user_data);
     hwp_hwpml_parser_parse (parser_ml, HWP_HWPML_FILE (file), error);
     g_object_unref (parser_ml);
   }
   else if (HWP_IS_HWP3_FILE (file))
   {
     HwpHWP3Parser *parser3;
-    parser3 = hwp_hwp3_parser_new (parser->listenable, NULL);
+    parser3 = hwp_hwp3_parser_new (parser->listenable, parser->user_data);
     hwp_hwp3_parser_parse (parser3, HWP_HWP3_FILE (file), error);
     g_object_unref (parser3);
   }
