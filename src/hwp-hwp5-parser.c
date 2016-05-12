@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-hwp5-parser.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -490,7 +491,7 @@ static void hwp_hwp5_parser_parse_doc_info (HwpHWP5Parser *parser,
         parser_read_uint8 (parser, &hwp_face_name->prop1, error);
         parser_read_uint16 (parser, &hwp_face_name->len1, error);
 
-        GString *gstr = g_string_new (NULL);
+        GString *gstr = g_string_new ("");
         gunichar2 unichar;
 
         for (guint16 i = 0; i < hwp_face_name->len1; i++)
@@ -1341,11 +1342,11 @@ static HwpParagraph *hwp_hwp5_parser_build_paragraph (HwpHWP5Parser *parser,
           }
 
           gint prev_index = 0;
-          GString *string = g_string_new (NULL);
+          GString *string = g_string_new ("");
 
           for (guint j = 0; j < paragraph->m_len; j++)
           {
-            GString *substring = g_string_new (NULL);
+            GString *substring = g_string_new ("");
             guint32 pos1, pos2;
             pos1 = paragraph->m_pos[j];
 

@@ -192,7 +192,7 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
   for (guint i = 0; i < 9; i++)
   {
     count = 0;
-    string[i] = g_string_new (NULL);
+    string[i] = g_string_new ("");
 
     while (count < 112)
     {
@@ -202,7 +202,10 @@ static void _hwp_hwp3_parser_parse_summary_info (HwpHWP3Parser *parser,
       if (G_LIKELY (c != 0))
       {
         gchar *str = hwp_hnchar_to_utf8 (c);
-        g_string_append (string[i], str);
+
+        if (str)
+          g_string_append (string[i], str);
+
         g_free (str);
       }
       else
@@ -372,7 +375,7 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
   }
 
   HwpParagraph *paragraph = hwp_paragraph_new ();
-  GString      *string    = g_string_new (NULL);
+  GString      *string    = g_string_new ("");
 
   HwpListenableInterface *iface;
   iface = HWP_LISTENABLE_GET_IFACE (parser->listenable);
@@ -474,7 +477,10 @@ static gboolean _hwp_hwp3_parser_parse_paragraph (HwpHWP3Parser *parser,
       continue;
     } else if (c >= 0x0020 && c <= 0xffff) {
       gchar *tmp = hwp_hnchar_to_utf8 (c);
-      g_string_append (string, tmp);
+
+      if (tmp)
+        g_string_append (string, tmp);
+
       g_free (tmp);
       continue;
     } else {

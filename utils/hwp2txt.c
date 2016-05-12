@@ -1,21 +1,22 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp2txt.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2014-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This software is free software; you can redistribute it and/or modify
+ * The libhwp is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * This software is distributed in the hope that it will be useful,
+ * The libhwp is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; If not, see <http://www.gnu.org/licenses/>.
+ * along with this program;  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdio.h>
@@ -111,8 +112,6 @@ void listen_paragraph (HwpListenable *listenable,
   HwpToTxt *hwp2txt = HWP_TO_TXT (listenable);
 
   const gchar *text = hwp_paragraph_get_text (paragraph);
-  if (text == NULL)
-    text = "\n";
 
   if (hwp2txt->output_stream)
   {
