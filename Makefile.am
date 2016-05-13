@@ -14,7 +14,8 @@ DISTCLEANFILES = \
 	aclocal.m4 \
 	config.h.in \
 	config.h.in~ \
-	configure
+	configure \
+	gtk-doc.make
 
 clean-local:
 	-debian/rules clean
