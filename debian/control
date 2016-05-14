@@ -30,6 +30,26 @@ Description: handling and rendering Hwp documents (library)
  .
  This package contains:
   * libraries
-  * development files
   * API documentation
   * command line utilities: hwp2txt, unhwp
+
+Package: libhwp-dev
+Section: libdevel
+Architecture: any
+Depends: ${misc:Depends},
+         libhwp4 (= ${binary:Version}),
+         libgsf-1-dev,
+         libcairo2-dev,
+         libpango1.0-dev,
+         libpoppler-glib-dev,
+         libxml2-dev,
+         libgirepository1.0-dev,
+         libglib2.0-dev,
+         libssl-dev
+Description: handling and rendering HWP documents (development files)
+ The libhwp is a parser and renderer library for hwp documents.
+ .
+ Hwp is a document file format developed by Hancom for word processing
+ documents.
+ .
+ This package contains the development files.

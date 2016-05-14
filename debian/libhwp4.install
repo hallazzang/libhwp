@@ -1,0 +1,5 @@
+usr/bin/
+usr/lib/*/girepository-1.0/
+usr/lib/*/lib*.so.*
+usr/share/man/
+usr/share/locale/
