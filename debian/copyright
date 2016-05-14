@@ -3,7 +3,7 @@ Upstream-Name: libhwp
 Source: https://github.com/cogniti/libhwp
 
 Files: *
-Copyright: 2012-2014 Hodong Kim <hodong@cogno.org>
+Copyright: 2012-2016 Hodong Kim <cogniti@gmail.com>
 License: LGPL-3+
 
 Files: src/hwp2pdf.c
@@ -15,7 +15,7 @@ Files: src/hwp2pdf.c
        src/hwp-page.h
        src/hwp-render.c
        src/hwp-render.h
-Copyright: 2012-2014 Hodong Kim <hodong@cogno.org>
+Copyright: 2012-2016 Hodong Kim <cogniti@gmail.com>
 License: GPL-2+
 
 License: GPL-2+

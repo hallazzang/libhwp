@@ -15,5 +15,6 @@ override_dh_autoreconf:
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-gtk-doc
 
-override_dh_strip:
-	dh_strip --dbg-package=libhwp-dbg
+override_dh_auto_install:
+	dh_auto_install
+	find $(CURDIR)/debian/ -name \*.la -delete
