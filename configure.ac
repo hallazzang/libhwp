@@ -2,9 +2,9 @@
 # Versioning
 # *****************************************************************************
 
-m4_define([hwp_major_version],[0])
-m4_define([hwp_minor_version],[1])
-m4_define([hwp_micro_version],[4])
+m4_define([hwp_major_version],[2016])
+m4_define([hwp_minor_version],[05])
+m4_define([hwp_micro_version],[14])
 m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 
 # Libtool versioning. The backend and view libraries have separate versions.
@@ -17,11 +17,10 @@ m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 # - If the interface is the same as the previous version, change to C:R+1:A
 
 # Libtool version
-m4_define([hwp_lt_current], [5])
+m4_define([hwp_lt_current], [6])
 m4_define([hwp_lt_revision],[2])
-m4_define([hwp_lt_age],     [1])
+m4_define([hwp_lt_age],     [2])
 m4_define([hwp_lt_version_info],[hwp_lt_current:hwp_lt_revision:hwp_lt_age])
-m4_define([hwp_lt_current_minus_age],[m4_eval(hwp_lt_current - hwp_lt_age)])
 
 # *****************************************************************************
 
@@ -75,7 +74,6 @@ AC_SUBST([HWP_MINOR_VERSION],[hwp_minor_version])
 AC_SUBST([HWP_MICRO_VERSION],[hwp_micro_version])
 
 AC_SUBST([HWP_LT_VERSION_INFO],[hwp_lt_version_info])
-AC_SUBST([HWP_LT_CURRENT_MINUS_AGE],[hwp_lt_current_minus_age])
 
 # **********************************
 

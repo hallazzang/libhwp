@@ -1,3 +1,20 @@
+libhwp (2016.05.14) stable; urgency=medium
+
+  * Pass parser->user_data
+  * Use NULL-safe string
+  * Added *_file_new_for_uri()
+  * Fixed invaild skip
+  * Removed hwp2pdf, hwp2svg
+  * 프로젝트 홈페이지 변경
+  * hwp-charset.h has been dedicated to the public domain in 2015
+  * fix decryption distribution file
+  * Added spaces
+  * Fixed segmentation fault
+  * Renamed HwpListener to HwpListenable
+  * Updated rendering of table and color
+
+ -- Hodong Kim <cogniti@gmail.com>  Sat, 14 May 2016 15:50:09 +0900
+
 libhwp (0.1.4) UNRELEASED; urgency=low
 
   * Fixed segmentation fault

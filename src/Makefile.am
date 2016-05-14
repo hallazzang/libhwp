@@ -104,13 +104,13 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 introspection_sources = $(filter-out $(NOINST_H_FILES), gsf-input-stream.c $(libhwp_la_SOURCES))
 
-Hwp-0.1.gir: libhwp.la
-Hwp_0_1_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
-Hwp_0_1_gir_CFLAGS = $(libhwp_la_CFLAGS)
-Hwp_0_1_gir_LIBS = libhwp.la
-Hwp_0_1_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
+Hwp-2016.05.gir: libhwp.la
+Hwp_2016_05_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
+Hwp_2016_05_gir_CFLAGS = $(libhwp_la_CFLAGS)
+Hwp_2016_05_gir_LIBS = libhwp.la
+Hwp_2016_05_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))
 
-INTROSPECTION_GIRS += Hwp-0.1.gir
+INTROSPECTION_GIRS += Hwp-2016.05.gir
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
