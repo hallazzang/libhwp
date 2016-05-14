@@ -4,7 +4,7 @@
 
 m4_define([hwp_major_version],[2016])
 m4_define([hwp_minor_version],[05])
-m4_define([hwp_micro_version],[14])
+m4_define([hwp_micro_version],[15])
 m4_define([hwp_version],[hwp_major_version.hwp_minor_version.hwp_micro_version])
 
 # Libtool versioning. The backend and view libraries have separate versions.

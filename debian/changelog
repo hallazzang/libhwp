@@ -1,3 +1,9 @@
+libhwp (2016.05.15) stable; urgency=medium
+
+  * Updated debian files
+
+ -- Hodong Kim <cogniti@gmail.com>  Sun, 15 May 2016 01:39:33 +0900
+
 libhwp (2016.05.14) stable; urgency=medium
 
   * Pass parser->user_data
