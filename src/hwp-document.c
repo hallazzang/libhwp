@@ -1,8 +1,9 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-document.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
  * This library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -668,8 +669,6 @@ gchar *hwp_document_get_hwp_version_string (HwpDocument *document)
  * @minor_version: (out) (allow-none): return location for the HWP minor version number
  * @micro_version: (out) (allow-none): return location for the HWP micro version number
  * @extra_version: (out) (allow-none): return location for the HWP extra version number
- *
- * Returns: the major and minor and micro and extra HWP version numbers
  *
  * Since: 0.0.1
  */

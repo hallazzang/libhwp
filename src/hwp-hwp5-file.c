@@ -118,8 +118,6 @@ gboolean hwp_hwp5_file_check_version (HwpHWP5File *file,
  * @micro_version: (out) (allow-none): return location for the HWP micro version number
  * @extra_version: (out) (allow-none): return location for the HWP extra version number
  *
- * Returns: the major, minor, micro and extra HWP version numbers
- *
  * Since: 0.0.1
  */
 void hwp_hwp5_file_get_hwp_version (HwpFile *file,

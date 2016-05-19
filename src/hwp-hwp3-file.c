@@ -107,12 +107,10 @@ gchar *hwp_hwp3_file_get_hwp_version_string (HwpFile *file)
 /**
  * hwp_hwp3_file_get_hwp_version:
  * @file: a #HwpFile
- * @major_version:
- * @minor_version:
- * @micro_version:
- * @extra_version:
- *
- * Returns:
+ * @major_version: (out) (allow-none): return location for the HWP major version number
+ * @minor_version: (out) (allow-none): return location for the HWP minor version number
+ * @micro_version: (out) (allow-none): return location for the HWP micro version number
+ * @extra_version: (out) (allow-none): return location for the HWP extra version number
  *
  * Since: 0.0.1
  **/

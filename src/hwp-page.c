@@ -1,8 +1,9 @@
 /* -*- Mode: C; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*- */
 /*
  * hwp-page.c
+ * This file is part of the libhwp project.
  *
- * Copyright (C) 2012-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
  * This library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +27,8 @@ G_DEFINE_TYPE (HwpPage, hwp_page, G_TYPE_OBJECT);
 /**
  * hwp_page_get_size:
  * @page: #HwpPage
- * @width:
- * @height:
- *
- * Returns:
+ * @width: location to store the width set on page, or %NULL.
+ * @height: location to store the height set on page, or %NULL.
  *
  * Since: 0.0.1
  */
