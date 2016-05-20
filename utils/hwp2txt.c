@@ -104,10 +104,10 @@ void hwp_to_txt_convert (HwpToTxt  *hwp2txt,
   g_object_unref (hwpfile);
 }
 
-void listen_paragraph (HwpListenable *listenable,
-                       HwpParagraph  *paragraph,
-                       gpointer       user_data,
-                       GError       **error)
+void on_paragraph (HwpListenable *listenable,
+                   HwpParagraph  *paragraph,
+                   gpointer       user_data,
+                   GError       **error)
 {
   HwpToTxt *hwp2txt = HWP_TO_TXT (listenable);
 
@@ -128,7 +128,7 @@ void listen_paragraph (HwpListenable *listenable,
 
 static void hwp_to_txt_iface_init (HwpListenableInterface *iface)
 {
-  iface->paragraph = listen_paragraph;
+  iface->paragraph = on_paragraph;
 }
 
 int main (int argc, char *argv[])

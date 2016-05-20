@@ -732,13 +732,13 @@ static void hwp_document_init (HwpDocument *document)
 }
 
 /* callback */
-static void hwp_document_listen_version (HwpListenable *listenable,
-                                         guint8         major_version,
-                                         guint8         minor_version,
-                                         guint8         micro_version,
-                                         guint8         extra_version,
-                                         gpointer       user_data,
-                                         GError       **error)
+static void on_version (HwpListenable *listenable,
+                        guint8         major_version,
+                        guint8         minor_version,
+                        guint8         micro_version,
+                        guint8         extra_version,
+                        gpointer       user_data,
+                        GError       **error)
 {
   HwpDocument *document   = (HwpDocument *) listenable;
   document->major_version = major_version;
@@ -839,57 +839,57 @@ void hwp_document_add_bin_data (HwpDocument *document, HwpBinData *bin_data)
 }
 
 /* callback */
-static void hwp_document_listen_paragraph (HwpListenable *listenable,
-                                           HwpParagraph  *paragraph,
-                                           gpointer       user_data,
-                                           GError       **error)
+static void on_paragraph (HwpListenable *listenable,
+                          HwpParagraph  *paragraph,
+                          gpointer       user_data,
+                          GError       **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_paragraph (document, paragraph);
 }
 
 static void
-hwp_document_listen_summary_info (HwpListenable  *listenable,
-                                  HwpSummaryInfo *info,
-                                  gpointer        user_data,
-                                  GError        **error)
+on_summary_info (HwpListenable  *listenable,
+                 HwpSummaryInfo *info,
+                 gpointer        user_data,
+                 GError        **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
 
   document->info = info;
 }
 
-static void hwp_document_listen_char_shape (HwpListenable *listenable,
-                                            HwpCharShape  *char_shape,
-                                            gpointer       user_data,
-                                            GError       **error)
+static void on_char_shape (HwpListenable *listenable,
+                           HwpCharShape  *char_shape,
+                           gpointer       user_data,
+                           GError       **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_char_shape (document, char_shape);
 }
 
-static void hwp_document_listen_para_shape (HwpListenable *listenable,
-                                            HwpParaShape  *para_shape,
-                                            gpointer       user_data,
-                                            GError       **error)
+static void on_para_shape (HwpListenable *listenable,
+                           HwpParaShape  *para_shape,
+                           gpointer       user_data,
+                           GError       **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_para_shape (document, para_shape);
 }
 
-static void hwp_document_listen_face_name (HwpListenable *listenable,
-                                           HwpFaceName   *face_name,
-                                           gpointer       user_data,
-                                           GError       **error)
+static void on_face_name (HwpListenable *listenable,
+                          HwpFaceName   *face_name,
+                          gpointer       user_data,
+                          GError       **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_face_name (document, face_name);
 }
 
-static void hwp_document_listen_bin_data (HwpListenable *listenable,
-                                          HwpBinData    *bin_data,
-                                          gpointer       user_data,
-                                          GError       **error)
+static void on_bin_data (HwpListenable *listenable,
+                         HwpBinData    *bin_data,
+                         gpointer       user_data,
+                         GError       **error)
 {
   HwpDocument *document = HWP_DOCUMENT (listenable);
   hwp_document_add_bin_data (document, bin_data);
@@ -898,11 +898,11 @@ static void hwp_document_listen_bin_data (HwpListenable *listenable,
 static void
 hwp_document_listenable_iface_init (HwpListenableInterface *iface)
 {
-  iface->document_version = hwp_document_listen_version;
-  iface->char_shape       = hwp_document_listen_char_shape;
-  iface->para_shape       = hwp_document_listen_para_shape;
-  iface->face_name        = hwp_document_listen_face_name;
-  iface->bin_data         = hwp_document_listen_bin_data;
-  iface->paragraph        = hwp_document_listen_paragraph;
-  iface->summary_info     = hwp_document_listen_summary_info;
+  iface->document_version = on_version;
+  iface->char_shape       = on_char_shape;
+  iface->para_shape       = on_para_shape;
+  iface->face_name        = on_face_name;
+  iface->bin_data         = on_bin_data;
+  iface->paragraph        = on_paragraph;
+  iface->summary_info     = on_summary_info;
 }
