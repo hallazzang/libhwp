@@ -6,9 +6,6 @@ Build-Depends: debhelper (>= 9),
                dh-autoreconf,
                gtk-doc-tools,
                libgsf-1-dev,
-               libcairo2-dev,
-               libpango1.0-dev,
-               libpoppler-glib-dev,
                libxml2-dev,
                libgirepository1.0-dev,
                libglib2.0-dev,
@@ -22,11 +19,10 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Pre-Depends: ${misc:Pre-Depends}
 Suggests: fonts-noto-cjk
-Description: handling and rendering Hwp documents (library)
- The libhwp is a parser and renderer library for hwp documents.
+Description: handling Hwp documents (library)
+ The libhwp is a parser library for hwp documents.
  .
- Hwp is a document file format developed by Hancom for word processing
- documents.
+ Hwp is a document file format developed by Hancom.
  .
  This package contains:
   * the shared libraries
@@ -40,17 +36,13 @@ Architecture: any
 Depends: ${misc:Depends},
          libhwp4 (= ${binary:Version}),
          libgsf-1-dev,
-         libcairo2-dev,
-         libpango1.0-dev,
-         libpoppler-glib-dev,
          libxml2-dev,
          libgirepository1.0-dev,
          libglib2.0-dev,
          libssl-dev
-Description: handling and rendering Hwp documents (development files)
- The libhwp is a parser and renderer library for hwp documents.
+Description: handling Hwp documents (development files)
+ The libhwp is a parser library for hwp documents.
  .
- Hwp is a document file format developed by Hancom for word processing
- documents.
+ Hwp is a document file format developed by Hancom.
  .
  This package contains the development files and API documentation.
