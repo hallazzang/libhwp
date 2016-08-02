@@ -78,22 +78,6 @@ void hwp_file_get_hwp_version (HwpFile *file,
 }
 
 /**
- * hwp_file_get_document:
- * @file: a #HwpFile
- * @error: location to store the error occurring, or %NULL to ignore
- *
- * Return value: (transfer full): A #HwpDocument, or %NULL
- *
- * Since: 0.0.1
- */
-HwpDocument *hwp_file_get_document (HwpFile *file, GError **error)
-{
-  g_return_val_if_fail (HWP_IS_FILE (file), NULL);
-
-  return HWP_FILE_GET_CLASS (file)->get_document (file, error);
-}
-
-/**
  * hwp_file_get_hwp_version_string:
  * @file:
  *

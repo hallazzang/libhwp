@@ -77,9 +77,6 @@ void          hwp_hwpml_file_get_hwp_version        (HwpFile     *file,
                                                      guint8      *minor_version,
                                                      guint8      *micro_version,
                                                      guint8      *extra_version);
-HwpDocument  *hwp_hwpml_file_get_document           (HwpFile     *file,
-                                                     GError     **error);
-
 G_END_DECLS
 
 #endif /* __HWP_HWPML_FILE_H__ */

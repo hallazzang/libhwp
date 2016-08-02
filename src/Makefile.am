@@ -1,11 +1,7 @@
-# -*- Mode: makefile-gmake; tab-width: 4; indent-tabs-mode: t -*-
-## Process this file with automake to produce Makefile.in
-
 lib_LTLIBRARIES = libhwp.la
 
 INST_H_FILES =          \
 	hwp-charset.h       \
-	hwp-document.h      \
 	hwp-enums.h         \
 	hwp-enum-types.h    \
 	hwp-file.h          \
@@ -18,7 +14,6 @@ INST_H_FILES =          \
 	hwp-hwpml-parser.h  \
 	hwp-listenable.h    \
 	hwp-models.h        \
-	hwp-page.h          \
 	hwp-parser.h        \
 	hwp-version.h       \
 	$(NULL)
@@ -40,7 +35,6 @@ BUILT_SOURCES =      \
 libhwp_la_SOURCES =     \
 	gsf-input-stream.c  \
 	hwp-charset.c       \
-	hwp-document.c      \
 	hwp-enums.c         \
 	hwp-enum-types.c    \
 	hwp-file.c          \
@@ -52,7 +46,6 @@ libhwp_la_SOURCES =     \
 	hwp-hwpml-parser.c  \
 	hwp-listenable.c    \
 	hwp-models.c        \
-	hwp-page.c          \
 	hwp-parser.c        \
 	$(NOINST_H_FILES)   \
 	$(INST_H_FILES)     \

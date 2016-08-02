@@ -2,14 +2,14 @@
 /*
  * hwp-models.c
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
@@ -380,7 +380,7 @@ void hwp_table_cell_add_paragraph (HwpTableCell *cell, HwpParagraph *paragraph)
   g_ptr_array_add (cell->paragraphs, paragraph);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpSecd, hwp_secd, hwp_secd_copy, hwp_secd_free)
+G_DEFINE_BOXED_TYPE (HwpSecd, hwp_secd, hwp_secd_copy, hwp_secd_free)
 
 /**
  * hwp_secd_new:
@@ -435,10 +435,8 @@ void hwp_secd_free (HwpSecd *secd)
     g_slice_free (HwpSecd, secd);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpFaceName,
-                       hwp_face_name,
-                       hwp_face_name_copy,
-                       hwp_face_name_free)
+G_DEFINE_BOXED_TYPE (HwpFaceName, hwp_face_name,
+                     hwp_face_name_copy, hwp_face_name_free)
 
 HwpFaceName *hwp_face_name_new ()
 {
@@ -458,10 +456,8 @@ void hwp_face_name_free (HwpFaceName *face_name)
   g_slice_free (HwpFaceName, face_name);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpCharShape,
-                       hwp_char_shape,
-                       hwp_char_shape_copy,
-                       hwp_char_shape_free)
+G_DEFINE_BOXED_TYPE (HwpCharShape, hwp_char_shape,
+                     hwp_char_shape_copy, hwp_char_shape_free)
 
 HwpCharShape *hwp_char_shape_new ()
 {
@@ -480,10 +476,8 @@ void hwp_char_shape_free (HwpCharShape *char_shape)
   g_slice_free (HwpCharShape, char_shape);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpParaShape,
-                       hwp_para_shape,
-                       hwp_para_shape_copy,
-                       hwp_para_shape_free)
+G_DEFINE_BOXED_TYPE (HwpParaShape, hwp_para_shape,
+                     hwp_para_shape_copy, hwp_para_shape_free)
 
 HwpParaShape *hwp_para_shape_new ()
 {
@@ -502,10 +496,8 @@ void hwp_para_shape_free (HwpParaShape *para_shape)
   g_slice_free (HwpParaShape, para_shape);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpBinData,
-                       hwp_bin_data,
-                       hwp_bin_data_copy,
-                       hwp_bin_data_free)
+G_DEFINE_BOXED_TYPE (HwpBinData, hwp_bin_data,
+                     hwp_bin_data_copy, hwp_bin_data_free)
 
 HwpBinData *hwp_bin_data_new ()
 {
@@ -525,10 +517,8 @@ void hwp_bin_data_free (HwpBinData *bin_data)
   g_slice_free (HwpBinData, bin_data);
 }
 
-HWP_DEFINE_BOXED_TYPE (HwpCommonProperty,
-                       hwp_common_property,
-                       hwp_common_property_copy,
-                       hwp_common_property_free)
+G_DEFINE_BOXED_TYPE (HwpCommonProperty, hwp_common_property,
+                     hwp_common_property_copy, hwp_common_property_free)
 
 HwpCommonProperty *hwp_common_property_new ()
 {
@@ -545,4 +535,207 @@ HwpCommonProperty *hwp_common_property_copy (HwpCommonProperty *property)
 void hwp_common_property_free (HwpCommonProperty *property)
 {
   g_slice_free (HwpCommonProperty, property);
+}
+
+G_DEFINE_BOXED_TYPE (HwpPoint, hwp_point, hwp_point_copy, hwp_point_free)
+
+/**
+ * hwp_point_new:
+ * @x: x coordinate
+ * @y: y coordinate
+ *
+ * Creates a new #HwpPoint
+ *
+ * Returns: a new #HwpPoint, use hwp_point_free() to free it
+ */
+HwpPoint *hwp_point_new (gdouble x, gdouble y)
+{
+  HwpPoint *point = g_slice_new0 (HwpPoint);
+  point->x = x;
+  point->y = y;
+  return point;
+}
+
+/**
+ * hwp_point_copy:
+ * @point: a #HwpPoint to copy
+ *
+ * Creates a copy of @point
+ *
+ * Returns: a new allocated copy of @point
+ */
+HwpPoint *hwp_point_copy (HwpPoint *point)
+{
+  g_return_val_if_fail (point != NULL, NULL);
+
+  return g_slice_dup (HwpPoint, point);
+}
+
+/**
+ * hwp_point_free:
+ * @point: a #HwpPoint
+ *
+ * Frees the given #HwpPoint
+ */
+void hwp_point_free (HwpPoint *point)
+{
+  g_slice_free (HwpPoint, point);
+}
+
+/* HwpRectangle type */
+
+G_DEFINE_BOXED_TYPE (HwpRectangle, hwp_rectangle,
+                     hwp_rectangle_copy, hwp_rectangle_free)
+
+/**
+ * hwp_rectangle_new:
+ *
+ * Creates a new #HwpRectangle
+ *
+ * Returns: a new #HwpRectangle, use hwp_rectangle_free() to free it
+ */
+HwpRectangle *hwp_rectangle_new (void)
+{
+  return g_slice_new0 (HwpRectangle);
+}
+
+/**
+ * hwp_rectangle_copy:
+ * @rectangle: a #HwpRectangle to copy
+ *
+ * Creates a copy of @rectangle
+ *
+ * Returns: a new allocated copy of @rectangle
+ */
+HwpRectangle *hwp_rectangle_copy (HwpRectangle *rectangle)
+{
+  g_return_val_if_fail (rectangle != NULL, NULL);
+
+  return g_slice_dup (HwpRectangle, rectangle);
+}
+
+/**
+ * hwp_rectangle_free:
+ * @rectangle: a #HwpRectangle
+ *
+ * Frees the given #HwpRectangle
+ */
+void hwp_rectangle_free (HwpRectangle *rectangle)
+{
+  g_slice_free (HwpRectangle, rectangle);
+}
+
+/* HwpColor type */
+G_DEFINE_BOXED_TYPE (HwpColor, hwp_color, hwp_color_copy, hwp_color_free)
+
+/**
+ * hwp_color_new:
+ *
+ * Creates a new #HwpColor
+ *
+ * Returns: a new #HwpColor, use hwp_color_free() to free it
+ */
+HwpColor *hwp_color_new (void)
+{
+  return (HwpColor *) g_new0 (HwpColor, 1);
+}
+
+/**
+ * hwp_color_copy:
+ * @color: a #HwpColor to copy
+ *
+ * Creates a copy of @color
+ *
+ * Returns: a new allocated copy of @color
+ */
+HwpColor *hwp_color_copy (HwpColor *color)
+{
+  HwpColor *new_color;
+
+  new_color = g_new (HwpColor, 1);
+  *new_color = *color;
+
+  return new_color;
+}
+
+/**
+ * hwp_color_free:
+ * @color: a #HwpColor
+ *
+ * Frees the given #HwpColor
+ */
+void hwp_color_free (HwpColor *color)
+{
+  g_free (color);
+}
+
+/* HwpTextAttributes type */
+
+G_DEFINE_BOXED_TYPE (HwpTextAttributes, hwp_text_attributes,
+                     hwp_text_attributes_copy, hwp_text_attributes_free)
+
+/**
+ * hwp_text_attributes_new:
+ *
+ * Creates a new #HwpTextAttributes
+ *
+ * Returns: a new #HwpTextAttributes, use hwp_text_attributes_free() to free it
+ *
+ * Since: 0.0.4
+ */
+HwpTextAttributes *hwp_text_attributes_new (void)
+{
+  return (HwpTextAttributes *) g_slice_new0 (HwpTextAttributes);
+}
+
+/**
+ * hwp_text_attributes_copy:
+ * @text_attrs: a #HwpTextAttributes to copy
+ *
+ * Creates a copy of @text_attrs
+ *
+ * Returns: a new allocated copy of @text_attrs
+ *
+ * Since: 0.0.4
+ */
+HwpTextAttributes *hwp_text_attributes_copy (HwpTextAttributes *text_attrs)
+{
+  HwpTextAttributes *attrs;
+
+  attrs = g_slice_dup (HwpTextAttributes, text_attrs);
+  attrs->font_name = g_strdup (text_attrs->font_name);
+  return attrs;
+}
+
+/**
+ * hwp_text_attributes_free:
+ * @text_attrs: a #HwpTextAttributes
+ *
+ * Frees the given #HwpTextAttributes
+ *
+ * Since: 0.0.4
+ */
+void hwp_text_attributes_free (HwpTextAttributes *text_attrs)
+{
+  g_free (text_attrs->font_name);
+  g_slice_free (HwpTextAttributes, text_attrs);
+}
+
+/**
+ * hwp_page_free_text_attributes:
+ * @list: (element-type HwpTextAttributes): A list of
+ *   #HwpTextAttributes<!-- -->s
+ *
+ * Frees a list of #HwpTextAttributes<!-- -->s allocated by
+ * hwp_page_get_text_attributes().
+ *
+ * Since: 0.0.4
+ */
+void hwp_page_free_text_attributes (GList *list)
+{
+  if (G_UNLIKELY (list == NULL))
+    return;
+
+  g_list_foreach (list, (GFunc) hwp_text_attributes_free, NULL);
+  g_list_free (list);
 }

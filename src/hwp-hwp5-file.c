@@ -40,34 +40,6 @@
 G_DEFINE_TYPE (HwpHWP5File, hwp_hwp5_file, HWP_TYPE_FILE);
 
 /**
- * hwp_hwp5_file_get_document:
- * @file: a #HwpFile
- * @error: location to store the error occurring, or %NULL to ignore
- *
- * Return value: (transfer full): A #HwpDocument, or %NULL
- *
- * Since: 0.0.1
- */
-HwpDocument *hwp_hwp5_file_get_document (HwpFile *file, GError **error)
-{
-  g_return_val_if_fail (HWP_IS_HWP5_FILE (file), NULL);
-
-  HwpDocument *document = hwp_document_new ();
-
-  HwpHWP5Parser *parser;
-  parser = hwp_hwp5_parser_new (HWP_LISTENABLE (document), document);
-  hwp_hwp5_parser_parse (parser, HWP_HWP5_FILE (file), error);
-  g_object_unref (parser);
-
-  if (*error) {
-    g_object_unref (document);
-    document = NULL;
-  }
-
-  return document;
-}
-
-/**
  * hwp_hwp5_file_check_version:
  * @file: a #HwpHWP5File
  * @major: the major version to check for
@@ -570,7 +542,6 @@ static void hwp_hwp5_file_class_init (HwpHWP5FileClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   g_type_class_add_private (klass, sizeof (HwpHWP5FilePrivate));
   HwpFileClass *file_class           = HWP_FILE_CLASS (klass);
-  file_class->get_document           = hwp_hwp5_file_get_document;
   file_class->get_hwp_version_string = hwp_hwp5_file_get_hwp_version_string;
   file_class->get_hwp_version        = hwp_hwp5_file_get_hwp_version;
   object_class->finalize = hwp_hwp5_file_finalize;

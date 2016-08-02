@@ -1,22 +1,9 @@
-The libhwp is a parser and renderer library for hwp documents.
+The libhwp is a parser library for hwp documents.
+Hwp is a document file format developed by Hancom.
 
 Project Homepage
 ----------------
 https://github.com/cogniti/libhwp
-
-
-What is HWP?
-------------
-HWP is a proprietary document file format developed by Hancom for word
-processing documents.
-
-
-FEATURES
---------
- * extract text in hwp v3, v5, ml file.
- * rendering hwp documents using cairo, pango, poppler
- * bindings based on GObject-Introspection
-   * https://wiki.gnome.org/Projects/GObjectIntrospection/Users
 
 
 LICENSE
@@ -28,22 +15,12 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-Rendering of the libhwp depends on poppler,
-so the license of the libhwp is GPL v2+.
-
-You SHOULD NOT REMOVE the following sentences in source files.
-
-This software has been developed with reference to
-the HWP file format open specification by Hancom, Inc.
-http://www.hancom.co.kr/userofficedata.userofficedataList.do?menuFlag=3
-
 
 INSTALL
 -------
 sudo apt-get update
 sudo apt-get install build-essential git devscripts dh-autoreconf intltool   \
-  libgsf-1-dev libcairo2-dev libpango1.0-dev libpoppler-glib-dev libxml2-dev \
-  libgirepository1.0-dev gtk-doc-tools libssl-dev
+  libgsf-1-dev libxml2-dev libgirepository1.0-dev gtk-doc-tools libssl-dev
 
 git clone https://github.com/cogniti/libhwp.git
 cd libhwp
@@ -53,11 +30,9 @@ ls *.deb
 sudo dpkg -i libhwp*.deb
 
 
-Disclosure
+References
 ----------
 API documentation and function names are derived from the GLib library.
-
-You should NOT REMOVE the following sentences in your work derived from libhwp.
 
 This software has been developed with reference to
 the HWP file format open specification by Hancom, Inc.

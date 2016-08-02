@@ -30,8 +30,6 @@
 #include <gio/gio.h>
 #include <gsf/gsf-infile-msole.h>
 
-#include "hwp-document.h"
-
 G_BEGIN_DECLS
 
 #define HWP_TYPE_FILE             (hwp_file_get_type ())
@@ -52,7 +50,6 @@ struct _HwpFile
 /**
  * HwpFileClass:
  * @parent_class: the parent class
- * @get_document: Gets a #HwpDocument
  * @get_hwp_version_string: a new allocated string containing the HWP version of document file, or %NULL
  * @get_hwp_version: the major, minor, micro and extra HWP version numbers
  *
@@ -60,15 +57,14 @@ struct _HwpFile
  */
 struct _HwpFileClass
 {
-  GObjectClass      parent_class;
+  GObjectClass parent_class;
 
-  HwpDocument *  (* get_document)           (HwpFile *file, GError **error);
-  gchar *        (* get_hwp_version_string) (HwpFile *file);
-  void           (* get_hwp_version)        (HwpFile *file,
-                                             guint8  *major_version,
-                                             guint8  *minor_version,
-                                             guint8  *micro_version,
-                                             guint8  *extra_version);
+  gchar * (* get_hwp_version_string) (HwpFile *file);
+  void    (* get_hwp_version)        (HwpFile *file,
+                                      guint8  *major_version,
+                                      guint8  *minor_version,
+                                      guint8  *micro_version,
+                                      guint8  *extra_version);
 };
 
 /**
@@ -100,8 +96,6 @@ GQuark       hwp_file_error_quark            (void) G_GNUC_CONST;
 HwpFile     *hwp_file_new_for_path           (const gchar *path,
                                               GError     **error);
 HwpFile     *hwp_file_new_for_uri            (const gchar *uri,
-                                              GError     **error);
-HwpDocument *hwp_file_get_document           (HwpFile     *file,
                                               GError     **error);
 gchar       *hwp_file_get_hwp_version_string (HwpFile     *file);
 void         hwp_file_get_hwp_version        (HwpFile     *file,

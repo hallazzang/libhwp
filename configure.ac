@@ -53,8 +53,8 @@ AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 AM_GLIB_GNU_GETTEXT
 
 PKG_CHECK_MODULES(LIBHWP_DEPS,
-                  [libgsf-1 cairo pango pangocairo libxml-2.0 openssl
-                   gobject-2.0 gobject-introspection-1.0 poppler-glib])
+                  [libgsf-1 libxml-2.0 openssl
+                   gobject-2.0 gobject-introspection-1.0])
 
 GOBJECT_INTROSPECTION_CHECK([0.10.1])
 
@@ -101,7 +101,12 @@ fi
 
 AC_SUBST(HWP_DEBUG_FLAGS)
 
-# **********************************
+dnl **********************************
+
+PKG_CHECK_MODULES(HWP2TXT_DEPS, [gio-2.0 libgsf-1])
+PKG_CHECK_MODULES(UNHWP_DEPS,   [libgsf-1])
+
+dnl **********************************
 
 AC_OUTPUT([
     Makefile

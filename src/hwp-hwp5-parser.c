@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include <glib/gi18n-lib.h>
+#include <gsf/gsf-doc-meta-data.h>
 #include <gsf/gsf-input-impl.h>
 #include <gsf/gsf-input-memory.h>
 #include <gsf/gsf-meta-names.h>

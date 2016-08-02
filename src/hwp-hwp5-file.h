@@ -106,8 +106,6 @@ gboolean     hwp_hwp5_file_check_version          (HwpHWP5File *file,
                                                    guint8       minor,
                                                    guint8       micro,
                                                    guint8       extra);
-HwpDocument *hwp_hwp5_file_get_document           (HwpFile     *file,
-                                                   GError     **error);
 void         hwp_hwp5_file_get_hwp_version        (HwpFile     *file,
                                                    guint8      *major_version,
                                                    guint8      *minor_version,

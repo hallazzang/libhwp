@@ -2,14 +2,14 @@
 /*
  * hwp-models.h
  *
- * Copyright (C) 2013-2014 Hodong Kim <hodong@cogno.org>
+ * Copyright (C) 2012-2016 Hodong Kim <cogniti@gmail.com>
  *
- * This library is free software: you can redistribute it and/or modify it
+ * The libhwp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, but
+ * The libhwp is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
@@ -33,7 +33,6 @@
 #define __HWP_MODELS_H__
 
 #include <glib-object.h>
-#include "hwp-page.h"
 
 G_BEGIN_DECLS
 
@@ -303,6 +302,30 @@ HwpSecd *hwp_secd_copy     (HwpSecd *secd);
 void     hwp_secd_free     (HwpSecd *secd);
 
 /**
+ * HwpColor:
+ * @red: the red componment of color
+ * @green: the green component of color
+ * @blue: the blue component of color
+ *
+ * A #HwpColor describes a RGB color. Color components
+ * are values between 0 and 65535
+ */
+typedef struct _HwpColor           HwpColor;
+struct _HwpColor
+{
+  guint16 red;
+  guint16 green;
+  guint16 blue;
+};
+
+#define HWP_TYPE_COLOR                 (hwp_color_get_type ())
+
+GType     hwp_color_get_type (void) G_GNUC_CONST;
+HwpColor *hwp_color_new      (void);
+HwpColor *hwp_color_copy     (HwpColor *color);
+void      hwp_color_free     (HwpColor *color);
+
+/**
  * HwpCharShape:
  * @face_id: face id
  * @ratio: ratio
@@ -478,6 +501,85 @@ GType              hwp_common_property_get_type (void) G_GNUC_CONST;
 HwpCommonProperty *hwp_common_property_new      (void);
 HwpCommonProperty *hwp_common_property_copy     (HwpCommonProperty *prop);
 void               hwp_common_property_free     (HwpCommonProperty *prop);
+
+typedef struct _HwpPoint           HwpPoint;
+typedef struct _HwpRectangle       HwpRectangle;
+typedef struct _HwpTextAttributes  HwpTextAttributes;
+typedef struct _HwpLayout          HwpLayout;
+
+/* A point on a page */
+#define HWP_TYPE_POINT             (hwp_point_get_type ())
+/**
+ * HwpPoint:
+ * @x: x coordinate
+ * @y: y coordinate
+ */
+struct _HwpPoint
+{
+  gdouble x;
+  gdouble y;
+};
+
+GType     hwp_point_get_type (void) G_GNUC_CONST;
+HwpPoint *hwp_point_new      (gdouble x, gdouble y);
+HwpPoint *hwp_point_copy     (HwpPoint  *point);
+void      hwp_point_free     (HwpPoint  *point);
+
+/* A rectangle on a page */
+#define HWP_TYPE_RECTANGLE             (hwp_rectangle_get_type ())
+/**
+ * HwpRectangle:
+ * @x1: x coordinate of lower left corner
+ * @y1: y coordinate of lower left corner
+ * @x2: x coordinate of upper right corner
+ * @y2: y coordinate of upper right corner
+ *
+ * A #HwpRectangle is used to describe
+ * locations on a page and bounding boxes
+ */
+struct _HwpRectangle
+{
+  gdouble x1;
+  gdouble y1;
+  gdouble x2;
+  gdouble y2;
+};
+
+GType         hwp_rectangle_get_type (void) G_GNUC_CONST;
+HwpRectangle *hwp_rectangle_new      (void);
+HwpRectangle *hwp_rectangle_copy     (HwpRectangle *rectangle);
+void          hwp_rectangle_free     (HwpRectangle *rectangle);
+
+/* Text attributes. */
+#define HWP_TYPE_TEXT_ATTRIBUTES       (hwp_text_attributes_get_type ())
+/**
+ * HwpTextAttributes:
+ * @font_name: font name
+ * @font_size: font size
+ * @is_underlined: if text is underlined
+ * @color: a #HwpColor, the foreground color
+ * @start_index: start position this text attributes apply
+ * @end_index: end position this text text attributes apply, the character at end_index is not included
+ *
+ * A #HwpTextAttributes is used to describe text attributes of a range of text
+ *
+ * Since: 0.0.4
+ */
+struct _HwpTextAttributes
+{
+  gchar   *font_name;
+  gdouble  font_size;
+  gboolean is_underlined;
+  HwpColor color;
+
+  gint     start_index;
+  gint     end_index;
+};
+
+GType              hwp_text_attributes_get_type (void) G_GNUC_CONST;
+HwpTextAttributes *hwp_text_attributes_new      (void);
+HwpTextAttributes *hwp_text_attributes_copy     (HwpTextAttributes *text_attrs);
+void               hwp_text_attributes_free     (HwpTextAttributes *text_attrs);
 
 G_END_DECLS
 

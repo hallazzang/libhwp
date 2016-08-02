@@ -105,34 +105,6 @@ void hwp_hwpml_file_get_hwp_version (HwpFile *file,
 
 }
 
-/**
- * hwp_hwpml_file_get_document:
- * @file: a #HwpFile
- * @error: location to store the error occurring, or %NULL to ignore
- *
- * Return value: (transfer full): A #HwpDocument, or %NULL
- *
- * Since: 0.0.1
- */
-HwpDocument *hwp_hwpml_file_get_document (HwpFile *file, GError **error)
-{
-  g_return_val_if_fail (HWP_IS_HWPML_FILE (file), NULL);
-
-  HwpDocument *document = hwp_document_new ();
-  HwpHWPMLParser *parser;
-  parser = hwp_hwpml_parser_new (HWP_LISTENABLE (document), document);
-  hwp_hwpml_parser_parse (parser, HWP_HWPML_FILE (file), error);
-
-  g_object_unref (parser);
-
-  if (*error) {
-    g_object_unref (document);
-    document = NULL;
-  }
-
-  return document;
-}
-
 static void hwp_hwpml_file_init (HwpHWPMLFile *file)
 {
   file->priv = G_TYPE_INSTANCE_GET_PRIVATE (file, HWP_TYPE_HWPML_FILE,
@@ -153,7 +125,6 @@ static void hwp_hwpml_file_class_init (HwpHWPMLFileClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   g_type_class_add_private (klass, sizeof (HwpHWPMLFilePrivate));
   HwpFileClass *hwp_file_class = HWP_FILE_CLASS (klass);
-  hwp_file_class->get_document = hwp_hwpml_file_get_document;
   hwp_file_class->get_hwp_version_string = hwp_hwpml_file_get_hwp_version_string;
   hwp_file_class->get_hwp_version = hwp_hwpml_file_get_hwp_version;
 
