@@ -6,8 +6,8 @@ datadir=@datadir@
 includedir=@includedir@/libhwp
 
 Name: libhwp
-Description: The libhwp is a parser and renderer library for hwp documents.
+Description: The libhwp is a parser library for hwp documents.
 Version: @VERSION@
-Requires: libgsf-1 pangocairo poppler-glib
+Requires: libgsf-1
 Libs: -L${libdir} -lhwp
 Cflags: -I${includedir}

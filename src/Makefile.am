@@ -98,7 +98,7 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 introspection_sources = $(filter-out $(NOINST_H_FILES), gsf-input-stream.c $(libhwp_la_SOURCES))
 
 Hwp-2016.05.gir: libhwp.la
-Hwp_2016_05_gir_INCLUDES = GObject-2.0 Gio-2.0 cairo-1.0 Pango-1.0
+Hwp_2016_05_gir_INCLUDES = GObject-2.0 Gio-2.0
 Hwp_2016_05_gir_CFLAGS = $(libhwp_la_CFLAGS)
 Hwp_2016_05_gir_LIBS = libhwp.la
 Hwp_2016_05_gir_FILES = $(addprefix $(srcdir)/, $(introspection_sources))

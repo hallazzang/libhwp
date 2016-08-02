@@ -67,8 +67,6 @@ G_END_DECLS
  * @HWP_ERROR_OPEN_FILE: File could not be opened for writing when saving document
  * @HWP_ERROR_DAMAGED: Document is damaged
  *
- * Error codes returned by #HwpDocument
- *
  * Since: 0.0.1
  */
 typedef enum
